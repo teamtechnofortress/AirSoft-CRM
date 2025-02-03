@@ -17,8 +17,8 @@ export async function GET(req, res) {
     await connectDb();
     if (req.method === "GET") {
       try {
-        // const users = await User.find();
-        const users = await User.find().populate('role', 'role');
+        const users = await User.find();
+        // const users = await User.find().populate('role', 'role');
 
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
