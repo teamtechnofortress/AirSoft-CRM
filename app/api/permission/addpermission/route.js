@@ -1,5 +1,5 @@
 import { connectDb } from "@/helper/db";
-import Permission from "models/permission";
+import Permission from "@/models/permission";
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
