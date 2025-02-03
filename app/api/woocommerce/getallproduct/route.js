@@ -1,7 +1,9 @@
 
+export const dynamic = 'force-dynamic';
 import WooCommerc from "@/helper/woocommerce";
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
+
 
 
 
