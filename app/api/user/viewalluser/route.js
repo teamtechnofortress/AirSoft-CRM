@@ -19,13 +19,16 @@ export async function GET(req, res) {
       try {
         const users = await User.find();
         // const users = await User.find().populate('role', 'role');
+        
+        // return NextResponse.json({ status: "success", data: users }, { status: 200 });
+        const response = NextResponse.json({ status: "success", data: users }, { status: 200 });
 
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
+        // Set Cache-Control headers to avoid caching
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
 
-
-        return NextResponse.json({ status: "success", data: users }, { status: 200 });
+        return response;
 
         // return res.status(200).json({ status: "success", data: users });
       } catch (error) {
