@@ -10,13 +10,13 @@ const ViewAllUsers = () => {
         try {
             const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/user/viewalluser`,{
               headers: {
-                  'Content-Type': 'application/json',
-                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-                  'Pragma': 'no-cache',
-                  'Expires': '0',
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
               },
               params: {
-                  _t: new Date().getTime(), // Prevent caching by adding a timestamp
+                  _t: new Date().getTime(),
               }
             });
                 // console.log(response.data);
