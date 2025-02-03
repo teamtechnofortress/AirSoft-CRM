@@ -18,7 +18,8 @@ export async function GET(req) {
     await connectDb();
     if (req.method === "GET") {
         try {
-            const roles = await Userrole.find().populate("permissions", "permission");
+            const roles = await Userrole.find();
+            // const roles = await Userrole.find().populate("permissions", "permission");
             // return res.status(200).json({ status: "success", data: roles });
             return NextResponse.json({ status: "success", data: roles }, { status: 200 });
 
