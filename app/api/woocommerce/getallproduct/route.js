@@ -1,21 +1,45 @@
+
+import WooCommerc from "@/helper/woocommerce";
+import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
-import WooCommerceAPI from '@/helper/woocommerce';
 
 
-export async function GET() {
+
+export  async function GET(req, res) {
+  // const token = req.cookies.token;
+
+  // if (!token) {
+  //   res.setHeader('Set-Cookie', 'token=; Max-Age=0; Path=/; HttpOnly');
+  //   return res.status(401).json({ status: "tokenerror", message: 'Token Missing!' });
+  // }
+
   try {
-    // Fetch products from the WooCommerce API
-    const response = await WooCommerceAPI.get("products", {
-      per_page: 100,  // Fetch 100 products per page
-    });
+    // const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const response = await WooCommerc.get("products");
 
-    // Return the data using NextResponse
-    return NextResponse.json({ data: response.data });
+    // console.log("Response:", response.data);
 
+    if (!response || response.status !== 200) {
+      return NextResponse.json({ status: 'error', message: "Failed to fetch products" }, { status: 500 });
+    }else{
+      return NextResponse.json({ data: response.data, message: "Products fetched successfully" }, { status: 200 });
+
+      // return res.status(200).json({
+      //   success: "success",
+      //   message: "Products fetched successfully",
+      //   data: response.data, 
+      // });
+    }
+    
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error("Error:", error);
+    if (error.name === 'TokenExpiredError') {
+      res.setHeader('Set-Cookie', 'token=; Max-Age=0; Path=/; HttpOnly');
+      return NextResponse.json({ status: 'tokenerror', message: "Token Expired!" }, { status: 401 });
 
-    // Return an error message with status 500
-    return NextResponse.json({ message: "Failed to fetch products", error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ status: 'error', message: "Failed to fetch products" }, { status: 500 });
+
   }
 }
+
