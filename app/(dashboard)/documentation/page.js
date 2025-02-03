@@ -73,12 +73,12 @@ const Documentation = () => {
                   {' '}
                   <h4 className="mb-0 fw-bold">Install Dash UI NextJS</h4>
                   <p>
-                    Open the <span>dashui-free-nextjs-admin-template </span>directory with your cmd
+                    Open the <span>air-soft </span>directory with your cmd
                     or terminal. Open the project folder and install its
                     dependencies.{' '}
                   </p>
                   <pre className="prism-code language-jsx mb-2 bg-dark text-white fs-5">
-                    cd dashui-free-nextjs-admin-template{' '}
+                    cd air-soft{' '}
                   </pre>
                   <pre className="prism-code language-jsx mb-2  bg-dark text-white fs-5">
                     npm install{' '}

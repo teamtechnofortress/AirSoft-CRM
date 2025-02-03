@@ -8,12 +8,16 @@ const ViewAllUsers = () => {
     const [loading, setLoading] = useState(true);
     const fetchallusers = async () => {
         try {
-            // const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/user/viewalluser`);
-            const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/user/viewalluser`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/user/viewalluser`,{
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                  'Pragma': 'no-cache',
+                  'Expires': '0',
+              },
+              params: {
+                  _t: new Date().getTime(), // Prevent caching by adding a timestamp
+              }
             });
                 // console.log(response.data);
             if (response.data.status === "success") {

@@ -1,5 +1,5 @@
-import { connectDb } from "@/helper/db";
-import Userrole from "@/models/userrole";
+import { connectDb } from "helper/db";
+import Userrole from "models/userrole";
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
 

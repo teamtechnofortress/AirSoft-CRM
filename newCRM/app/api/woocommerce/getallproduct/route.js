@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import WooCommerceAPI from '@/helper/woocommerce';
+import WooCommerceAPI from 'helper/woocommerce';
 
 
 export async function GET() {
