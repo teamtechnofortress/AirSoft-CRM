@@ -20,7 +20,7 @@ const AddUser = () => {
 
   const fetchallrole = async () =>{
       try {
-          const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/pages/api/userrole/getallrole`);
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/userrole/getallrole`);
           // console.log(response.data);
           setUserRole(response.data.data);
       } catch (error) {
