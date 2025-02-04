@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { connectDb } from "@/helper/db";
 import User from "@/models/User";
 import jwt from 'jsonwebtoken';
@@ -17,7 +18,7 @@ export async function GET(req, res) {
     await connectDb();
     if (req.method === "GET") {
       try {
-        const users = await User.find();
+        const users = await User.find().lean();
         // const users = await User.find().populate('role', 'role');
         
         // return NextResponse.json({ status: "success", data: users }, { status: 200 });

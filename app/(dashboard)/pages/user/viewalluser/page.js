@@ -7,34 +7,34 @@ const ViewAllUsers = () => {
     const [users, setUsers] = useState([]); 
     const [loading, setLoading] = useState(true);
     const fetchallusers = async () => {
-        try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/pages/api/user/viewalluser`,{
+      try {
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/pages/api/user/viewalluser`, {
               headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
+                  'Content-Type': 'application/json',
+                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                  'Pragma': 'no-cache',
+                  'Expires': '0',
               },
               params: {
-                  _t: new Date().getTime(),
+                  _t: new Date().getTime(),  // Force fresh request by appending timestamp
               }
-            });
-                // console.log(response.data);
-            if (response.data.status === "success") {
-                setUsers(response.data.data); 
-              } else if (response.data.status === "tokenerror") { 
-                router.push(`${process.env.NEXT_PUBLIC_HOST}/login`);
-              } else {
-                console.log(response.data.message); 
-              }
-
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-        finally{
+          });
+  
+          if (response.data.status === "success") {
+              setUsers(response.data.data);
+          } else if (response.data.status === "tokenerror") {
+              router.push(`${process.env.NEXT_PUBLIC_HOST}/login`);
+          } else {
+              console.log(response.data.message);
+          }
+  
+      } catch (error) {
+          console.error('Error fetching data:', error);
+      } finally {
           setLoading(false);
-        }
-    };
+      }
+  };
+  
     useEffect(() => {
         fetchallusers();  
     }, []);
