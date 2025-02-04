@@ -17,7 +17,17 @@ const AddRole = () => {
 
   const fetchallpermissions = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/pages/api/permission/getallpermission`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/permission/getallpermission`, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+        },
+        params: {
+            _t: new Date().getTime(),  // Force fresh request by appending timestamp
+        }
+    });
       // console.log(response.data);
 
       if(response.data.status === "success"){

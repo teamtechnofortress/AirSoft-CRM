@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { connectDb } from "@/helper/db";
 import Permission from "@/models/permission";
 import jwt from 'jsonwebtoken';
@@ -19,7 +20,7 @@ export async function GET(req) {
         // Handle the GET request to fetch permissions
         if (req.method === "GET") {
             try {
-                const permissions = await Permission.find();
+                const permissions = await Permission.find().lean();
                 // Return the response as JSON using NextResponse
                 return NextResponse.json({ status: "success", data: permissions }, { status: 200 });
             } catch (error) {
