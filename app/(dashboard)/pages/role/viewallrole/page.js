@@ -10,7 +10,17 @@ const ViewallRole = () => {
 
     const fetchallrole = async () => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/userrole/getallrole`);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/userrole/getallrole`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0',
+                },
+                params: {
+                    _t: new Date().getTime(),  // Force fresh request by appending timestamp
+                }
+            });
 
             // console.log('API response:',response.data.data);
 
