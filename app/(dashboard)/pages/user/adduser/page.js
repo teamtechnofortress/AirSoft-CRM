@@ -43,7 +43,7 @@ const AddUser = () => {
     event.preventDefault();
     // console.log(formData);
     try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/user/adduser`, formData);
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/pages/api/user/adduser`, formData);
         if (response.data.status === "success") {
           // toast.success("User added successfully!");
           setFormData({
