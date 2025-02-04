@@ -15,7 +15,7 @@ const ActiveProjects = () => {
 
     const fetchAllProducts = async () => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/woocommerce/getallproduct`);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`);
             // console.log('API Response:', response.data);
     
             if (response.data && response.data.data) {
