@@ -17,7 +17,7 @@ const AddRole = () => {
 
   const fetchallpermissions = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/permission/getallpermission`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/permission/getallpermission`);
       // console.log(response.data);
 
       if(response.data.status === "success"){

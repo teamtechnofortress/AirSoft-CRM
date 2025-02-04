@@ -10,7 +10,7 @@ const ViewallRole = () => {
 
     const fetchallrole = async () => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/api/userrole/getallrole`);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/userrole/getallrole`);
 
             // console.log('API response:',response.data.data);
 
