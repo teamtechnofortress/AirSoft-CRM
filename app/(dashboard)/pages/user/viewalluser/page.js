@@ -8,7 +8,7 @@ const ViewAllUsers = () => {
     const [loading, setLoading] = useState(true);
     const fetchallusers = async () => {
       try {
-          const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/pages/api/user/viewalluser`, {
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/user/viewalluser`, {
               headers: {
                   'Content-Type': 'application/json',
                   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
