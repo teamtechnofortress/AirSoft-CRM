@@ -61,7 +61,7 @@ const AddRole = () => {
           permission: selectedPermissions
       };
       try {
-          const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/userrole/addrole`, data);
+          const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/userrole/addrole`, data);
           if (response.data.status === "success") {
               // Handle successful response (e.g., show a message or reset the form)
               // toast.success("Role Added successfully!");
