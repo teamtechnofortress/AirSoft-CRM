@@ -32,9 +32,10 @@ const SignIn = () => {
       // console.log('API Response:', response);
       const data = response.data;
         if (data.status === 'Success') {
-          toast.success("Login successfully!");
+          // console.log('API Response token:', data.token);
           if (data.token) {
             // Redirect to homepage or dashboard
+            toast.success("Login successfully!");
             setTimeout(() => {
               router.push(`${process.env.NEXT_PUBLIC_HOST}/`);
             }, 1000);
