@@ -2,15 +2,19 @@
 
 import React, { useEffect,useState,Fragment } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
-import Cookies from "js-cookie";
+import { formatDistanceToNow } from "date-fns";
+
 import Link from 'next/link';
-import { Col, Row, Card, Accordion, Nav, Tab, Tabs, Container,Spinner } from 'react-bootstrap';
+import { Col, Row, Card, Accordion, Nav, Tab, Tabs, Container,Button,Spinner,ListGroup,ListGroupItem,DropdownButton,ButtonGroup,Dropdown,Modal} from 'react-bootstrap';
 import { HighlightCode } from 'widgets';
 import {
 	AccordionBasicCode,
 	AccordionFlushCode
 } from 'data/code/AccordionCode';
+import AllOrder from '/sub-components/order/orderfilter/AllOrder.js'
+import OrderLineItem from '/sub-components/order/OrderLineItem.js'
+import OrderModelAddress from '/sub-components/order/OrderModelAddress.js'
+import OrderModelNote from '/sub-components/order/OrderModelNote.js'
 
 
 // import widget/custom components
@@ -20,7 +24,6 @@ import { StatRightTopIcon } from "widgets";
 import { ActiveProjects, Teams, 
     TasksPerformance 
 } from "sub-components";
-import AllProducts from "/sub-components/dashboard/AllProducts.js";
 import InStockProducts from "/sub-components/dashboard/InStockProducts.js";
 import OutOfStockProducts from "/sub-components/dashboard/OutOfStockProducts.js";
 
@@ -28,26 +31,20 @@ import OutOfStockProducts from "/sub-components/dashboard/OutOfStockProducts.js"
 
 // import required data files
 import ProjectsStatsData from "data/dashboard/ProjectsStatsData";
+import style from 'react-syntax-highlighter/dist/esm/styles/hljs/a11y-dark';
 
-const Home = () => {
-    const router = useRouter();
-
-    const [products, setProducts] = useState([]);
+const ViewAllOrder = () => {
+    const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchAllProducts = async () => {
+    const fetchAllOrders = async () => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`);
             // console.log('API Response:', response.data);
     
             if (response.data && response.data.data) {
-                setProducts(response.data.data); // Set products to the state
-            }
-            // else if(response.data.status === 'tokenerror'){
-            //     Cookies.remove("token");
-            //     router.push(`${process.env.NEXT_PUBLIC_HOST}/authentication/login`);
-            // }
-             else {
+                setOrders(response.data.data); // Set order to the state
+            } else {
                 console.error('Unexpected API Response:', response.data);
             }
         } catch (error) {
@@ -58,8 +55,11 @@ const Home = () => {
     };
 
     useEffect(() => {
-        fetchAllProducts(); // Fetch products when the component is mounted
+        fetchAllOrders(); // Fetch order when the component is mounted
     }, []);
+
+    
+
 
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -79,10 +79,10 @@ const Home = () => {
                         <div>
                             <div className="d-flex justify-content-between align-items-center mb-3">
                                 <div className="mb-2 mb-lg-0">
-                                    <h3 className="mb-0  text-white">Products</h3>
+                                    <h3 className="mb-0  text-white">Orders</h3>
                                 </div>
                                 <div>
-                                    <Link href="#" className="btn btn-white">Products</Link>
+                                    <Link href="#" className="btn btn-white">Orders</Link>
                                 </div>
                             </div>
                         </div>
@@ -133,22 +133,15 @@ const Home = () => {
                                 <Card.Body className="p-0">
                                     <Tab.Content>
                                         <Tab.Pane eventKey="all" className="pb-4 p-4">
-                                            
-                                            <AllProducts products={products} />
-                                            {/* Active Projects  */}
-                                            {/* <ActiveProjects /> */}
-                                           
+                                            <AllOrder orders={orders} />
                                         </Tab.Pane>
-
+                    
                                         <Tab.Pane eventKey="instock" className="pb-4 p-4 react-code">
-                                            {/* <InStockProducts products={products} /> */}
-
+                    
                                         </Tab.Pane>
                                         <Tab.Pane eventKey="outofstock" className="pb-4 p-4 react-code">
-                                            {/* <OutOfStockProducts products={products} /> */}
                                         </Tab.Pane>
                                         <Tab.Pane eventKey="backorder" className="pb-4 p-4 react-code">
-                                            {/* <OutOfStockProducts /> */}
                                         </Tab.Pane>
                                     </Tab.Content>
                                 </Card.Body>
@@ -156,8 +149,7 @@ const Home = () => {
                         </Tab.Container>
                     </Col>
                 </Row>
-
-
+                
                 {/* <Row className="my-6">
                     <Col xl={4} lg={12} md={12} xs={12} className="mb-6 mb-xl-0">
 
@@ -177,4 +169,5 @@ const Home = () => {
         </Fragment>
     )
 }
-export default Home;
+export default ViewAllOrder;
+

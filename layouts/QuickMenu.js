@@ -20,13 +20,43 @@ import NotificationList from 'data/Notification';
 // import hooks
 import useMounted from 'hooks/useMounted';
 
-const QuickMenu = () => {
+import ToastComponent from 'components/toastcomponent';
+import { toast } from "react-toastify";
+import { useRouter } from 'next/navigation';
+import axios from 'axios'
+
+const QuickMenu = ({onLogout}) => {
+    const router = useRouter();
+
 
     const hasMounted = useMounted();
     
     const isDesktop = useMediaQuery({
         query: '(min-width: 1224px)'
-    })
+    });
+
+    const logout = async () => {
+        try {
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/logout`);
+    
+            if (response.data.status === "success") {
+            //   toast.success("Logout successfully!");
+              if (onLogout) {
+                    onLogout(); 
+                }
+              setTimeout(() => {
+                router.push(`${process.env.NEXT_PUBLIC_HOST}/authentication/login`);
+              }, 1000);
+
+            } else {
+                // toast.error("Logout failed!");
+                toast.error("Logout failed: " + response.data.message);
+
+            }
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
 
     const Notifications = () => {
         return (
@@ -47,7 +77,10 @@ const QuickMenu = () => {
                         );
                     })}
                 </ListGroup>
+      <ToastComponent />
+
             </SimpleBar>
+            
         );
     }
 
@@ -120,7 +153,7 @@ const QuickMenu = () => {
                     <Dropdown.Item >
                         <i className="fe fe-settings me-2"></i> Account Settings
                     </Dropdown.Item> */}
-                    <Dropdown.Item>
+                    <Dropdown.Item onClick={logout}>
                         <i className="fe fe-power me-2"></i>Sign Out
                     </Dropdown.Item>
                 </Dropdown.Menu>
@@ -195,7 +228,7 @@ const QuickMenu = () => {
                     <Dropdown.Item >
                         <i className="fe fe-settings me-2"></i> Account Settings
                     </Dropdown.Item> */}
-                    <Dropdown.Item>
+                    <Dropdown.Item onClick={logout}>
                         <i className="fe fe-power me-2"></i>Sign Out
                     </Dropdown.Item>
                 </Dropdown.Menu>

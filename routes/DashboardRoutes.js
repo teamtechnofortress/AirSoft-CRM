@@ -60,10 +60,19 @@ export const DashboardMenu = [
 	},	
 	{
 		id: uuid(),
+		title: 'Order Management',
+		icon: 'layers',
+		children: [
+			{ id: uuid(), link: '/pages/order/addorder', name: 'Add Order' },
+			{ id: uuid(), link: '/pages/order/viewallorder', name: 'View Order' },
+		]
+	},	
+	{
+		id: uuid(),
 		title: 'Authentication',
 		icon: 'lock',
 		children: [
-			{ id: uuid(), link: '/authentication/sign-in', name: 'Sign In' },
+			{ id: uuid(), link: '/authentication/login', name: 'LogIn' },
 			// { id: uuid(), link: '/authentication/sign-up', name: 'Sign Up' },
 			// { id: uuid(), link: '/authentication/forget-password', name: 'Forget Password'}			
 		]

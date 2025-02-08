@@ -9,10 +9,11 @@ import { NextResponse } from 'next/server';
 export async function GET(req) {
   const cookieStore = cookies();
   const token = cookieStore.get('token');
+
   if (!token) {
-      const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });
-      response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
-      return response;
+    const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });
+    response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
+    return response;
   }
   
   try {
@@ -20,19 +21,19 @@ export async function GET(req) {
     
 
     // Fetch products from the WooCommerce API.
-    const response = await WooCommerc.get("products");
+    const response = await WooCommerc.get("orders");
 
     // Check if the response is valid.
     if (!response || response.status !== 200) {
       return NextResponse.json(
-        { status: 'error', message: "Failed to fetch products" },
+        { status: 'error', message: "Failed to fetch orders" },
         { status: 500 }
       );
     }
 
     // Return the fetched data.
     return NextResponse.json(
-      { data: response.data, message: "Products fetched successfully" },
+      { data: response.data, message: "Orders fetched successfully" },
       { status: 200 }
     );
     

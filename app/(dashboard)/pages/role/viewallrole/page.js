@@ -2,7 +2,9 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router';
 import axios from 'axios';
-import { Col, Row, Form, Card, Button, Image,Container,Table,Badge } from 'react-bootstrap';
+import { Col, Row, Form, Card, Button, Image,Container,Table,Badge,Spinner } from 'react-bootstrap';
+import ToastComponent from 'components/toastcomponent';
+import { toast } from "react-toastify";
 
 const ViewallRole = () => {
     const [roles, setRole] = useState([]); 
@@ -43,8 +45,17 @@ const ViewallRole = () => {
         fetchallrole();  
     }, []);
 
+
+    if (loading) return (
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+            <Spinner animation="border" variant="primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </Spinner>
+        </div>
+    );
   return (
     <Container fluid className="p-6">
+        <ToastComponent />
         <Table className="text-nowrap">
             <thead >
                 <tr>

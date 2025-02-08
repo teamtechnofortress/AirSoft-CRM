@@ -31,7 +31,7 @@ const NavbarTop = (props) => {
 				</div>
 				{/* Quick Menu */}
 				<Nav className="navbar-right-wrap ms-2 d-flex nav-top-wrap">
-					<QuickMenu />
+					<QuickMenu  onLogout={props.data?.onLogout} />
 				</Nav>
 			</div>
 		</Navbar>

@@ -2,17 +2,22 @@ export const dynamic = "force-dynamic";
 import { connectDb } from "@/helper/db";
 import Permission from "@/models/permission";
 import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET(req) {
     try {
-        // const token = req.cookies.token;
+        const cookieStore = cookies();
+        const token = cookieStore.get('token');
         
-        // if (!token) {
-        //     return NextResponse.json({ status: "tokenerror", message: 'Token Missing!' }, { status: 401 });
-        // }
-
-        // const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (!token) {
+            const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });
+            response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
+            return response;
+        }
+        
+        const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+        
         
         // Connect to the database
         await connectDb();
@@ -35,12 +40,11 @@ export async function GET(req) {
     } catch (error) {
         console.error('Error during token verification:', error.message);
 
-        // Token expired or invalid handling
-        if (error.name === 'TokenExpiredError') {
-            // Clear the expired token from cookies
-            return NextResponse.json({ status: "tokenerror", message: 'Token Expired!' }, { status: 401 });
+        if(error.name === 'TokenExpiredError'){
+            const response = NextResponse.json({ status: "tokenerror", message: "Token Expired!" }, { status: 401 });
+            response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
+            return response;
         }
-
         // Invalid token handling
         return NextResponse.json({ status: "error", message: 'Invalid Token!' }, { status: 401 });
     }

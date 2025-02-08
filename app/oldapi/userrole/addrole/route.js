@@ -1,20 +1,22 @@
 import { connectDb } from "@/helper/db";
 import Userrole from "@/models/userrole";
 import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 
 export async function POST(req, res) {
 
-  // const token = req.cookies.token;
-
-  // if (!token) {
-  //   res.setHeader('Set-Cookie', 'token=; Max-Age=0; Path=/; HttpOnly');
-  //   return res.status(401).json({ status: "tokenerror", message: 'Token Missing!' });
-  // }
+  const cookieStore = cookies();
+  const token = cookieStore.get('token');
+  if (!token) {
+      const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });
+      response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
+      return response;
+  }
 
   try {
-    // const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
     await connectDb();
     if (req.method === "POST") {
       try {
@@ -39,9 +41,11 @@ export async function POST(req, res) {
   } catch (error) {
 
     console.error('Error during token verification:', error.message);
-    if (error.name === 'TokenExpiredError') {
-      res.setHeader('Set-Cookie', 'token=; Max-Age=0; Path=/; HttpOnly');
-      return NextResponse.json({status: "error",message:"Token Expired!"}, { status: 401 });
+
+    if(error.name === 'TokenExpiredError'){
+        const response = NextResponse.json({ status: "tokenerror", message: "Token Expired!" }, { status: 401 });
+        response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
+        return response;
     }
     return NextResponse.json({status: "error",message:"Token Expired!"}, { status: 401 });
   }

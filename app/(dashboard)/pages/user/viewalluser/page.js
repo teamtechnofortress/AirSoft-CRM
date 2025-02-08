@@ -2,7 +2,7 @@
 import React,{useState,useEffect} from 'react'
 import Link from "next/link";
 import axios from 'axios'
-import { Col, Row, Form, Card, Button, Image,Container,Table } from 'react-bootstrap';
+import { Col, Row, Form, Card, Button, Image,Container,Table,Spinner } from 'react-bootstrap';
 import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
 
@@ -31,12 +31,11 @@ const ViewAllUsers = () => {
           } else {
               console.log(response.data.message);
           }
-  
-      } catch (error) {
-          console.error('Error fetching data:', error);
-      } finally {
-          setLoading(false);
-      }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
+        }
   };
   
     useEffect(() => {
@@ -73,7 +72,13 @@ const ViewAllUsers = () => {
         }
       };
     
-    if (loading) return <div>Loading...</div>;
+    if (loading) return (
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+            <Spinner animation="border" variant="primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </Spinner>
+        </div>
+    );
 
 
   return (

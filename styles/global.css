@@ -1,0 +1,21 @@
+/* Add this to your CSS file */
+.dropup-orderaction .dropdown-toggle::after {
+    content: none; /* Remove the arrow */
+}
+.dropup-orderaction:active {
+    background-color: transparent; /* Removes active background */
+    border: none; /* Removes border on active state */
+  }
+  .custom-modal-content {
+    background-color: #e7ebef !important;
+  }
+  .custom-switch-ordernotemodel .form-check-input {
+    width: 45px; /* Increase switch width */
+    height: 22px; /* Increase switch height */
+    margin-top: 0px;
+  }
+  
+  .custom-switch-ordernotemodel .form-check-label {
+    font-size: 18px; /* Increase text size */
+    margin-left: 10px;
+  }

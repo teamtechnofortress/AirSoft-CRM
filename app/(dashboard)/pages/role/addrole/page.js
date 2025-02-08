@@ -2,13 +2,17 @@
 // import node module libraries
 import React, { useEffect,useState } from 'react'
 import useMounted from 'hooks/useMounted';
-import { Col, Row, Form, Card, Button, Image,Container } from 'react-bootstrap';
+import { Col, Row, Form, Card, Button, Image,Container,Spinner } from 'react-bootstrap';
 import axios from 'axios';
+import ToastComponent from 'components/toastcomponent';
+import { toast } from "react-toastify";
+
 
 
 
 const AddRole = () => {
   const hasMounted = useMounted();
+  const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState([]);
   const [role, setRole] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState([]);
@@ -38,6 +42,8 @@ const AddRole = () => {
 
     } catch (error) {
       console.error('Error fetching data:', error);
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -74,23 +80,32 @@ const AddRole = () => {
           const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/userrole/addrole`, data);
           if (response.data.status === "success") {
               // Handle successful response (e.g., show a message or reset the form)
-              // toast.success("Role Added successfully!");
+              toast.success("Role Added successfully!");
               setSelectedPermissions([]);
               setRole('');
-
               // console.log('Role added successfully', response.data);
           } else {
+              toast.success("Role Not Added!");
               console.log('Error:', response.data.message);
-              
           }
       } catch (error) {
         console.error("Error submitting form:", error.response?.data || error)
       }
   };
 
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+        <Spinner animation="border" variant="primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+        </Spinner>
+    </div>
+  );
+
 
   return (
     <Container fluid className="p-6">
+       <ToastComponent />
+
       <Row className="mb-8">
           {/* <Col xl={3} lg={4} md={12} xs={12}>
             <div className="mb-4 mb-lg-0">

@@ -17,7 +17,7 @@ const ForgetPassword = () => {
           {/* Card body */}
           <Card.Body className="p-6">
             <div className="mb-4">
-              <Link href="/"><Image src="/images/brand/logo/logo-primary.svg" className="mb-2" alt="" /></Link>
+              {/* <Link href="/"><Image src="/images/brand/logo/logo-primary.svg" className="mb-2" alt="" /></Link> */}
               <p className="mb-6">Don&apos;t worry, we&apos;ll send you an email to reset your password.</p>
             </div>
             {/* Form */}

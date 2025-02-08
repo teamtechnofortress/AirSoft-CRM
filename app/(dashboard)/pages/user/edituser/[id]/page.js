@@ -5,10 +5,11 @@ import useMounted from 'hooks/useMounted';
 import axios from 'axios';
 import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
-import { Col, Row, Form, Card, Button, Image,Container } from 'react-bootstrap';
+import { Col, Row, Form, Card, Button, Image,Container,Spinner } from 'react-bootstrap';
 
 const EditUser = ({params}) => {
   const { id } = params;
+  const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState([]);
   const [formData, setFormData] = useState({
         id: '',
@@ -40,42 +41,41 @@ const EditUser = ({params}) => {
       }
   }
   const fetchuserrecord = async () =>{
-    try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/user/getuser/${id}`, {
-          headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0',
-          },
-          params: {
-              _t: new Date().getTime(),  // Force fresh request by appending timestamp
-          }
-      });
-    //   console.log(response);
-    //   console.log(response.data.data.firstname);
+      try {
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/user/getuser/${id}`, {
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                  'Pragma': 'no-cache',
+                  'Expires': '0',
+              },
+              params: {
+                  _t: new Date().getTime(),  // Force fresh request by appending timestamp
+              }
+          });
+          if (response.data.status === "success" && response.data.data.length > 0) {
 
-      if (response.data.status === "success" && response.data.data.length > 0) {
+          const userData = response.data.data[0]; 
 
-        const userData = response.data.data[0]; 
+          setFormData({
+            id: userData._id || '',
+            firstname: userData.firstname || '',
+            lastname: userData.lastname || '',
+            email: userData.email || '',
+            password: '', 
+            phone: userData.phone || '',
+            role: userData.role || ''
+          });
 
-        setFormData({
-          id: userData._id || '',
-          firstname: userData.firstname || '',
-          lastname: userData.lastname || '',
-          email: userData.email || '',
-          password: '', 
-          phone: userData.phone || '',
-          role: userData.role || ''
-        });
-
-      } else {
-        console.error("No user data found");
+        } else {
+          console.error("No user data found");
+        }
+          // console.log(response.data);
+      } catch (error) {
+            console.error('Error fetching data:', error);
+      }finally {
+        setLoading(false);
       }
-        // console.log(response.data);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
   }
 
   useEffect(() => {
@@ -107,9 +107,9 @@ const EditUser = ({params}) => {
             phone: '',
             role: ''
           });
-          fetchallrole();
-          fetchuserrecord();
-          toast.success("User Updated successfully!");
+
+          await fetchallrole();
+          await fetchuserrecord();
         } else {
            toast.error("User Not Updated!");
         }
@@ -118,10 +118,17 @@ const EditUser = ({params}) => {
         toast.error("An error occurred while adding the user.");
     }
     finally{
+      toast.success("User Updated successfully!");
     }
   }
-
   const hasMounted = useMounted();
+  if (loading) return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+          <Spinner animation="border" variant="primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+          </Spinner>
+      </div>
+    );
   return (
     <Container fluid className="p-6">
       <ToastComponent />
