@@ -1,9 +1,12 @@
 export const dynamic = "force-dynamic";
 import { connectDb } from "@/helper/db";
 import User from "@/models/User";
+import UserRole from "@/models/userrole";
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import mongoose from "mongoose";
+
 
 
 export async function GET(req, res) {
@@ -19,10 +22,12 @@ export async function GET(req, res) {
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
     await connectDb();
+    // console.log("Registered models:", mongoose?.models ? Object.keys(mongoose.models) : "Mongoose not initialized");
+    
     if (req.method === "GET") {
       try {
-        const users = await User.find().lean();
-        // const users = await User.find().populate('role', 'role').lean();
+        // const users = await User.find().lean();
+        const users = await User.find().populate('role', 'role').lean();
         
         // return NextResponse.json({ status: "success", data: users }, { status: 200 });
         const response = NextResponse.json({ status: "success", data: users }, { status: 200 });

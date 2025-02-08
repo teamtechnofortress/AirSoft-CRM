@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { connectDb } from "@/helper/db";
 import Userrole from "@/models/userrole";
+import Permission from "@/models/permission";
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -24,8 +25,8 @@ export async function GET(req) {
     if (req.method === "GET") {
         try {
             // console.log("Registered models:", mongoose?.models ? Object.keys(mongoose.models) : "Mongoose not initialized");
-            const roles = await Userrole.find().lean();
-            // const roles = await Userrole.find().populate("permissions", "permission").lean();
+            // const roles = await Userrole.find().lean();
+            const roles = await Userrole.find().populate("permissions", "permission").lean();
             // return res.status(200).json({ status: "success", data: roles });
             return NextResponse.json({ status: "success", data: roles }, { status: 200 });
 
