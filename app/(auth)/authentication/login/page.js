@@ -32,11 +32,12 @@ const SignIn = () => {
       // console.log('API Response:', response);
       const data = response.data;
         if (data.status === 'Success') {
-          // console.log('API Response token:', data.token);
+          console.log('API Response token:', data.token);
           if (data.token) {
             // Redirect to homepage or dashboard
             toast.success("Login successfully!");
             setTimeout(() => {
+              router.refresh();
               router.push(`/`);
             }, 1000);
           }
