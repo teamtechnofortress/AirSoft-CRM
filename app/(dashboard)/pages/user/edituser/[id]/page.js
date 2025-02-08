@@ -79,9 +79,16 @@ const EditUser = ({params}) => {
   }
 
   useEffect(() => {
-      fetchallrole();
-      fetchuserrecord();
-  }, []);
+    if (id) { 
+      const fetchData = async () => {
+        setLoading(true); 
+        await fetchallrole();
+        await fetchuserrecord();
+        setLoading(false);
+      };
+      fetchData();
+    }
+  }, [id]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -110,6 +117,7 @@ const EditUser = ({params}) => {
 
           await fetchallrole();
           await fetchuserrecord();
+          toast.success("User Updated successfully!");
         } else {
            toast.error("User Not Updated!");
         }
@@ -118,7 +126,6 @@ const EditUser = ({params}) => {
         toast.error("An error occurred while adding the user.");
     }
     finally{
-      toast.success("User Updated successfully!");
     }
   }
   const hasMounted = useMounted();

@@ -37,7 +37,7 @@ const SignIn = () => {
             // Redirect to homepage or dashboard
             toast.success("Login successfully!");
             setTimeout(() => {
-              router.push(`${process.env.NEXT_PUBLIC_HOST}/`);
+              router.push(`/`);
             }, 1000);
           }
         } else {
