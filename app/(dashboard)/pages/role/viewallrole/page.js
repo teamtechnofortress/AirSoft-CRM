@@ -6,6 +6,7 @@ import { Col, Row, Form, Card, Button, Image,Container,Table,Badge,Spinner } fro
 import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
 
+
 const ViewallRole = () => {
     const [roles, setRole] = useState([]); 
     const [loading, setLoading] = useState(true);
