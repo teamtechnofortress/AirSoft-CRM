@@ -68,7 +68,14 @@ const OrderModelAddress = ({order}) => {
                                             </div>
                                             <div style={{backgroundColor:'#ffffff',padding:'15px 0px 7px 13px',borderRadius:'10px 10px 10px 10px'}}>
                                                 <p style={{marginBottom:'8px',fontSize:'13px'}}>Phone number:</p>
-                                                <h5>{order.shipping?.phone || 'N/A'}</h5>
+                                                <h5>
+                                                    {/* {order.shipping?.phone || 'N/A'} */}
+                                                    {order.billing?.phone 
+                                                        ? order.billing.phone 
+                                                        : order.shipping?.phone 
+                                                        ? order.shipping.phone 
+                                                        : 'N/A'}
+                                                </h5>
                                             </div>
                                             <div style={{backgroundColor:'#ffffff',padding:'15px 0px 7px 13px',borderRadius:'10px 10px 10px 10px'}}>
                                                 <p style={{marginBottom:'8px',fontSize:'13px'}}>Email:</p>
@@ -91,7 +98,14 @@ const OrderModelAddress = ({order}) => {
                                             </div>
                                             <div style={{backgroundColor:'#ffffff',padding:'15px 0px 7px 13px',borderRadius:'10px 10px 10px 10px'}}>
                                                 <p style={{marginBottom:'8px',fontSize:'13px'}}>Phone number:</p>
-                                                <h5>{order.billing?.phone || 'N/A'}</h5>
+                                                <h5>
+                                                    {/* {order.billing?.phone || 'N/A'} */}
+                                                    {order.billing?.phone 
+                                                        ? order.billing.phone 
+                                                        : order.shipping?.phone 
+                                                        ? order.shipping.phone 
+                                                        : 'N/A'}
+                                                </h5>
                                             </div>
                                             <div style={{backgroundColor:'#ffffff',padding:'15px 0px 7px 13px',borderRadius:'10px 10px 10px 10px'}}>
                                                 <p style={{marginBottom:'8px',fontSize:'13px'}}>Email:</p>

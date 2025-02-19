@@ -19,3 +19,8 @@
     font-size: 18px; /* Increase text size */
     margin-left: 10px;
   }
+  .custom-switch-billingaddress .form-check-input{
+    width: 39px;
+    height: 20px;
+    margin-right: 5px;
+  }

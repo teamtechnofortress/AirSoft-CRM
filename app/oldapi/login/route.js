@@ -35,9 +35,17 @@ export async function POST(req, res) {
             return NextResponse.json({ status: "error", message: 'Invalid credentials'  }, { status: 401 });
         } 
         const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, {
-            expiresIn: "1h",
+            expiresIn: "1d",
         }); 
 
+        const clearToken = serialize("token", "", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 0, // Clear the cookie immediately
+            path: "/",
+        });
+        
         const serialized = serialize("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",

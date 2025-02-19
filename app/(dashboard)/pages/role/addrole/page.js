@@ -85,7 +85,7 @@ const AddRole = () => {
               setRole('');
               // console.log('Role added successfully', response.data);
           } else {
-              toast.success("Role Not Added!");
+              toast.error("Role Not Added!");
               console.log('Error:', response.data.message);
           }
       } catch (error) {

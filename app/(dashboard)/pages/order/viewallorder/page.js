@@ -6,6 +6,8 @@ import { formatDistanceToNow } from "date-fns";
 
 import Link from 'next/link';
 import { Col, Row, Card, Accordion, Nav, Tab, Tabs, Container,Button,Spinner,ListGroup,ListGroupItem,DropdownButton,ButtonGroup,Dropdown,Modal} from 'react-bootstrap';
+import ToastComponent from 'components/toastcomponent';
+import { toast } from "react-toastify";
 import { HighlightCode } from 'widgets';
 import {
 	AccordionBasicCode,
@@ -55,11 +57,31 @@ const ViewAllOrder = () => {
     };
 
     useEffect(() => {
-        fetchAllOrders(); // Fetch order when the component is mounted
+        fetchAllOrders(); 
     }, []);
 
-    
-
+    const handleorderStatusChange = async (newStatus,id) => {
+        try {
+            console.log('New Status:', newStatus);
+            console.log('New id:', id);
+            setLoading(true);
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/orderstatuschnage`,{status: newStatus, id: id});
+            console.log('Response:', response.data.status);
+            if (response.data.status === "success") {
+                // Handle successful response (e.g., show a message or reset the form)
+                await fetchAllOrders();
+                toast.success("Order status chnaged successfully!");
+                console.log('successfully', response.data);
+            } else {
+                toast.error("Order status not chnage Added!");
+                console.log('Error:', response.data.message);
+            }
+        } catch (error) {
+          console.error("Error submitting form:", error)
+        }finally{
+            setLoading(false);
+        }
+    };
 
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -70,103 +92,107 @@ const ViewAllOrder = () => {
     );
     
     return (
-        <Fragment>
-            <div className="bg-primary pt-10 pb-21"></div>
-            <Container fluid className="mt-n22 px-6">
-                <Row>
-                    <Col lg={12} md={12} xs={12}>
-                        {/* Page header */}
-                        <div>
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <div className="mb-2 mb-lg-0">
-                                    <h3 className="mb-0  text-white">Orders</h3>
-                                </div>
-                                <div>
-                                    <Link href="#" className="btn btn-white">Orders</Link>
+        <>
+            <ToastComponent />
+            <Fragment>
+                <div className="bg-primary pt-10 pb-21"></div>
+                <Container fluid className="mt-n22 px-6">
+                    <Row>
+                        <Col lg={12} md={12} xs={12}>
+                            {/* Page header */}
+                            <div>
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <div className="mb-2 mb-lg-0">
+                                        <h3 className="mb-0  text-white">Orders</h3>
+                                    </div>
+                                    <div>
+                                        <Link href="#" className="btn btn-white">Orders</Link>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Col>
-                    {/* {ProjectsStatsData.map((item, index) => {
-                        return (
-                            <Col xl={3} lg={6} md={12} xs={12} className="mt-6" key={index}>
-                                <StatRightTopIcon info={item} />
-                            </Col>
-                        )
-                    })} */}
-                </Row>
-                <Row>
-                    <Col xl={12} lg={12} md={12} sm={12}>
-                        {/* <div id="accordion-example" className="mb-4">
-                            <h3>Example</h3>
-                            <p>
-                                Click the accordions below to expand/collapse the accordion
-                                content.
-                            </p>
-                        </div> */}
-                        <Tab.Container id="tab-container-1" defaultActiveKey="all">
-                            <Card>
-                                <Card.Header className="border-bottom-0 p-0 ">
-                                    <Nav className="nav-lb-tab">
-                                        <Nav.Item>
-                                            <Nav.Link eventKey="all" className="mb-sm-3 mb-md-0">
-                                                All
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                        {/* <Nav.Item>
-                                            <Nav.Link eventKey="instock" className="mb-sm-3 mb-md-0">
-                                                InStock
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                        <Nav.Item>
-                                            <Nav.Link eventKey="outofstock" className="mb-sm-3 mb-md-0">
-                                                Out OF Stock
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                        <Nav.Item>
-                                            <Nav.Link eventKey="backorder" className="mb-sm-3 mb-md-0">
-                                                Back Order
-                                            </Nav.Link>
-                                        </Nav.Item> */}
-                                    </Nav>
-                                </Card.Header>
-                                <Card.Body className="p-0">
-                                    <Tab.Content>
-                                        <Tab.Pane eventKey="all" className="pb-4 p-4">
-                                            <AllOrder orders={orders} />
-                                        </Tab.Pane>
+                        </Col>
+                        {/* {ProjectsStatsData.map((item, index) => {
+                            return (
+                                <Col xl={3} lg={6} md={12} xs={12} className="mt-6" key={index}>
+                                    <StatRightTopIcon info={item} />
+                                </Col>
+                            )
+                        })} */}
+                    </Row>
+                    <Row>
+                        <Col xl={12} lg={12} md={12} sm={12}>
+                            {/* <div id="accordion-example" className="mb-4">
+                                <h3>Example</h3>
+                                <p>
+                                    Click the accordions below to expand/collapse the accordion
+                                    content.
+                                </p>
+                            </div> */}
+                            <Tab.Container id="tab-container-1" defaultActiveKey="all">
+                                <Card>
+                                    <Card.Header className="border-bottom-0 p-0 ">
+                                        <Nav className="nav-lb-tab">
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="all" className="mb-sm-3 mb-md-0">
+                                                    All
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            {/* <Nav.Item>
+                                                <Nav.Link eventKey="instock" className="mb-sm-3 mb-md-0">
+                                                    InStock
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="outofstock" className="mb-sm-3 mb-md-0">
+                                                    Out OF Stock
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="backorder" className="mb-sm-3 mb-md-0">
+                                                    Back Order
+                                                </Nav.Link>
+                                            </Nav.Item> */}
+                                        </Nav>
+                                    </Card.Header>
+                                    <Card.Body className="p-0">
+                                        <Tab.Content>
+                                            <Tab.Pane eventKey="all" className="pb-4 p-4">
+                                                <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                            </Tab.Pane>
+                        
+                                            <Tab.Pane eventKey="instock" className="pb-4 p-4 react-code">
+                        
+                                            </Tab.Pane>
+                                            <Tab.Pane eventKey="outofstock" className="pb-4 p-4 react-code">
+                                            </Tab.Pane>
+                                            <Tab.Pane eventKey="backorder" className="pb-4 p-4 react-code">
+                                            </Tab.Pane>
+                                        </Tab.Content>
+                                    </Card.Body>
+                                </Card>
+                            </Tab.Container>
+                        </Col>
+                    </Row>
                     
-                                        <Tab.Pane eventKey="instock" className="pb-4 p-4 react-code">
-                    
-                                        </Tab.Pane>
-                                        <Tab.Pane eventKey="outofstock" className="pb-4 p-4 react-code">
-                                        </Tab.Pane>
-                                        <Tab.Pane eventKey="backorder" className="pb-4 p-4 react-code">
-                                        </Tab.Pane>
-                                    </Tab.Content>
-                                </Card.Body>
-                            </Card>
-                        </Tab.Container>
-                    </Col>
-                </Row>
-                
-                {/* <Row className="my-6">
-                    <Col xl={4} lg={12} md={12} xs={12} className="mb-6 mb-xl-0">
+                    {/* <Row className="my-6">
+                        <Col xl={4} lg={12} md={12} xs={12} className="mb-6 mb-xl-0">
 
-                        // Tasks Performance
-                        <TasksPerformance />
+                            // Tasks Performance
+                            <TasksPerformance />
 
-                    </Col>
-                    // card 
-                    <Col xl={8} lg={12} md={12} xs={12}>
+                        </Col>
+                        // card 
+                        <Col xl={8} lg={12} md={12} xs={12}>
 
-                        // Teams
-                        <Teams />
+                            // Teams
+                            <Teams />
 
-                    </Col>
-                </Row> */}
-            </Container>
-        </Fragment>
+                        </Col>
+                    </Row> */}
+                </Container>
+            </Fragment>
+        </>
+        
     )
 }
 export default ViewAllOrder;

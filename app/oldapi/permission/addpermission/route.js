@@ -1,39 +1,45 @@
 import { connectDb } from "@/helper/db";
 import Permission from "@/models/permission";
+import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 
-export default async function handler(req, res) {
-  const token = req.cookies.token;
 
+export async function GET(req) {
+  
+  const cookieStore = cookies();
+  const token = cookieStore.get('token');
   if (!token) {
-    res.setHeader('Set-Cookie', 'token=; Max-Age=0; Path=/; HttpOnly');
-    return res.status(401).json({ status: "tokenerror", message: 'Token Missing!' });
+      const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });
+      response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
+      return response;
   }
+
 
   try {
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // If token is valid, connect to the database
-    await connectDb();
+     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+     await connectDb();
 
 
-    // const permission = "viewproduct";
+    // const permission = "deleteorder";
 
     // const u = new Permission({ permission });
     // await u.save();
 
+    return NextResponse.json({ status: "success", message: `Your permission ${permission} has been created!` }, { status: 200 });
 
-    res.status(200).json({ status: "success", msg: "Your permission has been created!" });
   } catch (error) {
-    
+
     console.error('Error during token verification:', error.message);
 
-    if (error.name === 'TokenExpiredError') {
-      res.setHeader('Set-Cookie', 'token=; Max-Age=0; Path=/; HttpOnly');
-      return res.status(401).json({ status: "tokenerror", message: 'Token Expired!' });
+    if(error.name === 'TokenExpiredError'){
+      const response = NextResponse.json({ status: "tokenerror", message: "Token Expired!" }, { status: 401 });
+      response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
+      return response;
     }
 
-    return res.status(401).json({ status: "error", message: 'Invalid Token!' });
+    return NextResponse.json({ status: "error", message: 'Invalid Token!' }, { status: 401 });
   }
 }

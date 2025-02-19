@@ -23,6 +23,12 @@ import { v4 as uuid } from 'uuid';
  *
  */
 
+
+
+
+
+const rolename = 'admin';
+
 export const DashboardMenu = [
 	{
 		id: uuid(),
@@ -35,20 +41,20 @@ export const DashboardMenu = [
 		title: 'LAYOUTS & PAGES',
 		grouptitle: true
 	},
-	{
-		id: uuid(),
-		title: 'User Management',
-		icon: 'users',
-		children: [
-			{ id: uuid(), link: '/pages/user/adduser', name: 'Add User' },
-			{ id: uuid(), link: '/pages/user/viewalluser', name: 'View Users' },
-			// { id: uuid(), link: '/pages/profile', name: 'Profile' },
-			// { id: uuid(), link: '/pages/settings', name: 'Settings'},
-			// { id: uuid(), link: '/pages/billing', name: 'Billing' },
-			// { id: uuid(), link: '/pages/pricing', name: 'Pricing'},
-			// { id: uuid(), link: '/not-found', name: '404 Error' }
-		]
-	},	
+	...(rolename === 'admin'
+		? [
+			{
+			  id: uuid(),
+			  title: 'User Management',
+			  icon: 'users',
+			  children: [
+				{ id: uuid(), link: '/pages/user/adduser', name: 'Add User' },
+				{ id: uuid(), link: '/pages/user/viewalluser', name: 'View Users' }
+			  ]
+			}
+		  ]
+		: []),
+
 	{
 		id: uuid(),
 		title: 'Role Management',
