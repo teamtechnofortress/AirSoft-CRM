@@ -145,7 +145,7 @@ const Addorder = () => {
 
     runallfuntion();
 
-  }, []);
+  }, [runallfuntion]);
 
   useEffect(() => {
     setCart(selectedProducts.map(product => ({

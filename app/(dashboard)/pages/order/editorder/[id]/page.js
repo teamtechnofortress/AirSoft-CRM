@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 
 
-const editorder = ({params}) => {
+const EditOrder = ({params}) => {
   const { id } = params;
 
   // console.log(id);
@@ -1036,4 +1036,4 @@ const editorder = ({params}) => {
   )
 }
 
-export default editorder
+export default EditOrder
