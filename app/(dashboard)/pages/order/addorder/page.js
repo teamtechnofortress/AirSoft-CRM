@@ -69,71 +69,94 @@ const Addorder = () => {
 
   // console.log("Updated formData:", formData);
 
-  const fetchAllCustomer = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/customer/getallcustomer`);
-      if (response.data && response.data.data) {
-        setCustomers(response.data.data);
-      } else {
-        console.error("Unexpected API Response:", response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error.message);
-    } finally {
-      // setLoading(false);
-    }
-  };
-  const fetchAllPaymentgateway = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/paymentgateway/getallpaymentgateway`);
-      if (response.data && response.data.data) {
-        setPaymentgateway(response.data.data);
-      } else {
-        console.error("Unexpected API Response:", response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error.message);
-    } finally {
-      // setLoading(false);
-    }
-  };
-  const fetchAllShippingmethods = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/shippingmethods/getallshippingmethods`);
-      if (response.data && response.data.data) {
-        // console.log('api response shippingmethod data ',response.data);
-        setShippingmethods(response.data.data);
-      } else {
-        console.error("Unexpected API Response:", response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error.message);
-    } finally {
-      // setLoading(false);
-    }
-  };
+  // const fetchAllCustomer = async () => {
+  //   try {
+  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/customer/getallcustomer`);
+  //     if (response.data && response.data.data) {
+  //       setCustomers(response.data.data);
+  //     } else {
+  //       console.error("Unexpected API Response:", response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error.message);
+  //   } finally {
+  //     // setLoading(false);
+  //   }
+  // };
+  // const fetchAllPaymentgateway = async () => {
+  //   try {
+  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/paymentgateway/getallpaymentgateway`);
+  //     if (response.data && response.data.data) {
+  //       setPaymentgateway(response.data.data);
+  //     } else {
+  //       console.error("Unexpected API Response:", response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error.message);
+  //   } finally {
+  //     // setLoading(false);
+  //   }
+  // };
+  // const fetchAllShippingmethods = async () => {
+  //   try {
+  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/shippingmethods/getallshippingmethods`);
+  //     if (response.data && response.data.data) {
+  //       // console.log('api response shippingmethod data ',response.data);
+  //       setShippingmethods(response.data.data);
+  //     } else {
+  //       console.error("Unexpected API Response:", response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error.message);
+  //   } finally {
+  //     // setLoading(false);
+  //   }
+  // };
 
-  const fetchAllOrder = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`);
-      if (response.data && response.data.data) {
-        setOrder(response.data.data);
-      } else {
-        console.error("Unexpected API Response:", response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error.message);
-    } finally {
-      // setLoading(false);
-    }
-  };
+  // const fetchAllOrder = async () => {
+  //   try {
+  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`);
+  //     if (response.data && response.data.data) {
+  //       setOrder(response.data.data);
+  //     } else {
+  //       console.error("Unexpected API Response:", response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error.message);
+  //   } finally {
+  //     // setLoading(false);
+  //   }
+  // };
+
+  // const runallfuntion = async () => {
+  //   try {
+  //     await fetchAllCustomer();
+  //     await fetchAllOrder();
+  //     await fetchAllPaymentgateway();
+  //     await fetchAllShippingmethods();
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  
+
 
   const runallfuntion = async () => {
+    setLoading(true);
     try {
-      await fetchAllCustomer();
-      await fetchAllOrder();
-      await fetchAllPaymentgateway();
-      await fetchAllShippingmethods();
+      const [customersRes, ordersRes, paymentRes, shippingRes] = await Promise.all([
+        axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/customer/getallcustomer`),
+        axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`),
+        axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/paymentgateway/getallpaymentgateway`),
+        axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/shippingmethods/getallshippingmethods`),
+      ]);
+  
+      setCustomers(customersRes.data?.data || []);
+      setOrder(ordersRes.data?.data || []);
+      setPaymentgateway(paymentRes.data?.data || []);
+      setShippingmethods(shippingRes.data?.data || []);
     } catch (error) {
       console.error("Error fetching data:", error.message);
     } finally {
@@ -145,7 +168,7 @@ const Addorder = () => {
 
     runallfuntion();
 
-  }, [runallfuntion]);
+  }, []);
 
   useEffect(() => {
     setCart(selectedProducts.map(product => ({
@@ -154,7 +177,7 @@ const Addorder = () => {
       price: product.price
     })));
 
-    console.log('Cart items',cart);
+    // console.log('Cart items',cart);
   }, [selectedProducts]);
 
 
