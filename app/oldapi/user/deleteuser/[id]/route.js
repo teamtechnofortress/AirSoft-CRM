@@ -21,6 +21,14 @@ export async function DELETE(req,{ params }) {
 
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+    let requiredpermission = '67b46c8e7b14d62c9c5850e5';
+
+    if (!decoded.permissions.includes(requiredpermission)) {
+        return NextResponse.json(
+          { status: "unauthorized", message: "Unauthorized" },
+          { status: 403, headers: { Location: "/unauthorized" } }
+        );
+    }
     
     await connectDb();
     try {

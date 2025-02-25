@@ -20,6 +20,18 @@ export async function GET(req) {
 
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+    const requiredPermissions = [
+      "67b46c2e7b14d62c9c5850d9",
+      "67b46c7d7b14d62c9c5850e1",
+      "67b46c707b14d62c9c5850df",
+    ];
+    
+    if (!requiredPermissions.some(permission => decoded.permissions.includes(permission))) {
+      return NextResponse.json(
+        { status: "unauthorized", message: "Unauthorized" },
+        { status: 403, headers: { Location: "/unauthorized" } }
+      );
+    }
     
     await connectDb();
     if (req.method === "GET") {

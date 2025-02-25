@@ -33,12 +33,22 @@ export async function POST(req) {
   
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+    let requiredpermission = '67b46cd67b14d62c9c5850eb';
+
+    if (!decoded.permissions.includes(requiredpermission)) {
+        return NextResponse.json(
+          { status: "unauthorized", message: "Unauthorized" },
+          { status: 403, headers: { Location: "/unauthorized" } }
+        );
+    }
     
 
     // Fetch products from the WooCommerce API.
     const response = await WooCommerc.put(`orders/${id}`, Data);
 
     // console.log("Response", response);
+    // console.log("Response", response.data);
+    // console.log("Response", response.data.data);
 
     // Check if the response is valid.
     if (!response || response.status !== 200) {

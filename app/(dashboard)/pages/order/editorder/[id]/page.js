@@ -24,7 +24,7 @@ const EditOrder = ({params}) => {
   // console.log("Selected product:",selectedProducts);
   // console.log("Selected cart:",cart);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [orders, setOrder] = useState([]);
@@ -82,7 +82,7 @@ const EditOrder = ({params}) => {
       // console.log(response.status);
       setFetchedproduct(response.data.data);
       if (response.status === 200 && response.data) {
-          console.log('api response:',response.data);
+          // console.log('api response:',response.data);
 
 
           // const fetchedProductIds = response.data.data.line_items.map(item => item.product_id); 
@@ -93,11 +93,11 @@ const EditOrder = ({params}) => {
             product_id: item.product_id,
             quantity: item.quantity
           }));
-          console.log('fetchedProductIds line 89:',fetchedProductIds.product_id);
+          // console.log('fetchedProductIds line 89:',fetchedProductIds.product_id);
 
           setProductIds(fetchedProductIds);
 
-          console.log('fetchedProductIds line 89:',fetchedProductIds);
+          // console.log('fetchedProductIds line 89:',fetchedProductIds);
 
 
           setOrderData({
@@ -139,8 +139,8 @@ const EditOrder = ({params}) => {
   };
 
   useEffect(() => {
-    console.log("Shipping Data:", orderData);
-    console.log("fetchedproduct Data:", fetchedproduct);
+    // console.log("Shipping Data:", orderData);
+    // console.log("fetchedproduct Data:", fetchedproduct);
   }, [orderData,fetchedproduct]);
   
 
@@ -205,13 +205,44 @@ const EditOrder = ({params}) => {
     }
   };
 
+  // const runallfuntion = async () => {
+  //   try {
+  //     await fetchorder(id);
+  //     await fetchAllCustomer();
+  //     await fetchAllOrder();
+  //     await fetchAllPaymentgateway();
+  //     await fetchAllShippingmethods();
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  
+  // useEffect(() => {
+  //   setLoading(true);
+  //   runallfuntion();
+  //   setLoading(false);
+  // }, [id]);
+
+
+
+
+
+
+
   const runallfuntion = async () => {
     try {
-      await fetchorder(id);
-      await fetchAllCustomer();
-      await fetchAllOrder();
-      await fetchAllPaymentgateway();
-      await fetchAllShippingmethods();
+      setLoading(true);
+      await Promise.all([
+        fetchorder(id),
+        fetchAllCustomer(),
+        fetchAllOrder(),
+        fetchAllPaymentgateway(),
+        fetchAllShippingmethods(),
+      ]);
+  
+      // console.log("All API calls completed successfully.");
     } catch (error) {
       console.error("Error fetching data:", error.message);
     } finally {
@@ -219,9 +250,11 @@ const EditOrder = ({params}) => {
     }
   };
   
+  // Call function when the component loads or `id` changes
   useEffect(() => {
     runallfuntion();
   }, [id]);
+  
 
   // useEffect(() => {
    
@@ -242,8 +275,8 @@ const EditOrder = ({params}) => {
     setCart(
       selectedProducts.map(product => {
         const productInCart = productIds.find(item => item.product_id === product.id);
-        console.log(product.id);
-        console.log(product.product_id);
+        // console.log(product.id);
+        // console.log(product.product_id);
         return {
           id: product.id,
           quantity: productInCart ? productInCart.quantity : 1, // Default quantity is 1 if not found
@@ -251,9 +284,9 @@ const EditOrder = ({params}) => {
         };
       })
     );
-       console.log("Selected product:",selectedProducts);
-    console.log("Selected cart:",cart);
-    console.log("Selected cart:",productIds);
+    //    console.log("Selected product:",selectedProducts);
+    // console.log("Selected cart:",cart);
+    // console.log("Selected cart:",productIds);
   }, [selectedProducts, productIds]);
   
 
@@ -268,41 +301,47 @@ const EditOrder = ({params}) => {
 
 
 
-  const emptylineitems = async () =>{
+  // const emptylineitems = async () =>{
 
-    console.log('fetchedproduct line 275:', fetchedproduct?.line_items);
+  //   console.log('fetchedproduct line 275:', fetchedproduct?.line_items);
 
-    const Data = {
-      // total:0,
-      line_items: fetchedproduct?.line_items?.map((item) => ({
-        id: item.id,
-        quantity: 0,
-      })) || [], 
-      shipping_lines:[],
-
-    };
+  //   const Data = {
+  //     // total:0,
+  //     line_items: fetchedproduct?.line_items?.map((item) => ({
+  //       id: item.id,
+  //       quantity: 0,
+  //     })) || [], 
+  //     shipping_lines:[],
+  //   };
     
-    // console.log('fetchedproduct line 282:', emptylineitems);
-    try {
-      // const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/updateorder`, Data,id);
-      const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/updateorder`, 
-          { Data, id } 
-      );
+    
+  //   console.log('fetchedproduct line 282:', Data);
+  //   // return;
 
-      if (response.data.status === "success") {
-          // Handle successful response (e.g., show a message or reset the form)
-          // toast.success("Order updated successfully!");
-          return;
-          // console.log('Role added successfully', response.data);
-      } else {
-          console.log('Error:', response.data.message);
-      }
-  } catch (error) {
-    console.error("Error submitting form:", error)
-  }
 
-  }
+  //   try {
+  //     // const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/updateorder`, Data,id);
+  //     const response = await axios.post(
+  //         `${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/updateorder`, 
+  //         { Data, id } 
+  //     );
+  //   console.log('fetchedproduct line 282:', response.data);
+  //   console.log('fetchedproduct line 282:', response.data.data);
+
+
+  //     if (response.data.status === "success") {
+  //         // Handle successful response (e.g., show a message or reset the form)
+  //         // toast.success("Order updated successfully!");
+  //         return;
+  //         // console.log('Role added successfully', response.data);
+  //     } else {
+  //         console.log('Error:', response.data.message);
+  //     }
+  // } catch (error) {
+  //   console.error("Error submitting form:", error)
+  // }
+
+  // }
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -342,7 +381,8 @@ const EditOrder = ({params}) => {
   const handleSubmit = async (event) => {  
     event.preventDefault();
     // console.log("formData at submit:", formData);
-    console.log("formData at submit:", cart);
+    // console.log("formData at submit:", cart);
+    // console.log("formData at submit:", fetchedproduct);
     
     // Create API payload
     if (!cart || cart.length === 0) {
@@ -351,65 +391,212 @@ const EditOrder = ({params}) => {
     }
     setSubmitting(true);
 
-    emptylineitems();
+    // emptylineitems();
 
 
+    // const Data = {
+    //   payment_method: orderData.paymentmethodid || fetchedproduct.payment_method,
+    //   payment_method_title: orderData.paymentmethodtitle || fetchedproduct.payment_method_title, 
+    //   set_paid: false,
+    //   // total:cart.reduce(
+    //   //     (sum, item) => sum + item.quantity * parseFloat(item.price),
+    //   //     0
+    //   //   ),
+    //   billing: {
+    //     first_name: formData.firstname || "",
+    //     last_name: formData.lastname || "",
+    //     address_1: formData.fulladdress?.split(",")[0] || "",
+    //     address_2: formData.fulladdress?.split(",").slice(1).join(", ") || "",
+    //     city: formData.city || "",
+    //     state: formData.province || "",
+    //     postcode: formData.zipcode || "",
+    //     country: formData.country || "",
+    //     email: formData.email || "",
+    //     phone: formData.phone || "",
+    //   },
+    //   shipping: {
+    //     first_name: isShippingEnabled ? formData.firstname : shippingData.shippingfirstname,
+    //     last_name: isShippingEnabled ? formData.lastname : shippingData.shippinglastname,
+    //     address_1: isShippingEnabled 
+    //         ? formData.fulladdress?.split(",")[0] || "" 
+    //         : shippingData.shippingfulladdress?.split(",")[0] || "",
+    //     address_2: isShippingEnabled 
+    //         ? formData.fulladdress?.split(",").slice(1).join(", ") || "" 
+    //         : shippingData.shippingfulladdress?.split(",").slice(1).join(", ") || "",
+    //     city: isShippingEnabled ? formData.city : shippingData.shippingcity,
+    //     state: isShippingEnabled ? formData.province : shippingData.shippingprovince,
+    //     postcode: isShippingEnabled ? formData.zipcode : shippingData.shippingzipcode,
+    //     country: isShippingEnabled ? formData.country : shippingData.shippingcountry,
+    //   },
+    //   line_items: cart.map((item) => ({
+    //     product_id: item.id,
+    //     quantity: item.quantity,
+    //   })),
+    //   shipping_lines: fetchedproduct?.shipping_lines?.map((line) => ({
+    //     id: line.id, // Preserve existing ID
+    //     method_id: orderData.shippingmethodid?.toLowerCase().replace(/\s+/g, "_") || "free_shipping",
+    //     method_title: orderData.shippingmethodtitle || "Free Shipping",
+    //   })) || [],
+    //   // total_price: cart.reduce(
+    //   //   (sum, item) => sum + item.quantity * parseFloat(item.price),
+    //   //   0
+    //   // ),
+    //   // total_quantity: cart.reduce((sum, item) => sum + item.quantity, 0),
+    // };
+
+    // const Data = {
+    //   payment_method: orderData.paymentmethodid || fetchedproduct?.payment_method || "",
+    //   payment_method_title: orderData.paymentmethodtitle || fetchedproduct?.payment_method_title || "",
+    //   set_paid: fetchedproduct?.set_paid || false,
+    
+    //   billing: {
+    //     first_name: formData.firstname || fetchedproduct?.billing?.first_name || "",
+    //     last_name: formData.lastname || fetchedproduct?.billing?.last_name || "",
+    //     address_1: formData.fulladdress?.split(",")[0] || fetchedproduct?.billing?.address_1 || "",
+    //     address_2: formData.fulladdress?.split(",").slice(1).join(", ") || fetchedproduct?.billing?.address_2 || "",
+    //     city: formData.city || fetchedproduct?.billing?.city || "",
+    //     state: formData.province || fetchedproduct?.billing?.state || "",
+    //     postcode: formData.zipcode || fetchedproduct?.billing?.postcode || "",
+    //     country: formData.country || fetchedproduct?.billing?.country || "",
+    //     email: formData.email || fetchedproduct?.billing?.email || "",
+    //     phone: formData.phone || fetchedproduct?.billing?.phone || "",
+    //   },
+    
+    //   shipping: {
+    //     first_name: isShippingEnabled ? formData.firstname : fetchedproduct?.shipping?.first_name || "",
+    //     last_name: isShippingEnabled ? formData.lastname : fetchedproduct?.shipping?.last_name || "",
+    //     address_1: isShippingEnabled
+    //       ? formData.fulladdress?.split(",")[0] || ""
+    //       : fetchedproduct?.shipping?.address_1 || "",
+    //     address_2: isShippingEnabled
+    //       ? formData.fulladdress?.split(",").slice(1).join(", ") || ""
+    //       : fetchedproduct?.shipping?.address_2 || "",
+    //     city: isShippingEnabled ? formData.city : fetchedproduct?.shipping?.city || "",
+    //     state: isShippingEnabled ? formData.province : fetchedproduct?.shipping?.state || "",
+    //     postcode: isShippingEnabled ? formData.zipcode : fetchedproduct?.shipping?.postcode || "",
+    //     country: isShippingEnabled ? formData.country : fetchedproduct?.shipping?.country || "",
+    //   },
+    
+    //   // ✅ Ensure price and total calculation is correct
+    //   line_items: [
+    //     ...fetchedproduct?.line_items?.map(existingItem => {
+    //       const updatedItem = cart.find(cartItem => cartItem.id === existingItem.product_id);
+    //       if (updatedItem) {
+    //         return { 
+    //           id: existingItem.id, // Keep WooCommerce order line item ID
+    //           product_id: existingItem.product_id,
+    //           quantity: updatedItem.quantity,
+    //           variation_id: existingItem.variation_id || 0,
+    //           price: existingItem.price, // ✅ Keep original price
+    //           subtotal: (existingItem.price * updatedItem.quantity).toFixed(2), // ✅ Ensure correct subtotal
+    //           total: (existingItem.price * updatedItem.quantity).toFixed(2), // ✅ Ensure correct total
+    //         };
+    //       }
+    //       return existingItem; // Keep original if not updated
+    //     }).filter(item => item.quantity > 0), // Prevent items with quantity 0
+    
+    //     // Add new products that aren't in `fetchedproduct.line_items`
+    //     ...cart.filter(cartItem => !fetchedproduct?.line_items?.some(existingItem => existingItem.product_id === cartItem.id))
+    //       .map(newItem => ({
+    //         product_id: newItem.id,
+    //         quantity: newItem.quantity,
+    //         variation_id: newItem.variation_id || 0,
+    //         price: newItem.price, // ✅ Ensure correct price is sent for new products
+    //         subtotal: (newItem.price * newItem.quantity).toFixed(2), // ✅ Ensure correct subtotal
+    //         total: (newItem.price * newItem.quantity).toFixed(2), // ✅ Ensure correct total
+    //       }))
+    //   ],
+    
+    //   // ✅ Preserve shipping methods safely
+    //   shipping_lines: fetchedproduct?.shipping_lines?.map(line => ({
+    //     id: line.id, // Preserve existing ID
+    //     method_id: orderData.shippingmethodid?.toLowerCase().replace(/\s+/g, "_") || line.method_id || "free_shipping",
+    //     method_title: orderData.shippingmethodtitle || line.method_title || "Free Shipping",
+    //   })) || [],
+    
+    //   // ✅ Preserve order status
+    //   status: fetchedproduct?.status || "pending",
+    // };
+    
     const Data = {
-      payment_method: orderData.paymentmethodid || "default_method",
-      payment_method_title: orderData.paymentmethodtitle || "Unknown Payment Method", 
-      set_paid: false,
-      // total:cart.reduce(
-      //     (sum, item) => sum + item.quantity * parseFloat(item.price),
-      //     0
-      //   ),
+      payment_method: orderData.paymentmethodid || fetchedproduct?.payment_method || "",
+      payment_method_title: orderData.paymentmethodtitle || fetchedproduct?.payment_method_title || "",
+      set_paid: fetchedproduct?.set_paid || false,
+    
       billing: {
-        first_name: formData.firstname || "",
-        last_name: formData.lastname || "",
-        address_1: formData.fulladdress?.split(",")[0] || "",
-        address_2: formData.fulladdress?.split(",").slice(1).join(", ") || "",
-        city: formData.city || "",
-        state: formData.province || "",
-        postcode: formData.zipcode || "",
-        country: formData.country || "",
-        email: formData.email || "",
-        phone: formData.phone || "",
+        first_name: formData.firstname || fetchedproduct?.billing?.first_name || "",
+        last_name: formData.lastname || fetchedproduct?.billing?.last_name || "",
+        address_1: formData.fulladdress?.split(",")[0] || fetchedproduct?.billing?.address_1 || "",
+        address_2: formData.fulladdress?.split(",").slice(1).join(", ") || fetchedproduct?.billing?.address_2 || "",
+        city: formData.city || fetchedproduct?.billing?.city || "",
+        state: formData.province || fetchedproduct?.billing?.state || "",
+        postcode: formData.zipcode || fetchedproduct?.billing?.postcode || "",
+        country: formData.country || fetchedproduct?.billing?.country || "",
+        email: formData.email || fetchedproduct?.billing?.email || "",
+        phone: formData.phone || fetchedproduct?.billing?.phone || "",
       },
+    
       shipping: {
-        first_name: isShippingEnabled ? formData.firstname : shippingData.shippingfirstname,
-        last_name: isShippingEnabled ? formData.lastname : shippingData.shippinglastname,
-        address_1: isShippingEnabled 
-            ? formData.fulladdress?.split(",")[0] || "" 
-            : shippingData.shippingfulladdress?.split(",")[0] || "",
-        address_2: isShippingEnabled 
-            ? formData.fulladdress?.split(",").slice(1).join(", ") || "" 
-            : shippingData.shippingfulladdress?.split(",").slice(1).join(", ") || "",
-        city: isShippingEnabled ? formData.city : shippingData.shippingcity,
-        state: isShippingEnabled ? formData.province : shippingData.shippingprovince,
-        postcode: isShippingEnabled ? formData.zipcode : shippingData.shippingzipcode,
-        country: isShippingEnabled ? formData.country : shippingData.shippingcountry,
+        first_name: isShippingEnabled ? formData.firstname : fetchedproduct?.shipping?.first_name || "",
+        last_name: isShippingEnabled ? formData.lastname : fetchedproduct?.shipping?.last_name || "",
+        address_1: isShippingEnabled
+          ? formData.fulladdress?.split(",")[0] || ""
+          : fetchedproduct?.shipping?.address_1 || "",
+        address_2: isShippingEnabled
+          ? formData.fulladdress?.split(",").slice(1).join(", ") || ""
+          : fetchedproduct?.shipping?.address_2 || "",
+        city: isShippingEnabled ? formData.city : fetchedproduct?.shipping?.city || "",
+        state: isShippingEnabled ? formData.province : fetchedproduct?.shipping?.state || "",
+        postcode: isShippingEnabled ? formData.zipcode : fetchedproduct?.shipping?.postcode || "",
+        country: isShippingEnabled ? formData.country : fetchedproduct?.shipping?.country || "",
       },
-      line_items: cart.map((item) => ({
-        product_id: item.id,
-        quantity: item.quantity,
-      })),
-      shipping_lines: [
-        {
-          method_id: orderData.shippingmethodid?.toLowerCase().replace(/\s+/g, "_") || "free_shipping",
-          method_title: orderData.shippingmethodtitle || "Free Shipping",
-          // total: cart.reduce(
-          //   (sum, item) => sum + item.quantity * parseFloat(item.price),
-          //   0
-          // ).toFixed(2),
-        },
+    
+      line_items: [
+        // Update existing products (if found in cart)
+        ...fetchedproduct?.line_items?.map(existingItem => {
+          const updatedItem = cart.find(cartItem => cartItem.id === existingItem.product_id);
+          if (updatedItem) {
+            return { 
+              id: existingItem.id, 
+              product_id: existingItem.product_id,
+              quantity: updatedItem.quantity,
+              variation_id: existingItem.variation_id || 0,
+              price: existingItem.price, 
+              subtotal: (existingItem.price * updatedItem.quantity).toFixed(2), 
+              total: (existingItem.price * updatedItem.quantity).toFixed(2), 
+            };
+          }
+          // If product is missing in `cart`, set `quantity: 0` to remove it
+          return { 
+            id: existingItem.id,
+            product_id: existingItem.product_id,
+            quantity: 0 
+          };
+        }),
+    
+        // Add new products that aren't in `fetchedproduct.line_items`
+        ...cart.filter(cartItem => !fetchedproduct?.line_items?.some(existingItem => existingItem.product_id === cartItem.id))
+          .map(newItem => ({
+            product_id: newItem.id,
+            quantity: newItem.quantity,
+            variation_id: newItem.variation_id || 0,
+            price: newItem.price,
+            subtotal: (newItem.price * newItem.quantity).toFixed(2), 
+            total: (newItem.price * newItem.quantity).toFixed(2), 
+          }))
       ],
-      // total_price: cart.reduce(
-      //   (sum, item) => sum + item.quantity * parseFloat(item.price),
-      //   0
-      // ),
-      // total_quantity: cart.reduce((sum, item) => sum + item.quantity, 0),
+    
+      //Preserve shipping methods safely
+      shipping_lines: fetchedproduct?.shipping_lines?.map(line => ({
+        id: line.id, 
+        method_id: orderData.shippingmethodid?.toLowerCase().replace(/\s+/g, "_") || line.method_id || "free_shipping",
+        method_title: orderData.shippingmethodtitle || line.method_title || "Free Shipping",
+      })) || [],
+    
+      status: fetchedproduct?.status || "pending",
     };
-
-    console.log("Data:", Data);
+    
+    // console.log("Data:", Data);
     // setSubmitting(false);
     // return;
 

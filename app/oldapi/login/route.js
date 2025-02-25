@@ -2,10 +2,13 @@
 export const dynamic = "force-dynamic";
 import { connectDb } from '@/helper/db';
 import User from '@/models/User';
+import Userrole from "@/models/userrole";
+import Permission from "@/models/permission";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { serialize } from 'cookie';
 import { NextResponse } from 'next/server';
+
 
 
 
@@ -34,7 +37,13 @@ export async function POST(req, res) {
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return NextResponse.json({ status: "error", message: 'Invalid credentials'  }, { status: 401 });
         } 
-        const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, {
+
+        const role = await Userrole.findOne({ _id: user.role }).populate("permissions", "permission").lean();
+        const permissionIds = role?.permissions?.map((p) => p._id.toString()) || [];
+
+        // console.log(permissionIds);
+        
+        const token = jwt.sign({ id: user._id, email: user.email, role: user.role,permissions: permissionIds }, process.env.JWT_SECRET, {
             expiresIn: "1d",
         }); 
 

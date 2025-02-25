@@ -17,6 +17,14 @@ export async function POST(req, res) {
 
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+    let requiredpermission = '67b46bf27b14d62c9c5850d7';
+
+    if (!decoded.permissions.includes(requiredpermission)) {
+        return NextResponse.json(
+          { status: "unauthorized", message: "Unauthorized" },
+          { status: 403, headers: { Location: "/unauthorized" } }
+        );
+    }
     await connectDb();
     if (req.method === "POST") {
       try {

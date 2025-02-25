@@ -4,6 +4,7 @@ import React, { useEffect,useState,Fragment } from 'react';
 
 const OrderModelAddress = ({order}) => {
     const [modaladdressShow, setModaladdressShow] = React.useState(false);
+    console.log(order);
     
     function MyVerticallyCenteredaddressModal(props) {
         return (
@@ -70,21 +71,26 @@ const OrderModelAddress = ({order}) => {
                                                 <p style={{marginBottom:'8px',fontSize:'13px'}}>Phone number:</p>
                                                 <h5>
                                                     {/* {order.shipping?.phone || 'N/A'} */}
-                                                    {order.billing?.phone 
-                                                        ? order.billing.phone 
-                                                        : order.shipping?.phone 
+                                                    {order.shipping?.phone && order.shipping.phone.trim() !== ""
                                                         ? order.shipping.phone 
-                                                        : 'N/A'}
+                                                        : order.billing?.phone 
+                                                        ? order.billing.phone 
+                                                        : "N/A"}
                                                 </h5>
                                             </div>
                                             <div style={{backgroundColor:'#ffffff',padding:'15px 0px 7px 13px',borderRadius:'10px 10px 10px 10px'}}>
                                                 <p style={{marginBottom:'8px',fontSize:'13px'}}>Email:</p>
                                                 <h5>
-                                                    {order.billing?.email 
+                                                    {order.shipping?.email && order.shipping.email.trim() !== ""
+                                                            ? order.shipping.email 
+                                                            : order.billing?.email 
+                                                            ? order.billing.email 
+                                                            : "N/A"}
+                                                    {/* {order.billing?.email 
                                                         ? order.billing.email 
                                                         : order.shipping?.email 
                                                         ? order.shipping.email 
-                                                        : 'N/A'}
+                                                        : 'N/A'} */}
                                                 </h5>
                                             </div>
                                         </div>

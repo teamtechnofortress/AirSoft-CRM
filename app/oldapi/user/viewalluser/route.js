@@ -21,6 +21,17 @@ export async function GET(req, res) {
 
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+
+    // console.log(decoded.permissions);
+    let requiredpermission = '67b46c7d7b14d62c9c5850e1';
+
+    if (!decoded.permissions.includes(requiredpermission)) {
+        return NextResponse.json(
+          { status: "unauthorized", message: "Unauthorized" },
+          { status: 403, headers: { Location: "/unauthorized" } }
+        );
+    }
+
     await connectDb();
     // console.log("Registered models:", mongoose?.models ? Object.keys(mongoose.models) : "Mongoose not initialized");
     

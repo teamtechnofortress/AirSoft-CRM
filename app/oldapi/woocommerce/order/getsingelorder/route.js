@@ -18,6 +18,14 @@ export async function POST(req) {
   
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+    let requiredpermission = '67b46cd67b14d62c9c5850eb';
+
+    if (!decoded.permissions.includes(requiredpermission)) {
+        return NextResponse.json(
+          { status: "unauthorized", message: "Unauthorized" },
+          { status: 403, headers: { Location: "/unauthorized" } }
+        );
+    }
 
     const body = await req.json();
     const {id } = body; 

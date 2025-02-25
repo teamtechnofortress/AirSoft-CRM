@@ -165,9 +165,7 @@ const Addorder = () => {
   };
   
   useEffect(() => {
-
     runallfuntion();
-
   }, []);
 
   useEffect(() => {
@@ -264,6 +262,7 @@ const Addorder = () => {
         state: isShippingEnabled ? formData.province : shippingData.shippingprovince,
         postcode: isShippingEnabled ? formData.zipcode : shippingData.shippingzipcode,
         country: isShippingEnabled ? formData.country : shippingData.shippingcountry,
+        phone: isShippingEnabled ? formData.phone : shippingData.shippingphone,
       },
       line_items: cart.map((item) => ({
         product_id: item.id,

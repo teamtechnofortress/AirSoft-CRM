@@ -1,24 +1,20 @@
 'use client'
 
-// import node module libraries
-import { Row, Col, Card, Form, Button, Image } from 'react-bootstrap';
+import { Row, Col, Card, Form, Button, Image,Spinner} from 'react-bootstrap';
 import Link from 'next/link';
 import { useState } from 'react'
 import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
 import { useRouter } from 'next/navigation';
 import axios from 'axios'
-
-
-
-
-
-// import hooks
 import useMounted from 'hooks/useMounted';
 
-const SignIn = () => {
-  const router = useRouter();
 
+
+const SignIn = () => {
+  
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
   const hasMounted = useMounted();
   const [formData, setFormData] = useState({
       email: '',
@@ -28,27 +24,36 @@ const SignIn = () => {
   const auth = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/login`,formData);
-      // console.log('API Response:', response);
+      setSubmitting(true);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/login`, formData);
+      // console.log("API Response:", response);
       const data = response.data;
-        if (data.status === 'Success') {
-          // console.log('API Response token:', data.token);
-          if (data.token) {
-            // Redirect to homepage or dashboard
-            toast.success("Login successfully!");
-            setTimeout(() => {
-              router.refresh();
-              router.push(`/`);
-            }, 1000);
-          }
-        } else {
-          console.error(data.error);
+    
+      if (data.status === "Success") {
+        if (data.token) {
+          toast.success("Login successful!");
+          setTimeout(() => {
+            router.refresh();
+            router.push(`/`);
+          }, 1000);
         }
-      } catch (error) {
-      console.error('Error fetching data:', error);
-      } 
-      finally {
+      } else {
+        toast.error(data.message || "Login failed. Please try again.");
+        console.error("Error response:", data);
       }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      if (error.response) {
+        toast.error(error.response.data.message || "Server error. Please try again.");
+      } else if (error.request) {
+        toast.error("No response from the server. Check your internet connection.");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+    
   };
 
 const handleChange = (event) => {
@@ -96,14 +101,31 @@ const handleChange = (event) => {
                 <div>
                   {/* Button */}
                   <div className="d-grid">
-                    <Button variant="primary" type="submit">Login</Button>
+                  <Button variant="primary" type="submit" disabled={submitting}>
+                        {submitting ? (
+                          <>
+                            <Spinner
+                              as="span"
+                              animation="border"
+                              size="sm"
+                              role="status"
+                              aria-hidden="true"
+                              className="me-2"
+                            />
+                            Submitting...
+                          </>
+                        ) : (
+                          "Login"
+                        )}
+                      </Button>
+                    {/* <Button variant="primary" type="submit">Login</Button> */}
                   </div>
                   <div className="d-md-flex justify-content-between mt-4">
                     <div className="mb-2 mb-md-0">
                       {/* <Link href="/authentication/sign-up" className="fs-5">Create An Account </Link> */}
                     </div>
                     <div>
-                      <Link href="/authentication/forget-password" className="text-inherit fs-5">Forgot your password?</Link>
+                      {/* <Link href="/authentication/forget-password" className="text-inherit fs-5">Forgot your password?</Link> */}
                     </div>
                   </div>
                 </div>

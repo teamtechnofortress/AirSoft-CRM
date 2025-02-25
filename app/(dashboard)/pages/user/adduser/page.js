@@ -48,7 +48,6 @@ const AddUser = () => {
         [name]: value
     }));
   };
-
   const handleSubmit = async (event) => {  
     event.preventDefault();
     // console.log(formData);
@@ -66,23 +65,16 @@ const AddUser = () => {
           });
           toast.success("User added successfully!");
         } else {
-           toast.error("User Not Added!");
+          toast.error("User Not Added! " + response.data.message);
         }
     } catch (error) {
         console.error('Error adding user:', error);
-        toast.error("An error occurred while adding the user.");
+        toast.error("User Not Added! " + (error.response?.data?.message || "Something went wrong."));
     }
     finally{
     }
   }
-
   const hasMounted = useMounted();
-  const countryOptions = [
-    { value: 'India', label: 'India' },
-    { value: 'US', label: 'US' },
-    { value: 'UK', label: 'UK' },
-    { value: 'UAE', label: 'UAE' }
-  ];
 
   return (
     <Container fluid className="p-6">

@@ -216,9 +216,9 @@ const QuickMenu = ({onLogout}) => {
                             </div>
                             <div className=" dropdown-divider mt-3 mb-2"></div>
                     </Dropdown.Item>
-                    <Dropdown.Item eventKey="2">
+                    {/* <Dropdown.Item eventKey="2">
                         <i className="fe fe-user me-2"></i> Edit Profile
-                    </Dropdown.Item>
+                    </Dropdown.Item> */}
                     {/* <Dropdown.Item eventKey="3">
                         <i className="fe fe-activity me-2"></i> Activity Log
                     </Dropdown.Item>

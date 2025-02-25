@@ -1,6 +1,7 @@
 'use client'
 // import node module libraries
-import { Fragment, useContext } from 'react';
+import { Fragment, useContext,useEffect,useState } from 'react';
+import axios from 'axios';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMediaQuery } from 'react-responsive';
@@ -15,14 +16,51 @@ import 'simplebar/dist/simplebar.min.css';
 
 // import routes file
 import { DashboardMenu } from 'routes/DashboardRoutes';
+import useDashboardMenu from 'routes/DashboardRoutes';
 
 const NavbarVertical = (props) => {
   const location = usePathname();
+  const DashboardMenu = useDashboardMenu();
+
+  // console.log(DashboardMenu);
+
+  // const [permissions, setPermissions] = useState([]);
+  // const [filteredMenu, setFilteredMenu] = useState([]);
 
   const CustomToggle = ({ children, eventKey, icon }) => {
     const { activeEventKey } = useContext(AccordionContext);
     const decoratedOnClick = useAccordionButton(eventKey, () => console.log('totally custom!'));
     const isCurrentEventKey = activeEventKey === eventKey;
+
+
+    // useEffect(() => {
+    //     const fetchPermissions = async () => {
+    //         try {
+    //             const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/tokendecodeapi`);
+    //             if (response.data && response.data.data) {
+    //                 const fetchedPermissions = response.data.data;
+    //                 setPermissions(fetchedPermissions);
+    //                 console.log("Fetched Permissions:", fetchedPermissions);
+    //             }
+    //         } catch (error) {
+    //             console.error("Error fetching permissions:", error);
+    //         }
+    //     };
+    //     fetchPermissions();
+    // }, []);
+
+    // useEffect(() => {
+    //     if (permissions.length > 0) {
+    //         const filtered = DashboardMenu.filter(menuItem => 
+    //             permissions.includes(menuItem.permission) // Adjust based on menu structure
+    //         );
+    //         setFilteredMenu(filtered);
+    //         console.log("Filtered DashboardMenu:", filtered);
+    //     }
+    // }, [permissions]);
+
+    // console.log("Filtered DashboardMenu:", filteredMenu);
+
     
     return (
       <li className="nav-item">

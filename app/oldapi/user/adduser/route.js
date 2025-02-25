@@ -19,14 +19,39 @@ export async function POST(req, res) {
 
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+
+    // console.log(decoded.permissions);
+    let requiredpermission = '67b46c707b14d62c9c5850df';
+
+    if (!decoded.permissions.includes(requiredpermission)) {
+        return NextResponse.json(
+          { status: "unauthorized", message: "Unauthorized" },
+          { status: 403, headers: { Location: "/unauthorized" } }
+        );
+    }
+
     await connectDb();
 
     if (req.method === "POST") {
       try {
           const body = await req.json(); 
           const {firstname,lastname,email,password,phone,role} = body;
+
+
+          if (!firstname || !lastname || !phone || !role) {
+              return NextResponse.json({ status: "error", message: "All fields is required" }, { status: 400 });
+          }
+          if (!email) {
+              return NextResponse.json({ status: "error", message: "Email is required" }, { status: 400 });
+          }
           if (!password) {
               return NextResponse.json({ status: "error", message: "Password is required" }, { status: 400 });
+          }
+
+          const user = await User.findOne({ email: email });
+
+          if (user) {
+            return NextResponse.json({ status: "error", message: "Email already Exists." }, { status: 400 });
           }
           const hashedPassword = await bcrypt.hash(password, 10);
           const newUser = new User({

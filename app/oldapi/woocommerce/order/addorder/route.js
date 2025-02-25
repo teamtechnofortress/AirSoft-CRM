@@ -24,6 +24,14 @@ export async function POST(req) {
   
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
+    let requiredpermission = '67b46cc27b14d62c9c5850e7';
+
+    if (!decoded.permissions.includes(requiredpermission)) {
+        return NextResponse.json(
+          { status: "unauthorized", message: "Unauthorized" },
+          { status: 403, headers: { Location: "/unauthorized" } }
+        );
+    }
     
 
     // Fetch products from the WooCommerce API.

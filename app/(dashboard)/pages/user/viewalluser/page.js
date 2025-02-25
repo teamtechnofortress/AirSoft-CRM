@@ -9,6 +9,25 @@ import { toast } from "react-toastify";
 const ViewAllUsers = () => {
     const [users, setUsers] = useState([]); 
     const [loading, setLoading] = useState(true);
+    const [permissionList, setPermissionList] = useState([]);
+    
+    const tokedecodeapi = async () => {
+        try {
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/tokendecodeapi`);
+            if (response.data?.data) {
+                const permissions = response.data.data.permissions.map(p => p._id);
+                // console.log("permissionList fetched successfully:", permissionList);
+                setPermissionList(permissions);
+                // return response.data.data;
+            } else {
+                console.error("Error fetching notes:", response.data.message);
+                return [];
+            }
+        } catch (error) {
+            console.error("Error fetching notes:", error);
+            return [];
+        }
+    };
     
     const fetchallusers = async () => {
       try {
@@ -39,6 +58,7 @@ const ViewAllUsers = () => {
   };
   
     useEffect(() => {
+        tokedecodeapi();
         fetchallusers();  
     }, []);
 
@@ -93,7 +113,12 @@ const ViewAllUsers = () => {
                     <th scope="col">Email</th>
                     <th scope="col">Phone</th>
                     <th scope="col">Role</th>
-                    <th scope="col">Action</th>
+                    {["67b46c877b14d62c9c5850e3", "67b46c8e7b14d62c9c5850e5"].some(permission => 
+                        permissionList.includes(permission)) ? (
+                        <th scope="col">Action</th>
+                    ) : (
+                        <th></th>
+                    )}
                 </tr>
             </thead>
             <tbody>
@@ -106,7 +131,21 @@ const ViewAllUsers = () => {
                       <td>{user.phone}</td>
                       <td>{user.role?.role ?? "admin"}</td>
                       <td>
-                        <Link href={`/pages/user/edituser/${user._id}`} passHref>
+                        {permissionList.includes("67b46c877b14d62c9c5850e3") && (
+                            <Link href={`/pages/user/edituser/${user._id}`} passHref>
+                             <Button variant="outline-primary" className="me-1">Edit</Button>
+                           </Link>
+                        )}
+                        {permissionList.includes("67b46c8e7b14d62c9c5850e5") && (
+                            <Button
+                                variant="outline-danger"
+                                className="me-1"
+                                onClick={() => handleDelete(user._id)}
+                                >
+                                Delete
+                            </Button>
+                        )}
+                        {/* <Link href={`/pages/user/edituser/${user._id}`} passHref>
                          <Button variant="outline-primary" className="me-1">Edit</Button>
                         </Link>
                         <Button
@@ -115,7 +154,7 @@ const ViewAllUsers = () => {
                             onClick={() => handleDelete(user._id)}
                             >
                             Delete
-                        </Button>
+                        </Button> */}
                       </td>
                   </tr>
                   ))

@@ -128,7 +128,7 @@ const ProductsModel = ({ setSelectedProducts, selectedProducts,productIds }) => 
   const [modalShow, setModalShow] = useState(false);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  console.log(productIds);
+  // console.log(productIds);
 
   useEffect(() => {
     if (productIds && products.length > 0) {
