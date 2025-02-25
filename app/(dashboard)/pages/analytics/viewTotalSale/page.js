@@ -31,7 +31,7 @@ const Page = () => {
 
   useEffect(() => {
     fetchTotalOrders();
-  }, []); // ✅ Runs only once on mount
+  }, []); 
 
   const fetchTotalSale = async () => {
     if (!dateRange.date_min || !dateRange.date_max) {
@@ -104,6 +104,15 @@ const Page = () => {
 
     return data;
   }
+  if (loading) {
+          return (
+              <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+                  <Spinner animation="border" variant="primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                  </Spinner>
+              </div>
+          );
+      }
 
   return (
     <Container className="mt-3 px-4">
