@@ -562,6 +562,7 @@ const useDashboardMenu = () => {
           //   ],
           // },
         ];
+        
 
         const filteredMenu = filterMenu(menu, permissionList);
         setDashboardMenu(filteredMenu);
