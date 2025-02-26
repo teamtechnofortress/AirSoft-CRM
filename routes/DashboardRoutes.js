@@ -446,6 +446,7 @@ const useDashboardMenu = () => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/tokendecodeapi`);
       if (response.data?.data) {
         const permissionList = response.data.data.permissions.map(p => p._id);
+        // console.log(permissionList);
         setPermissions(permissionList);
 
         const menu = [
@@ -475,7 +476,7 @@ const useDashboardMenu = () => {
                 {
                   id: uuid(),
                   title: "Role Management",
-                  icon: "layers",
+                  icon: "user-check",
                   children: [
                     ...(permissionList.includes("67b46bf27b14d62c9c5850d7")
                       ? [{ id: uuid(), link: "/pages/role/addrole", name: "Add Role" }]
@@ -493,7 +494,7 @@ const useDashboardMenu = () => {
                 {
                   id: uuid(),
                   title: "Order Management",
-                  icon: "layers",
+                  icon: "shopping-cart",
                   children: [
                     ...(permissionList.includes("67b46cc27b14d62c9c5850e7")
                       ? [{ id: uuid(), link: "/pages/order/addorder", name: "Add Order" }]
@@ -520,15 +521,29 @@ const useDashboardMenu = () => {
                 },
               ]
             : []),
-          {
-            id: uuid(),
-            title: 'Analytics',
-            icon: 'layers',
-            children: [
-              { id: uuid(), link: '/pages/analytics/viewTotalSale', name: 'Sale Summary' },
-              // { id: uuid(), link: '/pages/analytics/viewTotalOrders', name: 'Order Totals' },
-            ]
-          },
+            ...(permissionList.includes("67b46bd87b14d62c9c5850d5")
+            ? [
+                {
+                  id: uuid(),
+                  title: "Products",
+                  icon: "shopping-bag",
+                  children: [
+                    ...(permissionList.includes("67b46bd87b14d62c9c5850d5")
+                      ? [{ id: uuid(), link: "/pages/products/viewproducts", name: 'All Products'  }]
+                      : []),
+                  ],
+                },
+              ]
+            : []),
+          // {
+          //   id: uuid(),
+          //   title: 'Products',
+          //   icon: 'shopping-bag',
+          //   children: [
+          //     { id: uuid(), link: '/pages/products/viewproducts', name: 'All Products' },
+          //     // { id: uuid(), link: '/pages/analytics/viewTotalOrders', name: 'Order Totals' },
+          //   ]
+          // },
           // { id: uuid(), title: "UI COMPONENTS", grouptitle: true },
           // {
           //   id: uuid(),

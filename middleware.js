@@ -42,6 +42,7 @@ export async function middleware(request) {
   }
 
   const protectedRoutes = {
+    "/pages/products/viewproducts": "67b46bd87b14d62c9c5850d5",  // Add User
     "/pages/user/adduser": "67b46c707b14d62c9c5850df",  // Add User
     "/pages/user/viewalluser": "67b46c7d7b14d62c9c5850e1",  // View Users
     "/pages/role/addrole": "67b46bf27b14d62c9c5850d7",  // Add Role

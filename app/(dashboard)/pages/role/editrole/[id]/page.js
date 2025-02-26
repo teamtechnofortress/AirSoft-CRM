@@ -18,6 +18,8 @@ const EditRole = () => {
   const [permissions, setPermissions] = useState([]);
   const [role, setRole] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [error, setError] = useState(false);
+  
   
 
 
@@ -93,6 +95,13 @@ const EditRole = () => {
 
   const handleSubmit = async (event) => {
       event.preventDefault();
+
+      if (selectedPermissions.length === 0) { 
+        setError(true);
+        return; 
+      }
+      setError(false);
+
       // Create the payload to send to the API
       const data = {
           role,
@@ -176,7 +185,7 @@ const EditRole = () => {
                 </Row> */}
                 <div>
                   <div className="mb-6">
-                    <h4 className="mb-1">Basic information</h4>
+                    <h4 className="mb-1">Update Role</h4>
                   </div>
                   {hasMounted && 
                   <Form onSubmit={handleSubmit}>
@@ -207,11 +216,13 @@ const EditRole = () => {
                                           value={permission._id} 
                                           onChange={handleChange} 
                                           checked={selectedPermissions.includes(permission._id)}
-                                      />
+                                       />
                                   </Col>
                               ))}
                           </Row>
                       ))}
+                      {error && <p className="text-danger">At least one permission must be selected.</p>}
+
 
                       {/* {permissions.map((permission, index) => (
                           <div key={index}>

@@ -166,8 +166,8 @@ const ProductsModel = ({ setSelectedProducts, selectedProducts,productIds }) => 
 
   return (
     <>
-      <Button variant="" onClick={() => setModalShow(true)}>
-        <h5 className="mb-3 mt-2">Select Products</h5>
+      <Button variant="outline-primary" onClick={() => setModalShow(true)}>
+        Select Products
       </Button>
       <MyVerticallyCenteredModal
         setModalShow={setModalShow}

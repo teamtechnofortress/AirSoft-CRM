@@ -199,8 +199,8 @@ const ExistingCustomerOrOrder = ({orders,customers,setFormData}) => {
     }
   return (
     <Fragment> 
-        <Button variant="" onClick={() => setModaladdressShow(true)}>
-            <h5 className="mb-3 mt-2">Existing customer or order</h5>
+        <Button variant="outline-primary" onClick={() => setModaladdressShow(true)}>
+           Existing customer or order
         </Button>
         <MyVerticallyCenteredaddressModal show={modaladdressShow} onHide={() => setModaladdressShow(false)} />
     </Fragment>
