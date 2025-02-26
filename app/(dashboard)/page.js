@@ -125,7 +125,7 @@ const Page = () => {
       <Row className="gy-2">
         {orders.map((order, index) => (
           <Col key={index} md={3} sm={6} xs={12} className="px-1">
-            <Card className="p-2 text-center shadow-sm">
+            <Card className="p-2 text-center shadow-sm border border-primary">
               <Card.Body>
                 <Card.Title className="mb-1">{order.name}</Card.Title>
                 <Card.Text className="fw-bold">{order.total}</Card.Text>
