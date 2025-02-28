@@ -113,7 +113,7 @@ const Home = () => {
                                                 All
                                             </Nav.Link>
                                         </Nav.Item>
-                                        {/* <Nav.Item>
+                                        <Nav.Item>
                                             <Nav.Link eventKey="instock" className="mb-sm-3 mb-md-0">
                                                 InStock
                                             </Nav.Link>
@@ -127,7 +127,7 @@ const Home = () => {
                                             <Nav.Link eventKey="backorder" className="mb-sm-3 mb-md-0">
                                                 Back Order
                                             </Nav.Link>
-                                        </Nav.Item> */}
+                                        </Nav.Item>
                                     </Nav>
                                 </Card.Header>
                                 <Card.Body className="p-0">
@@ -141,14 +141,14 @@ const Home = () => {
                                         </Tab.Pane>
 
                                         <Tab.Pane eventKey="instock" className="pb-4 p-4 react-code">
-                                            {/* <InStockProducts products={products} /> */}
+                                            <InStockProducts products={products} />
 
                                         </Tab.Pane>
                                         <Tab.Pane eventKey="outofstock" className="pb-4 p-4 react-code">
-                                            {/* <OutOfStockProducts products={products} /> */}
+                                            <OutOfStockProducts products={products} />
                                         </Tab.Pane>
                                         <Tab.Pane eventKey="backorder" className="pb-4 p-4 react-code">
-                                            {/* <OutOfStockProducts /> */}
+                                            <OutOfStockProducts />
                                         </Tab.Pane>
                                     </Tab.Content>
                                 </Card.Body>

@@ -8,6 +8,8 @@ import OrderLineItem from '/sub-components/order/OrderLineItem.js'
 import OrderModelAddress from '/sub-components/order/OrderModelAddress.js'
 import OrderAllNotes from '/sub-components/order/OrderAllNotes.js'
 import CustomerModelAddress from '/sub-components/customer/CustomerModelAddress.js'
+import CustomerAddNotes from '/sub-components/customer/CustomerAddNotes.js'
+
 
 const ViewAllUsers = () => {
     const [customers, setCustomers] = useState([]); 
@@ -135,6 +137,12 @@ const ViewAllUsers = () => {
                                                 <CustomerModelAddress customer={customer} />
                                                 {/* View detail */}
                                                 </Dropdown.Item>
+
+                                                <Dropdown.Item eventKey="3">
+                                                <CustomerAddNotes customer={customer} />
+                                                {/* View detail */}
+                                                </Dropdown.Item>
+
                                                 {/* <Dropdown.Item eventKey="4">Custom fields</Dropdown.Item> */}
                                                 {/* <Dropdown.Item eventKey="6" >Duplicate order</Dropdown.Item> */}
                                                 {/* <Dropdown.Item eventKey="6" onClick={() => duplicateorder(order.id)}>Duplicate order</Dropdown.Item> */}

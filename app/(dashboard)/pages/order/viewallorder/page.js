@@ -137,21 +137,46 @@ const ViewAllOrder = () => {
                                                     All
                                                 </Nav.Link>
                                             </Nav.Item>
-                                            {/* <Nav.Item>
-                                                <Nav.Link eventKey="instock" className="mb-sm-3 mb-md-0">
-                                                    InStock
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="pending" className="mb-sm-3 mb-md-0">
+                                                    Pending
                                                 </Nav.Link>
                                             </Nav.Item>
                                             <Nav.Item>
-                                                <Nav.Link eventKey="outofstock" className="mb-sm-3 mb-md-0">
-                                                    Out OF Stock
+                                                <Nav.Link eventKey="processing" className="mb-sm-3 mb-md-0">
+                                                    Processing
                                                 </Nav.Link>
                                             </Nav.Item>
                                             <Nav.Item>
-                                                <Nav.Link eventKey="backorder" className="mb-sm-3 mb-md-0">
-                                                    Back Order
+                                                <Nav.Link eventKey="on-hold" className="mb-sm-3 mb-md-0">
+                                                    On-hold
                                                 </Nav.Link>
-                                            </Nav.Item> */}
+                                            </Nav.Item>
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="completed" className="mb-sm-3 mb-md-0">
+                                                    Completed
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="cancelled" className="mb-sm-3 mb-md-0">
+                                                    Cancelled
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="refunded" className="mb-sm-3 mb-md-0">
+                                                    Refunded
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="trash" className="mb-sm-3 mb-md-0">
+                                                    Trash
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item>
+                                                <Nav.Link eventKey="failed" className="mb-sm-3 mb-md-0">
+                                                    Failed
+                                                </Nav.Link>
+                                            </Nav.Item>
                                         </Nav>
                                     </Card.Header>
                                     <Card.Body className="p-0">
@@ -160,12 +185,36 @@ const ViewAllOrder = () => {
                                                 <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
                                             </Tab.Pane>
                         
-                                            <Tab.Pane eventKey="instock" className="pb-4 p-4 react-code">
-                        
+                                            <Tab.Pane eventKey="pending" className="pb-4 p-4 react-code">
+                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
                                             </Tab.Pane>
-                                            <Tab.Pane eventKey="outofstock" className="pb-4 p-4 react-code">
+
+                                            <Tab.Pane eventKey="processing" className="pb-4 p-4 react-code">
+                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
                                             </Tab.Pane>
-                                            <Tab.Pane eventKey="backorder" className="pb-4 p-4 react-code">
+
+                                            <Tab.Pane eventKey="on-hold" className="pb-4 p-4 react-code">
+                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                            </Tab.Pane>
+
+                                            <Tab.Pane eventKey="completed" className="pb-4 p-4 react-code">
+                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                            </Tab.Pane>
+
+                                            <Tab.Pane eventKey="cancelled" className="pb-4 p-4 react-code">
+                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                            </Tab.Pane>
+
+                                            <Tab.Pane eventKey="refunded" className="pb-4 p-4 react-code">
+                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                            </Tab.Pane>
+
+                                            <Tab.Pane eventKey="trash" className="pb-4 p-4 react-code">
+                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                            </Tab.Pane>
+
+                                            <Tab.Pane eventKey="failed" className="pb-4 p-4 react-code">
+                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
                                             </Tab.Pane>
                                         </Tab.Content>
                                     </Card.Body>

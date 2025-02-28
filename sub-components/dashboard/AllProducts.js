@@ -45,7 +45,7 @@ const AllProducts = ({products}) => {
    
     return (
         <Row className="mt-4">
-            {products.map((product) => (
+            {products?.map((product) => (
                 <Col key={product.id} md={3} sm={6} xs={12} className="mb-4">
                     <Card style={{ width: "100%" }}>
                         <Card.Img 

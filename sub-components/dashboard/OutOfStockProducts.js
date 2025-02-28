@@ -45,7 +45,7 @@ const OutOfStockProducts = ({products}) => {
    
     return (
         <Row className="mt-4">
-            {products.filter(product => product.stock_status === 'outofstock').map((product) => (
+            {products?.filter(product => product.stock_status === 'outofstock').map((product) => (
                 <Col key={product.id} md={3} sm={6} xs={12} className="mb-4">
                     <Card style={{ width: "100%" }}>
                         <Card.Img 
