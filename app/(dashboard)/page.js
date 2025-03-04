@@ -309,7 +309,7 @@ const Page = () => {
                                   <Tab.Pane eventKey="all" className="pb-4 p-4">
                                     <Row className="gy-2">
                                       {orders.map((order, index) => (
-                                        <Col key={index} md={3} sm={6} xs={12} className="px-1">
+                                        <Col key={order.id || index} md={3} sm={6} xs={12} className="px-1">
                                           <Card className="p-2 text-center shadow-sm border  border-primary">
                                             <Card.Body>
                                               <Card.Title className="mb-1">{order.name}</Card.Title>
@@ -361,7 +361,6 @@ const Page = () => {
                                     )}
                                     {error && <p className="text-danger text-center">Error: {error}</p>}
                                     {!filterLoading && salesData.length === 0 && <p className="text-center">No sales data available</p>}
-
                                     {!filterLoading && Object.keys(chartData).length > 0 && (
                                       <>
                                         {salesData.map(({ key, title }) => (
@@ -388,7 +387,6 @@ const Page = () => {
                                         {
                                           allnotes.map((note, index) => (
                                             <div>
-                                              
                                             <p 
                                               key={index} 
                                               className="border bg-primary text-white p-2"

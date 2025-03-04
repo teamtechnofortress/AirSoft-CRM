@@ -115,7 +115,7 @@ const Page = ({params}) => {
   useEffect(() => {
     fetchallnotes();
     fetchAllCRMUsers();
-  }, []); 
+  }, [fetchallnotes]); 
 
   if (loading) {
     return (

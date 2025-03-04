@@ -7,7 +7,7 @@ import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
 import { Col, Row, Form, Card, Button, Image,Container,Spinner } from 'react-bootstrap';
 
-const addtask = () => {
+const AddTask = () => {
   const hasMounted = useMounted();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -279,4 +279,4 @@ useEffect(() => {
   )
 }
 
-export default addtask
+export default AddTask
