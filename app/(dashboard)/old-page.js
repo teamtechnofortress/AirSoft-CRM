@@ -26,7 +26,7 @@ const Home = () => {
 
     useEffect(() => {
         fetchAllProducts(); // Fetch products when the component is mounted
-    }, []);
+    }, [fetchAllProducts]);
     
   return (
     <div>
@@ -42,8 +42,8 @@ const Home = () => {
           </tr>
         </thead>
         <tbody>
-          {products.map((product) => (
-            <tr key={product.id}>
+          {products.map((product,index) => (
+            <tr key={product.id || index}>
               <td>{product.id}</td>
               <td>{product.name}</td>
               <td>{product.price}</td>

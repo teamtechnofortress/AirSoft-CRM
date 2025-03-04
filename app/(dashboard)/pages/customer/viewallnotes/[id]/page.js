@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useEffect, useState,Fragment } from "react";
+import React, { useEffect, useState,Fragment,useCallback } from "react";
 import axios from "axios";
 import { Container, Row, Col, Card, Spinner, Form, Button,Tab,Nav } from "react-bootstrap";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import CustomerEditNote from 'sub-components/customer/editnotemodel.js';
+
+
+
 const Page = ({params}) => {
 
   const { id } = params;
@@ -73,7 +76,21 @@ const Page = ({params}) => {
       }
   };
 
-  const fetchallnotes = async () => {
+  // const fetchallnotes = useCallback(async () => {
+  //   try {
+  //     const response = await axios.get("/api/notes");
+  //     setAllnotes(response.data);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // }, []); 
+
+  useEffect(() => {
+    fetchallnotes();
+  }, [fetchallnotes]); 
+
+
+  const fetchallnotes = useCallback(async () => {
     try {
       // const id = await tokedecodeapi();
       // console.log(id);
@@ -91,7 +108,7 @@ const Page = ({params}) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); 
   const deletenote = async (id) => {
     try {
       if (!confirm("Are you sure you want to delete this note?")) return;
@@ -264,7 +281,7 @@ const Page = ({params}) => {
                                           <p className="text-center text-muted">No data available</p>
                                         ) : (
                                           allnotes.map((note, index) => (
-                                            <div key={index}> 
+                                            <div key={note._id || index}> 
                                               <p 
                                                 className="border bg-primary text-white p-2"
                                                 style={{ 
