@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState,Fragment } from "react";
+import React, { useEffect, useState,Fragment,useCallback  } from "react";
 import axios from "axios";
 import { Container, Row, Col, Card, Spinner, Form, Button,Tab,Nav } from "react-bootstrap";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
@@ -40,7 +40,7 @@ const Page = () => {
         }
   };
 
-  const fetchTotalOrders = async () => {
+  const fetchTotalOrders = useCallback(async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/gettotalorder`);
       if (response.data && Array.isArray(response.data.data)) {
@@ -53,31 +53,68 @@ const Page = () => {
     } finally {
       setLoading(false);
     }
-  };
-  const fetchallnotes = async () => {
+  }, []); // ✅ Now it won’t cause infinite renders
+  
+  // const fetchTotalOrders = async () => {
+  //   try {
+  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/gettotalorder`);
+  //     if (response.data && Array.isArray(response.data.data)) {
+  //       setOrders(response.data.data);
+  //     } else {
+  //       setError("Unexpected API response");
+  //     }
+  //   } catch (error) {
+  //     setError(error.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  // const fetchallnotes = async () => {
+  //   try {
+  //     const id = await tokedecodeapi();
+  //     // console.log(id);
+  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/getnote/${id}`);
+  //     // console.log(response);
+  //     // console.log(response.data);
+  //     // console.log(response.data.data);
+  //     if (response.data && Array.isArray(response.data.data)) {
+  //       setAllnotes(response.data.data);
+  //     } else {
+  //       setError("Unexpected API response");
+  //     }
+  //   } catch (error) {
+  //     setError(error.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const fetchallnotes = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+  
     try {
       const id = await tokedecodeapi();
-      // console.log(id);
+      if (!id) return;
+  
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/getnote/${id}`);
-      // console.log(response);
-      // console.log(response.data);
-      // console.log(response.data.data);
       if (response.data && Array.isArray(response.data.data)) {
         setAllnotes(response.data.data);
       } else {
         setError("Unexpected API response");
       }
     } catch (error) {
-      setError(error.message);
+      setError(error.message || "Failed to fetch notes.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // ✅ Now it's memoized and won't trigger infinite renders
 
   useEffect(() => {
     fetchTotalOrders();
     fetchallnotes();
-  }, []); 
+  }, [fetchTotalOrders, fetchallnotes]); // ✅ Now stable
+  
 
   const fetchTotalSale = async () => {
     if (!dateRange.date_min || !dateRange.date_max) {
@@ -386,9 +423,8 @@ const Page = () => {
                                     <div>
                                         {
                                           allnotes.map((note, index) => (
-                                            <div>
+                                            <div key={index || note._id}>
                                             <p 
-                                              key={index} 
                                               className="border bg-primary text-white p-2"
                                               style={{ 
                                                 borderRadius: '20px', 
