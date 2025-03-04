@@ -4,34 +4,34 @@ import React, { useEffect,useState } from 'react';
 import axios from 'axios';
 
 const Home = () => {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // const [products, setProducts] = useState([]);
+    // const [loading, setLoading] = useState(true);
     
-    const fetchAllProducts = async () => {
-        try {
-            const response = await axios.get(`http://localhost:3000/api/woocommerce/getallproduct`);
-            console.log('API Response:', response.data);
+    // const fetchAllProducts = async () => {
+    //     try {
+    //         const response = await axios.get(`http://localhost:3000/api/woocommerce/getallproduct`);
+    //         console.log('API Response:', response.data);
     
-            if (response.data && response.data.data) {
-                setProducts(response.data.data); // Set products to the state
-            } else {
-                console.error('Unexpected API Response:', response.data);
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error.message);  // Log the error message
-        } finally {
-            setLoading(false); // Set loading to false after data fetch
-        }
-    };
+    //         if (response.data && response.data.data) {
+    //             setProducts(response.data.data); // Set products to the state
+    //         } else {
+    //             console.error('Unexpected API Response:', response.data);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching data:', error.message);  // Log the error message
+    //     } finally {
+    //         setLoading(false); // Set loading to false after data fetch
+    //     }
+    // };
 
-    useEffect(() => {
-        fetchAllProducts(); // Fetch products when the component is mounted
-    }, [fetchAllProducts]);
+    // useEffect(() => {
+    //     fetchAllProducts(); 
+    // }, [fetchAllProducts]);
     
   return (
     <div>
       <h1>Product List</h1>
-      <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
+      {/* <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
         <thead>
           <tr>
             <th>ID</th>
@@ -61,7 +61,7 @@ const Home = () => {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table> */}
     </div>
   )
 }

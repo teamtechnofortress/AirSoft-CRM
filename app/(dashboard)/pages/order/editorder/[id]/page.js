@@ -225,12 +225,6 @@ const EditOrder = ({params}) => {
   //   setLoading(false);
   // }, [id]);
 
-
-
-
-
-
-
   const runallfuntion = async () => {
     try {
       setLoading(true);

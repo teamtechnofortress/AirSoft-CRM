@@ -86,48 +86,50 @@ const Page = ({params}) => {
   // }, []); 
 
   const fetchallnotes = useCallback(async () => {
+    setLoading(true); // ✅ Set loading state before API call
+    setError(null); // ✅ Reset error before request
+
     try {
-      // const id = await tokedecodeapi();
-      // console.log(id);
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/getnoteforadmin/${id}`);
-      // console.log(response);
-      // console.log(response.data);
-      // console.log(response.data.data);
+      
       if (response.data && Array.isArray(response.data.data)) {
         setAllnotes(response.data.data);
       } else {
         setError("Unexpected API response");
       }
     } catch (error) {
-      setError(error.message);
+      setError(error.message || "Failed to fetch notes.");
     } finally {
       setLoading(false);
     }
-  }, []); 
-  const deletenote = async (id) => {
+}, [id]); // ✅ Added `id` dependency
+
+  const deletenote = async (noteId) => {
     try {
       if (!confirm("Are you sure you want to delete this note?")) return;
+  
       setLoading(true);
-      const response = await axios.delete(`${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/deletenote/${id}`);
-      // console.log(response);
-      // console.log(response.data);
-      // console.log(response.data.data);
-      if (response.data && response.data.status == "success") {
-        toast.success('Note deleted successfully!');
-        fetchallnotes();
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/deletenote/${noteId}`);
+  
+      if (response.data && response.data.status === "success") {
+        toast.success("Note deleted successfully!");
+        await fetchallnotes(); // ✅ Re-fetch notes after deletion
       } else {
-        toast.error('Note not deleted!');
+        toast.error("Failed to delete note.");
       }
     } catch (error) {
+      toast.error("Error deleting note!");
     } finally {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchallnotes();
-    fetchAllCRMUsers();
-  }, [fetchallnotes]); 
+    fetchAllCRMUsers(); // ✅ Only if CRM users need refreshing
+  }, [fetchallnotes]); // ✅ Now stable and only re-runs when `id` changes
+  
 
   if (loading) {
     return (
