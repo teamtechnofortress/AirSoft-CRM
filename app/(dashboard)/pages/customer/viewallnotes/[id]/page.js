@@ -85,11 +85,6 @@ const Page = ({params}) => {
   //   }
   // }, []); 
 
-  useEffect(() => {
-    fetchallnotes();
-  }, [fetchallnotes]); 
-
-
   const fetchallnotes = useCallback(async () => {
     try {
       // const id = await tokedecodeapi();
