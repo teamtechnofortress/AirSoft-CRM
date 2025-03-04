@@ -13,7 +13,32 @@ const Page = () => {
   const [filterLoading, setFilterLoading] = useState(false);
   const [error, setError] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [allnotes, setAllnotes] = useState([]);
   const [dateRange, setDateRange] = useState({ date_min: "", date_max: "" });
+  const [permissionList, setPermissionList] = useState([]);
+  const [userid, setUserid] = useState([]);
+    
+  const tokedecodeapi = async () => {
+        try {
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/tokendecodeapi`);
+            if (response.data?.data) {
+                // console.log(response.data.data);
+                const permissions = response.data.data.permissions.map(p => p._id);
+                const id = response.data.data.userid;
+                // console.log(id);
+                // setUserid(response.data.data._id);
+                // console.log("permissionList fetched successfully:", permissionList);
+                setPermissionList(permissions);
+                return id;
+            } else {
+                console.error("Error fetching notes:", response.data.message);
+                return [];
+            }
+        } catch (error) {
+            console.error("Error fetching notes:", error);
+            return [];
+        }
+  };
 
   const fetchTotalOrders = async () => {
     try {
@@ -29,9 +54,29 @@ const Page = () => {
       setLoading(false);
     }
   };
+  const fetchallnotes = async () => {
+    try {
+      const id = await tokedecodeapi();
+      // console.log(id);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/getnote/${id}`);
+      // console.log(response);
+      // console.log(response.data);
+      // console.log(response.data.data);
+      if (response.data && Array.isArray(response.data.data)) {
+        setAllnotes(response.data.data);
+      } else {
+        setError("Unexpected API response");
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchTotalOrders();
+    fetchallnotes();
   }, []); 
 
   const fetchTotalSale = async () => {
@@ -199,10 +244,6 @@ const Page = () => {
         </>
       )}
     </Container> */}
-
-
-
-
     <Fragment>
         <div className="bg-primary pt-10 pb-21"></div>
         <Container fluid className="mt-n22 px-6">
@@ -251,16 +292,16 @@ const Page = () => {
                                           Sale Summary
                                       </Nav.Link>
                                   </Nav.Item>
-                                  {/* <Nav.Item>
-                                      <Nav.Link eventKey="outofstock" className="mb-sm-3 mb-md-0">
-                                          Out OF Stock
+                                  <Nav.Item>
+                                      <Nav.Link eventKey="notes" className="mb-sm-3 mb-md-0">
+                                          Notes
                                       </Nav.Link>
                                   </Nav.Item>
                                   <Nav.Item>
-                                      <Nav.Link eventKey="backorder" className="mb-sm-3 mb-md-0">
-                                          Back Order
+                                      <Nav.Link eventKey="task" className="mb-sm-3 mb-md-0">
+                                          Tasks
                                       </Nav.Link>
-                                  </Nav.Item> */}
+                                  </Nav.Item>
                               </Nav>
                           </Card.Header>
                           <Card.Body className="p-0">
@@ -342,11 +383,38 @@ const Page = () => {
                                       </>
                                     )}
                                   </Tab.Pane>
-                                  <Tab.Pane eventKey="outofstock" className="pb-4 p-4 react-code">
-                                      {/* <OutOfStockProducts products={products} /> */}
+                                  <Tab.Pane eventKey="notes" className="pb-4 p-4 react-code">
+                                    <div>
+                                        {
+                                          allnotes.map((note, index) => (
+                                            <div>
+                                              
+                                            <p 
+                                              key={index} 
+                                              className="border bg-primary text-white p-2"
+                                              style={{ 
+                                                borderRadius: '20px', 
+                                                display: 'inline-block',  
+                                                maxWidth: '70%',         
+                                                padding: '8px 12px',     
+                                                wordWrap: 'break-word',  
+                                                whiteSpace: 'pre-line',  
+                                                margin: '5px 30% 5px auto'
+                                              }}
+                                            >
+                                              <div className="mb-1">
+                                                <span>Customer: {note.customername}</span>
+                                              </div>
+                                              <span>
+                                                  Note: {note.note}
+                                              </span>
+                                            </p>
+                                            </div>
+                                          ))
+                                          }
+                                    </div>
                                   </Tab.Pane>
-                                  <Tab.Pane eventKey="backorder" className="pb-4 p-4 react-code">
-                                      {/* <OutOfStockProducts /> */}
+                                  <Tab.Pane eventKey="task" className="pb-4 p-4 react-code">
                                   </Tab.Pane>
                               </Tab.Content>
                           </Card.Body>

@@ -1,21 +1,39 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const CustomerAddNotes = ({ customer, crmUser,loginuserid }) => {
+const CustomerEditNotes = ({ crmUser, noteid,fetchallnotes }) => {
   const [show, setShow] = useState(false);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [todo, setTodo] = useState(false); 
-  const [userid, setUserid] = useState(""); // Initialize as empty string
-
+  const [todo, setTodo] = useState(false);
+  const [userid, setUserid] = useState("");
+  
   const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
 
-  // useEffect(() => {
-  //   console.log("Selected User ID:", userid);
-  // }, [userid]); // Log when `userid` changes
+  const handleShow = () => {
+    setShow(true);
+    fetchnotes(noteid); 
+    // console.log(crmUser);
+  };
+
+  const fetchnotes = async (id) => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/getnoteforedit/${id}`
+      );
+      if (response.data && response.data.data) {
+        // console.log(response.data.data);
+        // console.log(response.data.data.userid);
+        setNote(response.data.data.note);
+        setUserid(response.data.data.userid);
+      }
+    } catch (error) {
+      toast.error("Error fetching note!");
+    } finally {
+    }
+  };
 
   const handleSaveNote = async () => {
     if (!note.trim()) {
@@ -26,26 +44,23 @@ const CustomerAddNotes = ({ customer, crmUser,loginuserid }) => {
       toast.error("User cannot be empty!");
       return;
     }
-
     setLoading(true);
     try {
-      const response = await axios.post("/oldapi/customer/addnote", {
-        customerId: customer.id,
-        customername: `${customer.first_name} ${customer.last_name}`,
-        userid: userid,
-        createdby:loginuserid,
+      const response = await axios.post("/oldapi/customer/updatenote", {
+        userid,
         note,
+        noteid,
       });
       if (response.data.status === "success") {
-        toast.success("Note added successfully!");
+        fetchallnotes();
+        toast.success("Note updated successfully!");
         setNote("");
         handleClose();
       } else {
-        toast.error("Failed to add note!");
+        toast.error("Failed to update note!");
       }
     } catch (error) {
-      console.error("Error adding note:", error);
-      toast.error("Error adding note!");
+      toast.error("Error updating note!");
     } finally {
       setLoading(false);
     }
@@ -53,14 +68,11 @@ const CustomerAddNotes = ({ customer, crmUser,loginuserid }) => {
 
   return (
     <>
-      <Button variant="link" onClick={handleShow}>
-        <i className="fa fa-sticky-note" aria-hidden="true"></i>
-      </Button>
-
+      <a variant="link" onClick={handleShow} style={{color: 'white',cursor:'pointer'}} >
+        Edit
+      </a>
       <Modal show={show} onHide={handleClose} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Add Note for {customer.first_name} {customer.last_name}</Modal.Title>
-        </Modal.Header>
+        <Modal.Header closeButton></Modal.Header>
         <Modal.Body>
           <Form.Group>
             <Form.Label>Note</Form.Label>
@@ -72,28 +84,26 @@ const CustomerAddNotes = ({ customer, crmUser,loginuserid }) => {
               placeholder="Enter your note here..."
             />
           </Form.Group>
-          <Form.Group controlId="exampleForm.ControlSelect" className="mt-2 d-flex justify-content-start gap-2">
-            {/* <Form.Label className="mt-1">Send task to</Form.Label> */}
-            <Form.Select 
+          <Form.Group className="mt-2 d-flex justify-content-start gap-2">
+            <Form.Select
               className="custom-select-ordernotemodel"
               value={userid}
-              onChange={(e) => setUserid(e.target.value)} // Update userid when selection changes
-             >
+              onChange={(e) => setUserid(e.target.value)}
+            >
               <option value="">Select User...</option>
-              {crmUser.map(user => (
+              {crmUser.map((user) => (
                 <option key={user._id} value={user._id}>
                   {user.firstname} {user.lastname} ({user.role.role})
                 </option>
               ))}
             </Form.Select>
           </Form.Group>
-          <Form.Group controlId="exampleForm.ControlSwitch" className="mt-2 d-flex justify-content-start gap-2">
-            <Form.Check 
-              type="switch" 
-              id="custom-switch" 
-              className="custom-switch-ordernotemodel" 
-              checked={todo} 
-              onChange={() => setTodo(!todo)} 
+          <Form.Group className="mt-2 d-flex justify-content-start gap-2">
+            <Form.Check
+              type="switch"
+              className="custom-switch-ordernotemodel"
+              checked={todo}
+              onChange={() => setTodo(!todo)}
             />
             <Form.Label>Send task to</Form.Label>
           </Form.Group>
@@ -109,4 +119,4 @@ const CustomerAddNotes = ({ customer, crmUser,loginuserid }) => {
   );
 };
 
-export default CustomerAddNotes;
+export default CustomerEditNotes;

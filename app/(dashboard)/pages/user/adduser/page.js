@@ -5,10 +5,13 @@ import useMounted from 'hooks/useMounted';
 import axios from 'axios';
 import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
-import { Col, Row, Form, Card, Button, Image,Container } from 'react-bootstrap';
+import { Col, Row, Form, Card, Button, Image,Container,Spinner } from 'react-bootstrap';
 
 const AddUser = () => {
   const [userRole, setUserRole] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState({
         firstname: '',
         lastname: '',
@@ -35,6 +38,8 @@ const AddUser = () => {
           setUserRole(response.data.data);
       } catch (error) {
           console.error('Error fetching data:', error);
+      }finally{
+        setLoading(false);
       }
   }
   useEffect(() => {
@@ -52,6 +57,7 @@ const AddUser = () => {
     event.preventDefault();
     // console.log(formData);
     try {
+        setSubmitting(true);
         const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/user/adduser`, formData);
         if (response.data.status === "success") {
           // toast.success("User added successfully!");
@@ -72,9 +78,18 @@ const AddUser = () => {
         toast.error("User Not Added! " + (error.response?.data?.message || "Something went wrong."));
     }
     finally{
+      setSubmitting(false);
     }
   }
   const hasMounted = useMounted();
+
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+        <Spinner animation="border" variant="primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+        </Spinner>
+    </div>
+  );
 
   return (
     <Container fluid className="p-6">
@@ -202,8 +217,22 @@ const AddUser = () => {
                         </Form.Control>
                         </Col>
                       <Col md={{ offset: 4, span: 8 }} xs={12} className="mt-4">
-                        <Button variant="primary" type="submit">
-                          Save
+                        <Button variant="primary" type="submit" disabled={submitting}>
+                          {submitting ? (
+                            <>
+                              <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                                className="me-2"
+                              />
+                              Submitting...
+                            </>
+                          ) : (
+                            "Submit"
+                          )}
                         </Button>
                       </Col>
 

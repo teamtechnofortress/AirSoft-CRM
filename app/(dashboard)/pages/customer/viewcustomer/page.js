@@ -9,21 +9,24 @@ import OrderModelAddress from '/sub-components/order/OrderModelAddress.js'
 import OrderAllNotes from '/sub-components/order/OrderAllNotes.js'
 import CustomerModelAddress from '/sub-components/customer/CustomerModelAddress.js'
 import CustomerAddNotes from '/sub-components/customer/CustomerAddNotes.js'
-
+import Link from 'next/link';
 
 const ViewAllUsers = () => {
     const [customers, setCustomers] = useState([]); 
+    const [crmUser, setCrmUser] = useState([]); 
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [permissionList, setPermissionList] = useState([]);
-    
+    const [loginuserid,setLoginuserid] = useState();
     const tokedecodeapi = async () => {
         try {
             const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/tokendecodeapi`);
             if (response.data?.data) {
+                const id = response.data.data.userid;
                 const permissions = response.data.data.permissions.map(p => p._id);
                 // console.log("permissionList fetched successfully:", permissionList);
                 setPermissionList(permissions);
+                setLoginuserid(id);
                 // return response.data.data;
             } else {
                 console.error("Error fetching notes:", response.data.message);
@@ -51,10 +54,29 @@ const ViewAllUsers = () => {
             setLoading(false);
         }
     };
+    const fetchAllCRMUsers = async () => {
+        try {
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/user/viewalluser`);
+            // console.log(response.data.data);
+
+            if (response.data && response.data.data) {
+                // console.log(response.data.data);
+                setCrmUser(response.data.data);
+            } else {
+                console.error("Unexpected API Response:", response.data);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            toast.error("Failed to fetch users!");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         tokedecodeapi();
         fetchAllUsers();  
+        fetchAllCRMUsers();  
     }, []);
 
     const handeldeletecustomer = async (id) =>{
@@ -133,18 +155,21 @@ const ViewAllUsers = () => {
                                                 style={{padding:0,border:'none',backgroundColor: 'transparent',}}
                                             >
                                                 {/* <Dropdown.Item as="a" >Edit order </Dropdown.Item> */}
-                                                <Dropdown.Item eventKey="2">
+                                                <Dropdown.Item eventKey="1">
                                                 <CustomerModelAddress customer={customer} />
                                                 {/* View detail */}
                                                 </Dropdown.Item>
 
-                                                <Dropdown.Item eventKey="3">
-                                                <CustomerAddNotes customer={customer} />
+                                                <Dropdown.Item eventKey="2">
                                                 {/* View detail */}
                                                 </Dropdown.Item>
 
                                                 {/* <Dropdown.Item eventKey="4">Custom fields</Dropdown.Item> */}
-                                                {/* <Dropdown.Item eventKey="6" >Duplicate order</Dropdown.Item> */}
+                                                <Dropdown.Item eventKey="6" >
+                                                    <Link href={`/pages/customer/viewallnotes/${customer.id}`} passHref>
+                                                        View Notes
+                                                    </Link>
+                                                </Dropdown.Item>
                                                 {/* <Dropdown.Item eventKey="6" onClick={() => duplicateorder(order.id)}>Duplicate order</Dropdown.Item> */}
                                                 {permissionList.includes("67b81fa41821f665a7493728") && (
                                                     <>
@@ -158,8 +183,13 @@ const ViewAllUsers = () => {
                                     </div>
                                     <Card.Text>{customer.email || "No email provided"}</Card.Text>
                                     <div className="d-flex align-items-center justify-content-between">
-                                        <Card.Text className="mb-0">{customer.is_paying_customer ? "Paid" : "Not Paid"}</Card.Text>
-                                        <Card.Text>{customer.role}</Card.Text>
+                                        <div>
+                                            <CustomerAddNotes customer={customer} crmUser={crmUser} loginuserid={loginuserid} />
+                                        </div>
+                                        <div>
+                                            <Card.Text className="mb-0">{customer.is_paying_customer ? "Paid" : "Not Paid"}</Card.Text>
+                                            <Card.Text>{customer.role}</Card.Text>
+                                        </div>
                                     </div>
                                 </Card.Body>
                             </Card>

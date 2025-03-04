@@ -6,8 +6,8 @@ import { Col, Row, Form, Card, Button, Image,Container,Table,Spinner } from 'rea
 import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
 
-const ViewAllUsers = () => {
-    const [users, setUsers] = useState([]); 
+const ViewAllTasks = () => {
+    const [tasks, setTasks] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [permissionList, setPermissionList] = useState([]);
     
@@ -29,9 +29,9 @@ const ViewAllUsers = () => {
         }
     };
     
-    const fetchallusers = async () => {
+    const fetchalltask = async () => {
       try {
-          const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/user/viewalluser`, {
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/task/getall`, {
               headers: {
                   'Content-Type': 'application/json',
                   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -39,12 +39,12 @@ const ViewAllUsers = () => {
                   'Expires': '0',
               },
               params: {
-                  _t: new Date().getTime(),  // Force fresh request by appending timestamp
+                  _t: new Date().getTime(), 
               }
           });
   
           if (response.data.status === "success") {
-              setUsers(response.data.data);
+              setTasks(response.data.data);
           } else if (response.data.status === "tokenerror") {
               router.push(`${process.env.NEXT_PUBLIC_HOST}/login`);
           } else {
@@ -59,13 +59,13 @@ const ViewAllUsers = () => {
   
     useEffect(() => {
         tokedecodeapi();
-        fetchallusers();  
+        fetchalltask();  
     }, []);
 
     const handleDelete = async (id) => {
         try {
-            if (!confirm("Are you sure you want to delete this user?")) return;
-            const response = await axios.delete(`${process.env.NEXT_PUBLIC_HOST}/oldapi/user/deleteuser/${id}`, {
+            if (!confirm("Are you sure you want to delete this task?")) return;
+            const response = await axios.delete(`${process.env.NEXT_PUBLIC_HOST}/oldapi/task/delete/${id}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -102,36 +102,43 @@ const ViewAllUsers = () => {
 
 
   return (
-    <Container fluid className="p-6" style={{ maxWidth: '100%', overflow: 'auto' }}>
+    <Container fluid className="p-3" style={{ maxWidth: '100%', overflow: 'auto' }}>
        <ToastComponent />
-
-        <Table className="text-nowrap">
+        <Table className="">
             <thead >
                 <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Phone</th>
-                    <th scope="col">Role</th>
-                    {["67b46c877b14d62c9c5850e3", "67b46c8e7b14d62c9c5850e5"].some(permission => 
+                    <th scope="col">Task Name</th>
+                    <th scope="col">Priorty</th>
+                    <th scope="col">DueDate</th>
+                    <th scope="col">Task Status</th>
+                    <th scope="col">Task Description</th>
+                    <th scope="col">Task Comments</th>
+                    {/* {["67b46c877b14d62c9c5850e3", "67b46c8e7b14d62c9c5850e5"].some(permission => 
                         permissionList.includes(permission)) ? (
                         <th scope="col">Action</th>
                     ) : (
                         <th></th>
-                    )}
+                    )} */}
+                    <th>Assign to</th>
+                    <th>Action</th>
+
                 </tr>
             </thead>
             <tbody>
-                {users.length > 0 && (
-                  users.map((user, index) => (
-                  <tr key={user._id}>
-                      <td>{index + 1}</td>
-                      <td>{user.firstname+ ' ' + user.lastname}</td>
-                      <td>{user.email}</td>
-                      <td>{user.phone}</td>
-                      <td>{user.role?.role ?? "admin"}</td>
+                {tasks.length > 0 && (
+                  tasks.map((task, index) => (
+                  <tr key={task._id}>
+                      <td>{task.taskname}</td>
+                      <td>{task.priorty}</td>
                       <td>
-                        {permissionList.includes("67b46c877b14d62c9c5850e3") && (
+                        {task.taskdate ? new Intl.DateTimeFormat('en-US').format(new Date(task.taskdate)) : "N/A"}
+                      </td>
+                      <td>{task.taskstatus}</td>
+                      <td className="">{task.taskdescription}</td>
+                      <td className="">{task.taskcomments}</td>
+                      <td>{task.crmuser?.firstname + ' ' + task.crmuser?.lastname  ?? "Unknown"}</td>
+                      <td>
+                        {/* {permissionList.includes("67b46c877b14d62c9c5850e3") && (
                             <Link href={`/pages/user/edituser/${user._id}`} passHref>
                              <Button variant="outline-primary" className="me-1">Edit</Button>
                            </Link>
@@ -144,17 +151,14 @@ const ViewAllUsers = () => {
                                 >
                                 Delete
                             </Button>
-                        )}
-                        {/* <Link href={`/pages/user/edituser/${user._id}`} passHref>
-                         <Button variant="outline-primary" className="me-1">Edit</Button>
-                        </Link>
-                        <Button
-                            variant="outline-danger"
-                            className="me-1"
-                            onClick={() => handleDelete(user._id)}
-                            >
-                            Delete
-                        </Button> */}
+                        )} */}
+                          <Link href={`/pages/user/edituser/${task._id}`} passHref className='me-2'>
+                              {/* <Button variant="outline-primary" className="me-1">Edit</Button> */}
+                              <i class="fas fa-edit"></i>
+                          </Link>
+                          <Link href="#" onClick={(event) => { event.preventDefault(); handleDelete(task._id); }} passHref>
+                            <i class="fa fa-trash"></i>
+                          </Link>
                       </td>
                   </tr>
                   ))
@@ -165,4 +169,4 @@ const ViewAllUsers = () => {
   )
 }
 
-export default ViewAllUsers
+export default ViewAllTasks

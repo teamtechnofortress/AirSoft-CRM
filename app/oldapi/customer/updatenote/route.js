@@ -21,21 +21,34 @@ export async function POST(req) {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
    
 
-    await connectDb();
     const body = await req.json();
-    const { customerId,customername,userid,createdby, note } = body;
+    const {userid, note,noteid } = body;
 
-    if (!customerId || !note.trim()) {
+    if (!note.trim()) {
       return NextResponse.json(
         { status: "error", message: "Customer ID and note are required" },
         { status: 400 }
       );
     }
+    await connectDb();
 
-    const newNote = new CustomerNote({ customerId,customername,userid,createdby, note });
-    await newNote.save();
-
-    return NextResponse.json({ status: "success", message: "Note added successfully" }, { status: 201 });
+    const updatedNote = await CustomerNote.findByIdAndUpdate(
+        noteid,
+        { userid, note },
+        { new: true } // Returns the updated document
+      );
+  
+      if (!updatedNote) {
+        return NextResponse.json(
+          { status: "error", message: "Note not found" },
+          { status: 404 }
+        );
+      }
+  
+      return NextResponse.json(
+        { status: "success", message: "Note updated successfully" },
+        { status: 200 }
+      );
   } catch (error) {
     console.error("Error adding note:", error.message);
 

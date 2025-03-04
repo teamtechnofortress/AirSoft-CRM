@@ -19,6 +19,7 @@ export async function GET(req) {
         
         const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
         
+        const userid = decoded.id;
         const userRole = decoded.role;
         // console.log("User Role:", userRole);
 
@@ -35,7 +36,7 @@ export async function GET(req) {
 
         // Return JSON response
         return NextResponse.json(
-            { status: "success", data: role },
+            { status: "success", data: { ...role, userid } },
             { status: 200 }
         );
 

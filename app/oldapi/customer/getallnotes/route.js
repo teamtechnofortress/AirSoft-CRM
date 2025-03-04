@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function POST(req) {
+export async function GET(req) {
   const cookieStore = cookies();
   const token = cookieStore.get("token");
 
@@ -20,22 +20,16 @@ export async function POST(req) {
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
    
-
     await connectDb();
-    const body = await req.json();
-    const { customerId,customername,userid,createdby, note } = body;
+    const notes = await CustomerNote.find();
 
-    if (!customerId || !note.trim()) {
-      return NextResponse.json(
-        { status: "error", message: "Customer ID and note are required" },
-        { status: 400 }
-      );
-    }
-
-    const newNote = new CustomerNote({ customerId,customername,userid,createdby, note });
-    await newNote.save();
-
-    return NextResponse.json({ status: "success", message: "Note added successfully" }, { status: 201 });
+    const response = NextResponse.json({ status: "success", data: notes }, { status: 200 });
+    // Set Cache-Control headers to avoid caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
+    
   } catch (error) {
     console.error("Error adding note:", error.message);
 

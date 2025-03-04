@@ -1,9 +1,14 @@
 import mongoose from "mongoose";
 
 const CustomerNoteSchema = new mongoose.Schema({
-  customerId: { type: String, required: true },
+  customerId: { type: Number, required: true },
+  customername: { type: String, required: true },
   note: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
+  userid: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], 
+  createdby: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, 
+  
+}, { timestamps: true });
 
-export default mongoose.models.customernote || mongoose.model("CustomerNote", CustomerNoteSchema);
+const CustomerNote = mongoose.models.CustomerNote || mongoose.model("CustomerNote", CustomerNoteSchema);
+
+export default CustomerNote;
