@@ -48,7 +48,7 @@ const UpdateTask = ({params}) => {
           priorty: taskData.priorty || "",
           taskdate: taskData.taskdate ? taskData.taskdate.split("T")[0] : "",
           taskstatus: taskData.taskstatus || "",
-          taskdescription: taskData.taskcomments || "",
+          taskdescription: taskData.taskdescription || "",
           taskcomments: taskData.taskcomments || "",
           crmuser: taskData.crmuser._id || "",
         });
