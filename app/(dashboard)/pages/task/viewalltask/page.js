@@ -42,7 +42,6 @@ const ViewAllTasks = () => {
                   _t: new Date().getTime(), 
               }
           });
-  
           if (response.data.status === "success") {
               setTasks(response.data.data);
           } else if (response.data.status === "tokenerror") {
@@ -55,8 +54,7 @@ const ViewAllTasks = () => {
         } finally {
             setLoading(false);
         }
-  };
-  
+    };
     useEffect(() => {
         tokedecodeapi();
         fetchalltask();  
@@ -78,19 +76,19 @@ const ViewAllTasks = () => {
             });
     
             if (response.data.status === "success") {
-                fetchallusers();
-                toast.success("User deleted successfully!");
+                fetchalltask();
+                toast.success("Task deleted successfully!");
             } else if (response.data.status === "tokenerror") {
                 router.push(`${process.env.NEXT_PUBLIC_HOST}/login`);
             } else {
-                toast.error("Failed to delete user!");
+                toast.error("Failed to delete Task!");
                 console.log(response.data.message);
             }
     
         } catch (error) {
-          console.error("Error deleting user:", error);
+          console.error("Error deleting Task:", error);
         }
-      };
+    };
     
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -111,8 +109,8 @@ const ViewAllTasks = () => {
                     <th scope="col">Priorty</th>
                     <th scope="col">DueDate</th>
                     <th scope="col">Task Status</th>
-                    <th scope="col">Task Description</th>
-                    <th scope="col">Task Comments</th>
+                    {/* <th scope="col">Task Description</th>
+                    <th scope="col">Task Comments</th> */}
                     {/* {["67b46c877b14d62c9c5850e3", "67b46c8e7b14d62c9c5850e5"].some(permission => 
                         permissionList.includes(permission)) ? (
                         <th scope="col">Action</th>
@@ -120,7 +118,12 @@ const ViewAllTasks = () => {
                         <th></th>
                     )} */}
                     <th>Assign to</th>
-                    <th>Action</th>
+                    {["67c7f7b1f30e5670dab55dc7", "67c7f7b9f30e5670dab55dc9"].some(permission => 
+                        permissionList.includes(permission)) ? (
+                        <th scope="col">Action</th>
+                    ) : (
+                        <th></th>
+                    )}
 
                 </tr>
             </thead>
@@ -134,8 +137,8 @@ const ViewAllTasks = () => {
                         {task.taskdate ? new Intl.DateTimeFormat('en-US').format(new Date(task.taskdate)) : "N/A"}
                       </td>
                       <td>{task.taskstatus}</td>
-                      <td className="">{task.taskdescription}</td>
-                      <td className="">{task.taskcomments}</td>
+                      {/* <td className="">{task.taskdescription}</td>
+                      <td className="">{task.taskcomments}</td> */}
                       <td>{task.crmuser?.firstname + ' ' + task.crmuser?.lastname  ?? "Unknown"}</td>
                       <td>
                         {/* {permissionList.includes("67b46c877b14d62c9c5850e3") && (
@@ -152,13 +155,19 @@ const ViewAllTasks = () => {
                                 Delete
                             </Button>
                         )} */}
-                          <Link href={`/pages/user/edituser/${task._id}`} passHref className='me-2'>
-                              {/* <Button variant="outline-primary" className="me-1">Edit</Button> */}
-                              <i class="fas fa-edit"></i>
-                          </Link>
-                          <Link href="#" onClick={(event) => { event.preventDefault(); handleDelete(task._id); }} passHref>
-                            <i class="fa fa-trash"></i>
-                          </Link>
+                         {permissionList.includes("67c7f7b1f30e5670dab55dc7") && (
+                                <Link href={`/pages/task/edittask/${task._id}`} passHref className='me-2'>
+                                    {/* <Button variant="outline-primary" className="me-1">Edit</Button> */}
+                                    <i class="fas fa-edit"></i>
+                                </Link>
+                            )}
+                            {permissionList.includes("67c7f7b9f30e5670dab55dc9") && (
+                                <Link href="#" onClick={(event) => { event.preventDefault(); handleDelete(task._id); }} passHref>
+                                 <i class="fa fa-trash"></i>
+                               </Link>
+                            )}
+                         
+                         
                       </td>
                   </tr>
                   ))

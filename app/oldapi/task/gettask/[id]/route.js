@@ -5,44 +5,41 @@ import User from "@/models/User";
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import mongoose from "mongoose";
 
 
+export async function GET(req,{params}) {
+    const { id } = params;
 
-export async function GET(req, res) {
+    const cookieStore = cookies();
+    const token = cookieStore.get('token');
 
-  const cookieStore = cookies();
-  const token = cookieStore.get('token');
-  if (!token) {
-      const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });
-      response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
-      return response;
-  }
+    if (!token) {
+        const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });
+        response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
+        return response;
+    }
 
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
 
-    // console.log(decoded.permissions);
-    let editrequiredpermission = '67c7f7b1f30e5670dab55dc7';
-    let addrequiredpermission = '67c7f533f1b6ce51367655af';
+    let requiredpermission = '67c7f7b1f30e5670dab55dc7';
 
-    if (!decoded.permissions.includes(editrequiredpermission) && !decoded.permissions.includes(addrequiredpermission)) {
+    if (!decoded.permissions.includes(requiredpermission)) {
         return NextResponse.json(
           { status: "unauthorized", message: "Unauthorized" },
           { status: 403, headers: { Location: "/unauthorized" } }
         );
     }
-
-    await connectDb();
-    // console.log("Registered models:", mongoose?.models ? Object.keys(mongoose.models) : "Mongoose not initialized");
     
+    await connectDb();
     if (req.method === "GET") {
       try {
-        // const users = await User.find().lean();
-        const tasks = await Task.find().populate('crmuser', 'firstname lastname').lean();
+        const Tasks = await Task.find({ _id: id }).populate('crmuser', 'firstname lastname').lean();
+
+        // const users = await User.find().populate('role', 'role');
         
         // return NextResponse.json({ status: "success", data: users }, { status: 200 });
-        const response = NextResponse.json({ status: "success", data: tasks }, { status: 200 });
+        const response = NextResponse.json({ status: "success", data: Tasks }, { status: 200 });
 
         // Set Cache-Control headers to avoid caching
         response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -60,13 +57,11 @@ export async function GET(req, res) {
     }
   } catch (error) {
     console.error('Error during token verification:', error.message);
-
     if(error.name === 'TokenExpiredError'){
-        const response = NextResponse.json({ status: "tokenerror", message: "Token Expired!" }, { status: 401 });
-        response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
-        return response;
-    }
-    
+      const response = NextResponse.json({ status: "tokenerror", message: "Token Expired!" }, { status: 401 });
+      response.headers.set('Set-Cookie', `token=; Max-Age=0; Path=/; HttpOnly`);
+      return response;
+  }
     return NextResponse.json({ status: "error", message: "Invalid Token!" }, { status: 401 });
   }
 }

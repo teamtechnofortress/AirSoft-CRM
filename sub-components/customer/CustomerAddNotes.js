@@ -26,34 +26,70 @@ const CustomerAddNotes = ({ customer, crmUser,loginuserid }) => {
       toast.error("User cannot be empty!");
       return;
     }
-
+  
     setLoading(true);
+  
     try {
-      const response = await axios.post("/oldapi/customer/addnote", {
+      // Prepare API request for adding note
+      const addNoteRequest = axios.post("/oldapi/customer/addnote", {
         customerId: customer.id,
         customername: `${customer.first_name} ${customer.last_name}`,
         userid: userid,
-        createdby:loginuserid,
+        createdby: loginuserid,
         note,
       });
-      if (response.data.status === "success") {
+  
+      // Prepare API request for adding task (if `todo` is true)
+      const addTaskRequest = todo
+        ? axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/task/add`, {
+            taskdescription: note,
+            crmuser: userid,
+          })
+        : Promise.resolve(null); // If `todo` is false, resolve with null (no API call)
+  
+      // Send both API requests in parallel
+      const [addNoteResponse, addTaskResponse] = await Promise.all([
+        addNoteRequest,
+        addTaskRequest,
+      ]);
+  
+      // Handle success responses
+      if (addNoteResponse.data.status === "success") {
+        setUserid('');
         toast.success("Note added successfully!");
-        setNote("");
-        handleClose();
       } else {
         toast.error("Failed to add note!");
       }
+  
+      if (todo && addTaskResponse?.data?.status === "success") {
+        setTodo(false);
+        setUserid('');
+        toast.success("Task added successfully!");
+      } else if (todo) {
+        toast.error("Failed to add task!");
+      }
+  
+      // Clear input fields and close modal
+      setNote("");
+      handleClose();
     } catch (error) {
-      console.error("Error adding note:", error);
-      toast.error("Error adding note!");
+      console.error("Error:", error);
+      
+      // Handle errors from both APIs
+      if (error.response) {
+        toast.error(`Error: ${error.response.data.message || "Request failed"}`);
+      } else {
+        toast.error("An error occurred while saving the note/task.");
+      }
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <>
-      <Button variant="link" onClick={handleShow}>
+      <Button variant="" onClick={handleShow}>
         <i className="fa fa-sticky-note" aria-hidden="true"></i>
       </Button>
 

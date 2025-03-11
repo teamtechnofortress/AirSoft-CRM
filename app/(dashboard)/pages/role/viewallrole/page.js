@@ -150,7 +150,9 @@ const ViewallRole = () => {
             </thead>
             <tbody>
                 {roles.length > 0 && (
-                    roles.map((role, index) => (
+                    roles
+                    .filter(role => role._id !== "67b46d4e7b14d62c9c5850f1") 
+                    .map((role, index) => (
                     <tr key={role._id}>
                         <th scope="row">{index + 1}</th>
                         <td>{role.role}</td>

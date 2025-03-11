@@ -5,6 +5,8 @@ import axios from "axios";
 import { Container, Row, Col, Card, Spinner, Form, Button,Tab,Nav } from "react-bootstrap";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import Link from "next/link";
+import ToastComponent from 'components/toastcomponent';
+import { toast } from "react-toastify";
 
 const Page = () => {
   const [salesData, setSalesData] = useState([]);
@@ -14,9 +16,12 @@ const Page = () => {
   const [error, setError] = useState(null);
   const [orders, setOrders] = useState([]);
   const [allnotes, setAllnotes] = useState([]);
+  const [alltasks, setAlltasks] = useState([]);
   const [dateRange, setDateRange] = useState({ date_min: "", date_max: "" });
   const [permissionList, setPermissionList] = useState([]);
   const [userid, setUserid] = useState([]);
+  const [userrole, setUserrole] = useState([]);
+  const [lasttab, setLasttab] = useState('all');
     
   const tokedecodeapi = async () => {
         try {
@@ -29,6 +34,7 @@ const Page = () => {
                 // setUserid(response.data.data._id);
                 // console.log("permissionList fetched successfully:", permissionList);
                 setPermissionList(permissions);
+                setUserrole(response.data.data.role);
                 return id;
             } else {
                 console.error("Error fetching notes:", response.data.message);
@@ -53,7 +59,7 @@ const Page = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // ✅ Now it won’t cause infinite renders
+  }, []);
   
   // const fetchTotalOrders = async () => {
   //   try {
@@ -96,10 +102,40 @@ const Page = () => {
     try {
       const id = await tokedecodeapi();
       if (!id) return;
-  
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/getnote/${id}`);
+
+      if(userrole == "super admin"){
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/getallnotes`);
+        if (response.data && Array.isArray(response.data.data)) {
+          setAllnotes(response.data.data);
+        } else {
+          setError("Unexpected API response");
+        }
+      }else{
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/customer/getnote/${id}`);
+        if (response.data && Array.isArray(response.data.data)) {
+          setAllnotes(response.data.data);
+        } else {
+          setError("Unexpected API response");
+        }
+      }
+    } catch (error) {
+      setError(error.message || "Failed to fetch notes.");
+    } finally {
+      setLoading(false);
+    }
+  }, []); 
+
+  const fetchalltasks = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const id = await tokedecodeapi();
+      // console.log(id);
+      if (!id) return;
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/task/gettaskforuser/${id}`);
       if (response.data && Array.isArray(response.data.data)) {
-        setAllnotes(response.data.data);
+        // console.log(response.data.data);
+        setAlltasks(response.data.data);
       } else {
         setError("Unexpected API response");
       }
@@ -108,12 +144,44 @@ const Page = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // ✅ Now it's memoized and won't trigger infinite renders
+  }, []); 
+
+  const handleStatusChange = async (value,id) => {
+    
+    // console.log("Updating task:", id, "to status:", value);
+    // return;
+    // setLoading(true);
+    setError(null);
+    try {
+      const formData = {
+          taskId:id,   
+          taskstatus: value,  
+      };
+      // const id = await tokedecodeapi();
+      // // console.log(id);
+      // if (!id) return;
+  
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/task/taskstatuschnage`,formData);
+      // console.log(response);
+      if (response.data.status === "success") {
+         toast.success("Task Updated successfully!");
+         fetchalltasks();
+      } else {
+        toast.error("Task Not Update! " + response.data.message);
+      }
+    } catch (error) {
+       console.log(error);
+       toast.error("Task Not Update! " + (error.response?.data?.message || "Something went wrong."));
+    } finally {
+      // setLoading(false);
+    }
+  }; 
 
   useEffect(() => {
     fetchTotalOrders();
     fetchallnotes();
-  }, [fetchTotalOrders, fetchallnotes]); // ✅ Now stable
+    fetchalltasks();
+  }, [fetchTotalOrders, fetchallnotes,fetchalltasks]); 
   
 
   const fetchTotalSale = async () => {
@@ -187,6 +255,12 @@ const Page = () => {
 
     return data;
   }
+
+
+
+
+
+
   if (loading) {
           return (
               <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -195,7 +269,7 @@ const Page = () => {
                   </Spinner>
               </div>
           );
-      }
+    }
 
   return (
     <>
@@ -282,6 +356,7 @@ const Page = () => {
       )}
     </Container> */}
     <Fragment>
+      <ToastComponent />
         <div className="bg-primary pt-10 pb-21"></div>
         <Container fluid className="mt-n22 px-6">
           <Row>
@@ -315,27 +390,27 @@ const Page = () => {
                           content.
                       </p>
                   </div> */}
-                  <Tab.Container id="tab-container-1" defaultActiveKey="all">
+                  <Tab.Container id="tab-container-1" defaultActiveKey={lasttab}>
                       <Card>
                           <Card.Header className="border-bottom-0 p-0 ">
                               <Nav className="nav-lb-tab">
                                   <Nav.Item>
-                                      <Nav.Link eventKey="all" className="mb-sm-3 mb-md-0">
+                                      <Nav.Link eventKey="all" onClick={() => setLasttab('all')} className="mb-sm-3 mb-md-0">
                                           Order Summary
                                       </Nav.Link>
                                   </Nav.Item>
                                   <Nav.Item>
-                                      <Nav.Link eventKey="instock" className="mb-sm-3 mb-md-0">
+                                      <Nav.Link eventKey="instock" onClick={() => setLasttab('instock')} className="mb-sm-3 mb-md-0">
                                           Sale Summary
                                       </Nav.Link>
                                   </Nav.Item>
                                   <Nav.Item>
-                                      <Nav.Link eventKey="notes" className="mb-sm-3 mb-md-0">
+                                      <Nav.Link eventKey="notes" onClick={() => setLasttab('notes')} className="mb-sm-3 mb-md-0">
                                           Notes
                                       </Nav.Link>
                                   </Nav.Item>
                                   <Nav.Item>
-                                      <Nav.Link eventKey="task" className="mb-sm-3 mb-md-0">
+                                      <Nav.Link eventKey="task"  onClick={() => setLasttab('task')} className="mb-sm-3 mb-md-0">
                                           Tasks
                                       </Nav.Link>
                                   </Nav.Item>
@@ -449,6 +524,79 @@ const Page = () => {
                                     </div>
                                   </Tab.Pane>
                                   <Tab.Pane eventKey="task" className="pb-4 p-4 react-code">
+                                  <div>
+                                      {alltasks.map((task, index) => (
+                                        <div key={task._id || index} className="gap-2 mb-5">
+                                          <div 
+                                            className="border p-3 position-relative"
+                                            style={{ 
+                                              backgroundColor:' #f5f5f5',
+                                              borderRadius: '20px', 
+                                              minWidth: '100%',         
+                                              wordWrap: 'break-word',  
+                                              whiteSpace: 'pre-line',  
+                                              margin: '5px 30% 5px auto'
+                                            }}
+                                          >
+                                            {/* 🔹 STATUS DROPDOWN - Positioned on Top Right */}
+                                            {/* <Form.Control 
+                                              as="select" 
+                                              id="exampleInputrole" 
+                                              name="taskstatus" 
+                                              value={task.taskstatus} 
+                                              className="position-absolute end-0 mt-1 me-1 p-1 bg-light text-dark border-0"
+                                              style={{ width: "auto", fontSize: "12px", borderRadius: "5px" }}
+                                              // onChange={(e) => handleStatusChange(e, task._id)}  // Uncomment when handling status update
+                                              required
+                                            >
+                                              <option value="todo">To DO</option>
+                                              <option value="inprogress">IN PROGRESS</option>
+                                              <option value="inreview">IN REVIEW</option>
+                                              <option value="onhold">ON HOLD</option>
+                                              <option value="errorbug">ERROR BUG</option>
+                                              <option value="complete">COMPLETE</option>
+                                            </Form.Control> */}
+                                            <div className="mb-1 d-flex justify-content-between">
+                                              <div className="d-flex align-items-center">
+                                                <h5 className="mb-0">Task name: </h5>
+                                                <span> {task.taskname}</span>
+                                              </div>
+                                              <select 
+                                                    value={task.taskstatus} 
+                                                    onChange={(e) => handleStatusChange(e.target.value,task._id)}
+                                                    style={{
+                                                        padding: '5px 5px',
+                                                        fontSize: '13px',
+                                                        borderRadius: '6px',
+                                                        border: '1px solid rgb(193, 193, 193)',
+                                                    }}
+                                                >
+                                                    <option value="todo">To DO</option>
+                                                    <option value="inprogress">IN PROGRESS</option>
+                                                    <option value="inreview">IN REVIEW</option>
+                                                    <option value="onhold">ON HOLD</option>
+                                                    <option value="errorbug">ERROR BUG</option>
+                                                    <option value="complete">COMPLETE</option>
+                                                </select>
+                                            </div>
+                                              
+                                            {/* 🔹 TASK DETAILS */}
+                                            <div className="mb-2 d-flex align-items-center">
+                                                <h5 className="mb-0">Due Date: </h5>
+                                                <span>{ task.taskdate ? new Intl.DateTimeFormat('en-US').format(new Date(task.taskdate)) : "N/A"}</span>
+                                            </div>
+
+                                            {/* 🔹 COMMENTS & DESCRIPTION */}
+                                            <div className="mb-1 d-flex flex-column gap-2">
+                                              <h5 className="">Description:</h5>
+                                              <span>{task.taskdescription}</span>
+                                              <h5 className="">Comments:</h5>
+                                              <span>{task.taskcomments}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </Tab.Pane>
                               </Tab.Content>
                           </Card.Body>
@@ -468,7 +616,6 @@ const Page = () => {
 
                   // Teams
                   <Teams />
-
               </Col>
           </Row> */}
         </Container>

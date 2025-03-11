@@ -23,14 +23,15 @@ export async function GET(req, res) {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
 
     // console.log(decoded.permissions);
-    let requiredpermission = '67b46c7d7b14d62c9c5850e1';
+    const requiredPermissions = ['67b46c7d7b14d62c9c5850e1', '67c7f533f1b6ce51367655af','67c7f7b1f30e5670dab55dc7','67b70a4f2a60496e39c85761'];
 
-    if (!decoded.permissions.includes(requiredpermission)) {
+    if (!requiredPermissions.some(permission => decoded.permissions.includes(permission))) {
         return NextResponse.json(
-          { status: "unauthorized", message: "Unauthorized" },
-          { status: 403, headers: { Location: "/unauthorized" } }
+            { status: "unauthorized", message: "Unauthorized" },
+            { status: 403, headers: { Location: "/unauthorized" } }
         );
     }
+
 
     await connectDb();
     // console.log("Registered models:", mongoose?.models ? Object.keys(mongoose.models) : "Mongoose not initialized");

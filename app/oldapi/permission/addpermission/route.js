@@ -23,7 +23,7 @@ export async function GET(req) {
      await connectDb();
 
 
-    // const permission = "deletecustomer";
+    // const permission = "deletetask";
 
     // const u = new Permission({ permission });
     // await u.save();

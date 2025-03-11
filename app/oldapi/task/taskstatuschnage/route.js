@@ -21,28 +21,28 @@ export async function POST(req, res) {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
 
     // console.log(decoded.permissions);
-    let requiredpermission = '67c7f533f1b6ce51367655af';
+    // let requiredpermission = '67b46c707b14d62c9c5850df';
 
-    if (!decoded.permissions.includes(requiredpermission)) {
-        return NextResponse.json(
-          { status: "unauthorized", message: "Unauthorized" },
-          { status: 403, headers: { Location: "/unauthorized" } }
-        );
-    }
+    // if (!decoded.permissions.includes(requiredpermission)) {
+    //     return NextResponse.json(
+    //       { status: "unauthorized", message: "Unauthorized" },
+    //       { status: 403, headers: { Location: "/unauthorized" } }
+    //     );
+    // }
 
     await connectDb();
 
     if (req.method === "POST") {
       try {
           const body = await req.json(); 
-          const {taskname,priorty,taskdate,taskstatus,taskdescription,taskcomments,crmuser} = body;
+          const {taskId,taskstatus} = body;
+
+        //   console.log(taskId,taskstatus);
+        //   return;
 
 
-          // if (!taskname || !priorty || !taskdate || !taskstatus || !taskdescription || !taskcomments || !crmuser) {
-          //     return NextResponse.json({ status: "error", message: "All fields is required" }, { status: 400 });
-          // }
-          if (!taskdescription || !crmuser) {
-              return NextResponse.json({ status: "error", message: "All fields is required" }, { status: 400 });
+          if (!taskstatus) {
+              return NextResponse.json({ status: "error", message: "Task status field is required" }, { status: 400 });
           }
 
         //   const user = await User.findOne({ email: email });
@@ -51,11 +51,15 @@ export async function POST(req, res) {
         //     return NextResponse.json({ status: "error", message: "Email already Exists." }, { status: 400 });
         //   }
         //   const hashedPassword = await bcrypt.hash(password, 10);
-          const newTask = new Task({
-             taskname,priorty,taskdate,taskstatus,taskdescription,taskcomments,crmuser,
-          });
-          await newTask.save();
-          return NextResponse.json({ status: "success", message: "Task Add Successfully!" }, { status: 200 });
+        const updatedTask = await Task.findByIdAndUpdate(taskId, {
+            taskstatus
+        }, { new: true });
+          
+        if (!updatedTask) {
+          return NextResponse.json({ status: "error", message: "Task not found" }, { status: 404 });
+        }
+          
+          return NextResponse.json({ status: "success", message: "Task updated Successfully!" }, { status: 200 });
 
       } catch (error) {
         return NextResponse.json({ status: "error", message: error.message }, { status: 500 });

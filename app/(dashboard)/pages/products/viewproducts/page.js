@@ -23,6 +23,7 @@ import { ActiveProjects, Teams,
 import AllProducts from "/sub-components/dashboard/AllProducts.js";
 import InStockProducts from "/sub-components/dashboard/InStockProducts.js";
 import OutOfStockProducts from "/sub-components/dashboard/OutOfStockProducts.js";
+import BackOrrderStockProducts from "/sub-components/dashboard/BackOrrderStockProducts.js";
 
 
 
@@ -133,22 +134,21 @@ const Home = () => {
                                 <Card.Body className="p-0">
                                     <Tab.Content>
                                         <Tab.Pane eventKey="all" className="pb-4 p-4">
-                                            
-                                            <AllProducts products={products} />
+                                            <AllProducts products={products} status={'all'} />
                                             {/* Active Projects  */}
                                             {/* <ActiveProjects /> */}
-                                           
                                         </Tab.Pane>
-
                                         <Tab.Pane eventKey="instock" className="pb-4 p-4 react-code">
-                                            <InStockProducts products={products} />
-
+                                            {/* <InStockProducts products={products} status={'all'}  /> */}
+                                            <AllProducts products={products} status={'instock'} />
                                         </Tab.Pane>
                                         <Tab.Pane eventKey="outofstock" className="pb-4 p-4 react-code">
-                                            <OutOfStockProducts products={products} />
+                                            {/* <OutOfStockProducts products={products} status={'all'} /> */}
+                                            <AllProducts products={products} status={'outofstock'} />
                                         </Tab.Pane>
                                         <Tab.Pane eventKey="backorder" className="pb-4 p-4 react-code">
-                                            <OutOfStockProducts />
+                                            {/* <BackOrrderStockProducts products={products} status={'all'}  /> */}
+                                            <AllProducts products={products} status={'onbackorder'} />
                                         </Tab.Pane>
                                     </Tab.Content>
                                 </Card.Body>
@@ -156,21 +156,17 @@ const Home = () => {
                         </Tab.Container>
                     </Col>
                 </Row>
-
-
                 {/* <Row className="my-6">
                     <Col xl={4} lg={12} md={12} xs={12} className="mb-6 mb-xl-0">
 
                         // Tasks Performance
                         <TasksPerformance />
-
                     </Col>
                     // card 
                     <Col xl={8} lg={12} md={12} xs={12}>
 
                         // Teams
                         <Teams />
-
                     </Col>
                 </Row> */}
             </Container>

@@ -24,5 +24,17 @@
     height: 20px;
     margin-right: 5px;
   }
+  .hover-customeraddnote {
+    color: #000; /* Default color */
+    text-decoration: none;
+    /* transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out; */
+  }
+  
+  .hover-customeraddnote:hover {
+    color: #624bff; /* Change text color on hover */
+    background-color: #f1f5f9; /* Change background color on hover */
+    border-radius: 0px;
+  }
+  
 
   

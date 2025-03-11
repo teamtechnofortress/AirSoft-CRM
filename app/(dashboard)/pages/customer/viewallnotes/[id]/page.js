@@ -281,45 +281,44 @@ const Page = ({params}) => {
                               <Tab.Content>
                                   <Tab.Pane eventKey="notes" className="pb-4 p-4 react-code">
                                     <div>
-                                    {allnotes.length === 0 ? (
-  <p className="text-center text-muted">No data available</p>
-) : (
-  allnotes.map((note, index) => (
-    <div key={note._id || index}>  {/* ✅ Unique key added */}
-      <p className="border bg-primary text-white p-2"
-        style={{ 
-          borderRadius: '20px', 
-          display: 'inline-block',  
-          maxWidth: '70%',         
-          padding: '8px 12px',     
-          wordWrap: 'break-word',  
-          whiteSpace: 'pre-line',  
-          margin: '5px 30% 5px auto'
-        }}
-      >
-        <div className="mb-1 d-flex justify-content-between align-items-center gap-5">
-          <div>
-            <span>
-              Created by: {note.createdby?.firstname ? `${note.createdby.firstname} ${note.createdby.lastname}` : "Unknown"}
-            </span>
-          </div>
-          <div className="text-white">
-            <CustomerEditNote crmUser={crmUser} noteid={note._id} fetchallnotes={fetchallnotes} />
-            <span className="mx-2">|</span>
-            <Link href="#" onClick={() => deletenote(note._id)} className="" style={{ color: "white" }}>
-              Delete
-            </Link>
-          </div>
-        </div>
-        <div className="mb-1">
-          <span>Customer: {note.customername}</span>
-        </div>
-        <span>Note: {note.note}</span>
-      </p>
-    </div>
-  ))
-)}
-
+                                      {allnotes.length === 0 ? (
+                                          <p className="text-center text-muted">No data available</p>
+                                        ) : (
+                                          allnotes.map((note, index) => (
+                                            <div key={note._id || index}>  {/* ✅ Unique key added */}
+                                              <p className="border bg-primary text-white p-2"
+                                                style={{ 
+                                                  borderRadius: '20px', 
+                                                  display: 'inline-block',  
+                                                  maxWidth: '70%',         
+                                                  padding: '8px 12px',     
+                                                  wordWrap: 'break-word',  
+                                                  whiteSpace: 'pre-line',  
+                                                  margin: '5px 30% 5px auto'
+                                                }}
+                                              >
+                                                <div className="mb-1 d-flex justify-content-between align-items-center gap-5">
+                                                  <div>
+                                                    <span>
+                                                      Created by: {note.createdby?.firstname ? `${note.createdby.firstname} ${note.createdby.lastname}` : "Unknown"}
+                                                    </span>
+                                                  </div>
+                                                  <div className="text-white">
+                                                    <CustomerEditNote crmUser={crmUser} noteid={note._id} fetchallnotes={fetchallnotes} />
+                                                    <span className="mx-2">|</span>
+                                                    <Link href="#" onClick={() => deletenote(note._id)} className="" style={{ color: "white" }}>
+                                                      Delete
+                                                    </Link>
+                                                  </div>
+                                                </div>
+                                                <div className="mb-1">
+                                                  <span>Customer: {note.customername}</span>
+                                                </div>
+                                                <span>Note: {note.note}</span>
+                                              </p>
+                                            </div>
+                                          ))
+                                        )}
                                     </div>
                                   </Tab.Pane>
                               </Tab.Content>

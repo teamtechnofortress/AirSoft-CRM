@@ -14,6 +14,7 @@ import {
 	AccordionFlushCode
 } from 'data/code/AccordionCode';
 import AllOrder from '/sub-components/order/orderfilter/AllOrder.js'
+import { useSearchParams } from "next/navigation";
 import OrderLineItem from '/sub-components/order/OrderLineItem.js'
 import OrderModelAddress from '/sub-components/order/OrderModelAddress.js'
 import OrderModelNote from '/sub-components/order/OrderModelNote.js'
@@ -36,6 +37,9 @@ import ProjectsStatsData from "data/dashboard/ProjectsStatsData";
 import style from 'react-syntax-highlighter/dist/esm/styles/hljs/a11y-dark';
 
 const ViewAllOrder = () => {
+    const searchParams = useSearchParams();
+    const customerid = searchParams.get("id");
+    // console.log(id);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -62,19 +66,19 @@ const ViewAllOrder = () => {
 
     const handleorderStatusChange = async (newStatus,id) => {
         try {
-            console.log('New Status:', newStatus);
-            console.log('New id:', id);
+            // console.log('New Status:', newStatus);
+            // console.log('New id:', id);
             setLoading(true);
             const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/orderstatuschnage`,{status: newStatus, id: id});
-            console.log('Response:', response.data.status);
+            // console.log('Response:', response.data.status);
             if (response.data.status === "success") {
                 // Handle successful response (e.g., show a message or reset the form)
                 await fetchAllOrders();
                 toast.success("Order status chnaged successfully!");
-                console.log('successfully', response.data);
+                // console.log('successfully', response.data);
             } else {
                 toast.error("Order status not chnage Added!");
-                console.log('Error:', response.data.message);
+                // console.log('Error:', response.data.message);
             }
         } catch (error) {
           console.error("Error submitting form:", error)
@@ -168,8 +172,8 @@ const ViewAllOrder = () => {
                                                 </Nav.Link>
                                             </Nav.Item>
                                             <Nav.Item>
-                                                <Nav.Link eventKey="trash" className="mb-sm-3 mb-md-0">
-                                                    Trash
+                                                <Nav.Link eventKey="draft" className="mb-sm-3 mb-md-0">
+                                                  Draft
                                                 </Nav.Link>
                                             </Nav.Item>
                                             <Nav.Item>
@@ -182,39 +186,39 @@ const ViewAllOrder = () => {
                                     <Card.Body className="p-0">
                                         <Tab.Content>
                                             <Tab.Pane eventKey="all" className="pb-4 p-4">
-                                                <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                                <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'all'} customerid={customerid} />
                                             </Tab.Pane>
                         
                                             <Tab.Pane eventKey="pending" className="pb-4 p-4 react-code">
-                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                              <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'pending'} customerid={customerid}  />
                                             </Tab.Pane>
 
                                             <Tab.Pane eventKey="processing" className="pb-4 p-4 react-code">
-                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'processing'} customerid={customerid}  />
                                             </Tab.Pane>
 
                                             <Tab.Pane eventKey="on-hold" className="pb-4 p-4 react-code">
-                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'on-hold'} customerid={customerid}  />
                                             </Tab.Pane>
 
                                             <Tab.Pane eventKey="completed" className="pb-4 p-4 react-code">
-                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'completed'} customerid={customerid}  />
                                             </Tab.Pane>
 
                                             <Tab.Pane eventKey="cancelled" className="pb-4 p-4 react-code">
-                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'cancelled'} customerid={customerid}  />
                                             </Tab.Pane>
 
                                             <Tab.Pane eventKey="refunded" className="pb-4 p-4 react-code">
-                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'refunded'} customerid={customerid}  />
                                             </Tab.Pane>
 
-                                            <Tab.Pane eventKey="trash" className="pb-4 p-4 react-code">
-                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                            <Tab.Pane eventKey="draft" className="pb-4 p-4 react-code">
+                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'checkout-draft'} customerid={customerid}  />
                                             </Tab.Pane>
 
                                             <Tab.Pane eventKey="failed" className="pb-4 p-4 react-code">
-                                            <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} />
+                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'failed'} customerid={customerid}  />
                                             </Tab.Pane>
                                         </Tab.Content>
                                     </Card.Body>

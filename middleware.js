@@ -50,6 +50,8 @@ export async function middleware(request) {
     "/pages/order/addorder": "67b46cc27b14d62c9c5850e7",  // Add Order
     "/pages/order/viewallorder": "67b46cce7b14d62c9c5850e9",  // View Orders
     "/pages/customer/viewcustomer": "67b70a4f2a60496e39c85761",  // View Customer
+    "/pages/task/viewalltask": "67c7f540f1b6ce51367655b1",  // View task
+    "/pages/task/addtask": "67c7f533f1b6ce51367655af",  // add task
   };
 
 
@@ -65,6 +67,9 @@ export async function middleware(request) {
   }
   if (path.startsWith("/pages/role/editrole/")) {
     requiredPermission = "67b46c417b14d62c9c5850db";
+  }
+  if (path.startsWith("/pages/task/edittask/")) {
+    requiredPermission = "67c7f7b1f30e5670dab55dc7";
   }
 
   // If the route is protected and the user lacks permission, redirect

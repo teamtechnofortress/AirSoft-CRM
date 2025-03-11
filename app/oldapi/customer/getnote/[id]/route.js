@@ -32,7 +32,7 @@ try {
  
   await connectDb();
   const notes = await CustomerNote.find({ userid: { $in: id } });
-  console.log(notes);
+  // console.log(notes);
 
   const response = NextResponse.json({ status: "success", data: notes }, { status: 200 });
   // Set Cache-Control headers to avoid caching

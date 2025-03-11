@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 
 
-const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders}) => {
+const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customerid}) => {
     const [toastMessage, setToastMessage] = useState(false);
     const [loading, setLoading] = useState(false);
     // const [modalOrderAllNotesShow, setModalOrderAllNotesShow] = React.useState(false);
@@ -171,6 +171,10 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders}) => {
       </div>
   );
 
+
+//   {products?.filter(product => product.status === 'pending').map((product) => (
+
+
   return (
     <Row>
         <Form.Group className="mb-3">
@@ -181,174 +185,143 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders}) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
         </Form.Group>
-        {filteredorders.length > 0 ? (
-            filteredorders.map((order) => (
-                <Col key={order.id} md={4} sm={6} xs={12} className="mb-4">
-                        <Card style={{ width: "100%" }}>
-                            <Card.Body style={{padding:'0px'}}>
-                                <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px',paddingTop:'15px'  }}>
-                                    <div>
-                                        <Card.Title>
-                                            {order.billing?.first_name || order.billing?.last_name 
-                                                ? `${order.billing?.first_name || ''} ${order.billing?.last_name || ''}`.trim() 
-                                                : 'Unknown'}
-                                                {/* {order.id} */}
-                                        </Card.Title>
-                                        <Card.Subtitle className="" style={{fontSize: 12,}}># {order.number}</Card.Subtitle>
-                                    </div>
-                                    <div>
-                                    {/* <Card.Title style={{
-                                        }}>
-                                            {order.status === "on-hold" ? "On-hold" : order.status === "processing" ? "Processing" : order.status ===  "pending" ? "Pending" : order.status === "cancelled" ? 'Cancelled' : order.status === 'completed' ? 'Completed' : order.status === "refunded" ? 'Refunded' : order.status === 'failed' ? 'Failed' : order.status === 'trash' ? 'Trash' : order.status
-                                            }
-                                        </Card.Title> */}
-                                        <select 
-                                            value={order.status} 
-                                            onChange={(e) => handleStatusChange(e.target.value,order.id)}
-                                            style={{
-                                                padding: '5px 5px',
-                                                fontSize: '13px',
-                                                borderRadius: '6px',
-                                                border: '1px solid rgb(193, 193, 193)',
-                                            }}
-                                        >
-                                            <option value="on-hold">On-hold</option>
-                                            <option value="processing">Processing</option>
-                                            <option value="pending">Pending</option>
-                                            <option value="cancelled">Cancelled</option>
-                                            <option value="completed">Completed</option>
-                                            <option value="refunded">Refunded</option>
-                                            <option value="failed">Failed</option>
-                                            <option value="trash">Trash</option>
-                                        </select>
-                                        {/* <Card.Subtitle className="mb-2 text-muted">Pending Payment</Card.Subtitle> */}
-                                    </div>
+    
+        {/* {
+            filteredorders
+                .filter(order => order.customer_id === Number(customerid))
+                .forEach(order => console.log(order))
+        } */}
+
+
+        {
+            filteredorders?.length > 0 ? (
+                filteredorders
+                    ?.filter(order => 
+                        (status === "all" || order.status === status) &&
+                        (!Number(customerid) || order.customer_id === Number(customerid))
+                    ).length > 0 ? (
+                    filteredorders
+                        .filter(order => 
+                            (status === "all" || order.status === status) &&
+                            (!Number(customerid) || order.customer_id === Number(customerid)) 
+                        )
+                        .map((order) => (
+                        <Col key={order.id} md={4} sm={6} xs={12} className="mb-4">
+                            <Card style={{ width: "100%" }}>
+                            <Card.Body style={{ padding: "0px" }}>
+                                <div className="d-flex align-items-center justify-content-between" style={{ padding: "15px" }}>
+                                <div>
+                                    <Card.Title>
+                                    {order.billing?.first_name || order.billing?.last_name
+                                        ? `${order.billing?.first_name || ""} ${order.billing?.last_name || ""}`.trim()
+                                        : "Unknown"}
+                                    </Card.Title>
+                                    <Card.Subtitle style={{ fontSize: 12 }}># {order.number}</Card.Subtitle>
                                 </div>
-                                <div className='' style={{backgroundColor:'#eceef0'}}>
-                                    <Card.Subtitle className="mb-3 mt-2" style={{fontSize: 12,padding:'5px 5px 5px 15px'}}>
-                                        {
-                                        getTimeAgo(order.date_created)
-                                        }
-                                        {/* {order.date_created} */}
+                                <div>
+                                    <select
+                                    value={order.status}
+                                    onChange={(e) => handleStatusChange(e.target.value, order.id)}
+                                    style={{
+                                        padding: "5px",
+                                        fontSize: "13px",
+                                        borderRadius: "6px",
+                                        border: "1px solid rgb(193, 193, 193)",
+                                    }}
+                                    >
+                                    <option value="on-hold">On-hold</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="cancelled">Cancelled</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="refunded">Refunded</option>
+                                    <option value="failed">Failed</option>
+                                    <option value="checkout-draft">Draft</option>
+                                    </select>
+                                </div>
+                                </div>
+            
+                                <div style={{ backgroundColor: "#eceef0" }}>
+                                <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 12, padding: "5px 15px" }}>
+                                    {getTimeAgo(order.date_created)}
+                                </Card.Subtitle>
+                                </div>
+            
+                                {order.line_items.map((item, index) => (
+                                <OrderLineItem key={index} item={item} index={index} />
+                                ))}
+            
+                                <hr />
+            
+                                <div className="d-flex align-items-center justify-content-between" style={{ padding: "15px" }}>
+                                <div></div>
+                                <div>
+                                    <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>
+                                    Total: {order.total} $
                                     </Card.Subtitle>
                                 </div>
-                                {order.line_items.map((item, index) => (
-                                    <OrderLineItem key={index} item={item} index={index} />
-                                ))}
-                                {/* <div className="d-flex align-items-center justify-content-start mb-2 gap-2" style={{ paddingLeft: '15px', paddingRight: '15px'}}>
-                                    <div>
-                                        <Card.Img 
-                                            variant="top" 
-                                            src="/images/avatar/avatar-2.jpg?text=Image Placeholder" 
-                                            style={{ height: "85px", width: "85px", objectFit: "cover" }} 
-                                        />
-                                    </div>
-                                    <div>
-                                        <Card.Subtitle className="mb-3 mt-2" style={{fontSize: 14,}}>Teseter Name Products</Card.Subtitle>
-                                        <Card.Subtitle className="mb-3" style={{fontSize: 12,}}>SKU: N/A 123</Card.Subtitle>
-                                        <Card.Subtitle className="mb-3" style={{fontSize: 12,}}>123.34 USD</Card.Subtitle>
-                                        <Card.Subtitle className="" style={{fontSize: 12,}}>Quantity: 1233</Card.Subtitle>
-                                    </div>
-                                </div>      
-                                <hr />
-                                <div className="d-flex align-items-center justify-content-start mb-2 gap-2" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
-                                    <div>
-                                        <Card.Img 
-                                            variant="top" 
-                                            src="/images/avatar/avatar-2.jpg?text=Image Placeholder" 
-                                            style={{ height: "85px", width: "85px", objectFit: "cover" }} 
-                                        />
-                                    </div>
-                                    <div>
-                                        <Card.Subtitle className="mb-3 mt-2" style={{fontSize: 14,}}>Teseter Name Products</Card.Subtitle>
-                                        <Card.Subtitle className="mb-3" style={{fontSize: 12,}}>SKU: N/A 123</Card.Subtitle>
-                                        <Card.Subtitle className="mb-3" style={{fontSize: 12,}}>123.34 USD</Card.Subtitle>
-                                        <Card.Subtitle className="" style={{fontSize: 12,}}>Quantity: 1233</Card.Subtitle>
-                                    </div>
-                                </div>       */}
-                                <hr />
-                                <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px'}}>
-                                    <div></div>
-                                    <div>
-                                        <Card.Subtitle className="mb-1 mt-1" style={{fontSize: 13,}}>Total: {order.total} $</Card.Subtitle>
-                                    </div>
                                 </div>
-                                <div className='' style={{backgroundColor:'#eceef0'}}>
-                                    <Card.Subtitle className="mb-1 mt-1" style={{fontSize: 12,padding:'5px 5px 5px 15px'}}>{order.payment_method_title ? order.payment_method_title : 'No payment method specified'}</Card.Subtitle>
+            
+                                <div style={{ backgroundColor: "#eceef0" }}>
+                                <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 12, padding: "5px 15px" }}>
+                                    {order.payment_method_title ? order.payment_method_title : "No payment method specified"}
+                                </Card.Subtitle>
                                 </div>
-                                {/* <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px'}}>
-                                    //   <Card.Text className="mb-0 me-3">type</Card.Text> 
-                                    //   <Card.Text className=''>product</Card.Text> 
-                                    <div>
-                                        <Card.Subtitle className="mb-3 mt-3" style={{fontSize: 13,}}>Total: 1234 USD</Card.Subtitle>
-                                        <Card.Subtitle className="" style={{fontSize: 13,}}>Cash On Delivery</Card.Subtitle>
-                                    </div>
-                                    <div className="">
-                                        //  <DropdownButton
-                                        //     as={ButtonGroup}
-                                        //     id="dropdown-button-drop-up"
-                                        //     drop="up"
-                                        //     variant=""
-                                        //     title={<i className="fa fa-ellipsis-h" aria-hidden="true" style={{ fontSize: '20px' }}></i>}
-                                        //     className="me-1 mb-2 mb-lg-0 dropup-orderaction"
-                                        //     style={{padding:0,border:'none',backgroundColor: 'transparent',}}
-                                        // >
-                                        //     <Dropdown.Item eventKey="1">Edit order</Dropdown.Item>
-                                        //     <Dropdown.Item eventKey="2">Show notes</Dropdown.Item>
-                                        //     <Dropdown.Item eventKey="3">Address detail</Dropdown.Item>
-                                        //     <Dropdown.Item eventKey="4">Custom fields</Dropdown.Item>
-                                        //     <Dropdown.Item eventKey="5">Share order</Dropdown.Item>
-                                        //     <Dropdown.Item eventKey="6">Duplicate order</Dropdown.Item>
-                                        //     <Dropdown.Divider />
-                                        //     <Dropdown.Item eventKey="7" className='text-danger'>Delete order</Dropdown.Item>
-                                        // </DropdownButton> 
-                                    </div>
-                                </div> */}
-                                <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: 'px', paddingRight: 'px',paddingBottom:'px' }}>
-                                    <div className="d-flex align-items-center justify-content-between" >
-                                        <OrderModelAddress order={order} />
-                                        <OrderModelNote order={order} setToast={setToastMessage} />
-                                    </div>
-                                    <div className="">
-                                        <DropdownButton
-                                            as={ButtonGroup}
-                                            id="dropdown-button-drop-up"
-                                            drop="up"
-                                            variant=""
-                                            title={<i className="fa fa-ellipsis-h" aria-hidden="true" style={{ fontSize: '20px' }}></i>}
-                                            className="me-1 mb-2 mb-lg-0 dropup-orderaction"
-                                            style={{padding:0,border:'none',backgroundColor: 'transparent',}}
-                                        >
-                                            {permissionList.includes("67b46cd67b14d62c9c5850eb") && (
-                                            <Dropdown.Item as="a" href={`/pages/order/editorder/${order.id}`}>
-                                                Edit order
-                                            </Dropdown.Item>
-                                            )}
-                                            <Dropdown.Item eventKey="2">
-                                            <OrderAllNotes notes={notesMap[order.id] || []} />
-                                            </Dropdown.Item>
-                                            <Dropdown.Item eventKey="4">
-                                                <OrderAllCustomfields fields={order.meta_data || []} />
-                                            </Dropdown.Item>
-                                            <Dropdown.Item eventKey="6" onClick={() => duplicateorder(order.id)}>Duplicate order</Dropdown.Item>
-                                            {permissionList.includes("67b46ce07b14d62c9c5850ed") && (
-                                                <>
-                                                    <Dropdown.Divider />
-                                                    <Dropdown.Item eventKey="7" className='text-danger' onClick={() => deleteorder(order.id)} >Delete order</Dropdown.Item>
-                                                </>
-                                            )}
-                                        </DropdownButton>
-                                    </div>
+            
+                                <div className="d-flex align-items-center justify-content-between">
+                                <div className="d-flex align-items-center">
+                                    <OrderModelAddress order={order} />
+                                    <OrderModelNote order={order} setToast={setToastMessage} />
                                 </div>
-                                
-                            {/* <Button variant="primary">View Product</Button> */}
+            
+                                <div>
+                                    <DropdownButton
+                                    as={ButtonGroup}
+                                    id="dropdown-button-drop-up"
+                                    drop="up"
+                                    variant=""
+                                    title={<i className="fa fa-ellipsis-h" aria-hidden="true" style={{ fontSize: "20px" }}></i>}
+                                    className="me-1 mb-2 mb-lg-0 dropup-orderaction"
+                                    style={{ padding: 0, border: "none", backgroundColor: "transparent" }}
+                                    >
+                                    {permissionList.includes("67b46cd67b14d62c9c5850eb") && (
+                                        <Dropdown.Item as="a" href={`/pages/order/editorder/${order.id}`}>
+                                        Edit order
+                                        </Dropdown.Item>
+                                    )}
+                                    <Dropdown.Item eventKey="2">
+                                        <OrderAllNotes notes={notesMap[order.id] || []} />
+                                    </Dropdown.Item>
+                                    <Dropdown.Item eventKey="4">
+                                        <OrderAllCustomfields fields={order.meta_data || []} />
+                                    </Dropdown.Item>
+                                    <Dropdown.Item eventKey="6" onClick={() => duplicateorder(order.id)}>
+                                        Duplicate order
+                                    </Dropdown.Item>
+                                    {permissionList.includes("67b46ce07b14d62c9c5850ed") && (
+                                        <>
+                                        <Dropdown.Divider />
+                                        <Dropdown.Item eventKey="7" className="text-danger" onClick={() => deleteorder(order.id)}>
+                                            Delete order
+                                        </Dropdown.Item>
+                                        </>
+                                    )}
+                                    </DropdownButton>
+                                </div>
+                                </div>
                             </Card.Body>
-                        </Card>
-                </Col>
-            ))
-        ) : (
-            <p className="text-center">No order found.</p>
-        )}
+                            </Card>
+                        </Col>
+                        ))
+                    ) : (
+                    <p className="text-center">No order found.</p>
+                    )
+                ) : (
+                    <p className="text-center">No order found.</p>
+                )
+            
+        }
+
     </Row>
   )
 }

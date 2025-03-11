@@ -135,7 +135,7 @@ const CustomerModelAddress = ({customer}) => {
     }
   return (
     <Fragment> 
-        <a variant="" onClick={() => setModaladdressShow(true)}>
+        <a variant=""  onClick={() => setModaladdressShow(true)}>
             {/* <i className="fa fa-phone" aria-hidden="true" style={{transform: "rotate(100deg)"}}></i>  */}
             View detail
         </a>

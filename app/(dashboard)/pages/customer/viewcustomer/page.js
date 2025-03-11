@@ -165,16 +165,21 @@ const ViewAllUsers = () => {
                                                 </Dropdown.Item>
 
                                                 {/* <Dropdown.Item eventKey="4">Custom fields</Dropdown.Item> */}
-                                                <Dropdown.Item eventKey="6" >
-                                                    <Link href={`/pages/customer/viewallnotes/${customer.id}`} passHref>
+                                                <Dropdown.Item eventKey="3" >
+                                                    <Link variant="" href={`/pages/customer/viewallnotes/${customer.id}`} passHref className="hover-customeraddnote">
                                                         View Notes
                                                     </Link>
                                                 </Dropdown.Item>
                                                 {/* <Dropdown.Item eventKey="6" onClick={() => duplicateorder(order.id)}>Duplicate order</Dropdown.Item> */}
+                                                {permissionList.includes("67b46cce7b14d62c9c5850e9") && (
+                                                    <>
+                                                        <Dropdown.Item eventKey="4" href={`/pages/order/viewallorder?id=${customer.id}`} passHref className="hover-customeraddnote">View orders</Dropdown.Item>
+                                                    </>
+                                                )}
                                                 {permissionList.includes("67b81fa41821f665a7493728") && (
                                                     <>
                                                         <Dropdown.Divider />
-                                                        <Dropdown.Item eventKey="7" className='text-danger' onClick={() => handeldeletecustomer(customer.id)} >Delete</Dropdown.Item>
+                                                        <Dropdown.Item eventKey="5" className='text-danger' onClick={() => handeldeletecustomer(customer.id)} >Delete</Dropdown.Item>
                                                     </>
                                                 )}
                                                 {/* <Dropdown.Item eventKey="7" className='text-danger' onClick={() => deleteorder(order.id)} >Delete order</Dropdown.Item> */}

@@ -4,16 +4,14 @@ import React, { useEffect,useState } from 'react';
 import axios from 'axios';
 // import node module libraries
 import Link from 'next/link';
-import { ProgressBar, Col, Row, Card, Table, Image,Button,Spinner,Form } from 'react-bootstrap';
+import { ProgressBar, Col, Row, Card, Table, Image,Button,Spinner } from 'react-bootstrap';
 
 // import required data files
 // import ActiveProjectsData from "data/dashboard/ActiveProjectsData";
 
-const AllProducts = ({products,status}) => {
+const BackOrrderStockProducts = ({products}) => {
     // const [products, setProducts] = useState([]);
     // const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
-    
 
     // const fetchAllProducts = async () => {
     //     try {
@@ -43,25 +41,11 @@ const AllProducts = ({products,status}) => {
     //         </Spinner>
     //     </div>
     // );
-    const filteredproducts = products.filter(product => 
-        `${product.name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `${product.sku}`.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        `${product.price}`.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        `${product.status}`.toLowerCase().includes(searchTerm.toLowerCase()) 
-    );
+    
    
     return (
-        <Row className="mt-1">
-            <Form.Group className="mb-4">
-                <Form.Control 
-                    type="text" 
-                    placeholder="Search by product name or sku or price..." 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </Form.Group>
-
-            {filteredproducts?.filter(product => status === "all" || product.stock_status === status).map((product) => (
+        <Row className="mt-4">
+            {products?.filter(product => product.stock_status === 'onbackorder').map((product) => (
                 <Col key={product.id} md={3} sm={6} xs={12} className="mb-4">
                     <Card style={{ width: "100%" }}>
                         <Card.Img 
@@ -71,23 +55,21 @@ const AllProducts = ({products,status}) => {
                             style={{ height: "180px", objectFit: "cover" }}
                         />
                         <Card.Body>
-                        <Card.Title className="text-dark me-2">{product.name}</Card.Title>
+                            <Card.Title className="text-dark me-2">{product.name}</Card.Title>
 
-                        <div className="d-flex align-items-center justify-content-between">
-                            <Card.Text className="mb-0">{product.price} USD</Card.Text>
-                            <Card.Text>{product.stock_status || "Out of stock"}</Card.Text>
-                        </div>      
-                        
-                        <div className="d-flex align-items-center justify-content-between">
-                            <Card.Text className='mb-3 mt-3'>SKU: {product.sku}</Card.Text>
-                            <Card.Text className='mb-3 mt-3'>Total sales: {product.total_sales}</Card.Text>
-                        </div>
-                        <div className="d-flex align-items-center justify-content-end">
-                            <Card.Text className="mb-0 me-3">{product.type}</Card.Text>
-                            <Card.Text className=''>{product.status}</Card.Text>
-                        </div>
-                        
-                        {/* <Button variant="primary">View Product</Button> */}
+                            <div className="d-flex align-items-center justify-content-between">
+                                <Card.Text className="mb-0">{product.price} USD</Card.Text>
+                                <Card.Text>{product.stock_status || "Out of stock"}</Card.Text>
+                            </div>      
+                            
+                            <div className="d-flex align-items-center justify-content-between">
+                                <Card.Text className='mb-3 mt-3'>SKU: {product.sku}</Card.Text>
+                                <Card.Text className='mb-3 mt-3'>Total sales: {product.total_sales}</Card.Text>
+                            </div>
+                            <div className="d-flex align-items-center justify-content-end">
+                                <Card.Text className="mb-0 me-3">{product.type}</Card.Text>
+                                <Card.Text className=''>{product.status}</Card.Text>
+                            </div>
                         </Card.Body>
                     </Card>
                 </Col>
@@ -96,4 +78,4 @@ const AllProducts = ({products,status}) => {
     )
 }
 
-export default AllProducts
+export default BackOrrderStockProducts
