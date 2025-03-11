@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
+import ToastComponent from 'components/toastcomponent';
+
 
 const CustomerEditNotes = ({ crmUser, noteid,fetchallnotes }) => {
   const [show, setShow] = useState(false);
@@ -46,19 +48,38 @@ const CustomerEditNotes = ({ crmUser, noteid,fetchallnotes }) => {
     }
     setLoading(true);
     try {
-      const response = await axios.post("/oldapi/customer/updatenote", {
+      const addNoteRequest = await axios.post("/oldapi/customer/updatenote", {
         userid,
         note,
         noteid,
       });
-      if (response.data.status === "success") {
-        fetchallnotes();
-        toast.success("Note updated successfully!");
+      const addTaskRequest = todo
+      ? axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/task/add`, {
+          taskdescription: note,
+          crmuser: userid,
+        })
+      : Promise.resolve(null);
+
+      const [addNoteResponse, addTaskResponse] = await Promise.all([
+        addNoteRequest,
+        addTaskRequest,
+      ]);
+      if (addNoteResponse.data.status === "success") {
+        setUserid('');
         setNote("");
-        handleClose();
+        await fetchallnotes();
+        toast.success("Note Updated successfully!");
       } else {
         toast.error("Failed to update note!");
       }
+        
+      if (todo && addTaskResponse?.data?.status === "success") {
+        setTodo(false);
+        toast.success("Task added successfully!");
+      } else if (todo) {
+        toast.error("Failed to add task!");
+      }
+      handleClose();
     } catch (error) {
       toast.error("Error updating note!");
     } finally {
@@ -68,6 +89,7 @@ const CustomerEditNotes = ({ crmUser, noteid,fetchallnotes }) => {
 
   return (
     <>
+      <ToastComponent />
       <a variant="link" onClick={handleShow} style={{color: 'white',cursor:'pointer'}} >
         Edit
       </a>
@@ -105,7 +127,7 @@ const CustomerEditNotes = ({ crmUser, noteid,fetchallnotes }) => {
               checked={todo}
               onChange={() => setTodo(!todo)}
             />
-            <Form.Label>Send task to</Form.Label>
+            <Form.Label>To-do</Form.Label>
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>

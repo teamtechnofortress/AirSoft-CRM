@@ -5,6 +5,7 @@ import axios from "axios";
 import { Container, Row, Col, Card, Spinner, Form, Button,Tab,Nav } from "react-bootstrap";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import Link from "next/link";
+import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
 import CustomerEditNote from 'sub-components/customer/editnotemodel.js';
 
@@ -150,6 +151,7 @@ const Page = ({params}) => {
 
   return (
     <>
+
     {/* <Container className="mt-3 px-4">
       <div>
         <div>
@@ -232,6 +234,10 @@ const Page = ({params}) => {
         </>
       )}
     </Container> */}
+    <Container>
+    <ToastComponent />
+
+    </Container>
     <Fragment>
         <div className="bg-primary pt-10 pb-21"></div>
         <Container fluid className="mt-n22 px-6">

@@ -74,7 +74,6 @@ const CustomerAddNotes = ({ customer, crmUser,loginuserid }) => {
       handleClose();
     } catch (error) {
       console.error("Error:", error);
-      
       // Handle errors from both APIs
       if (error.response) {
         toast.error(`Error: ${error.response.data.message || "Request failed"}`);
@@ -131,7 +130,7 @@ const CustomerAddNotes = ({ customer, crmUser,loginuserid }) => {
               checked={todo} 
               onChange={() => setTodo(!todo)} 
             />
-            <Form.Label>Send task to</Form.Label>
+            <Form.Label>To-do</Form.Label>
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
