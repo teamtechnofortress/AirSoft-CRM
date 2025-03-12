@@ -46,7 +46,7 @@ const ViewAllOrder = () => {
     const fetchAllOrders = async () => {
         try {
             const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`);
-            // console.log('API Response:', response.data);
+            console.log('API Response:', response.data);
     
             if (response.data && response.data.data) {
                 setOrders(response.data.data); // Set order to the state

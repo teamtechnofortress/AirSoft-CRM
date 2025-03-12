@@ -60,8 +60,12 @@ const AllProducts = ({products,status}) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </Form.Group>
+            {filteredproducts
+  ?.filter(product =>  product.id === 8384)
+  .map(product => console.log(product))}
+              
 
-            {filteredproducts?.filter(product => status === "all" || product.stock_status === status).map((product) => (
+            {filteredproducts?.filter(product => status === "all" || product.stock_status === status ).map((product) => (
                 <Col key={product.id} md={3} sm={6} xs={12} className="mb-4">
                     <Card style={{ width: "100%" }}>
                         <Card.Img 
@@ -76,8 +80,14 @@ const AllProducts = ({products,status}) => {
                         <div className="d-flex align-items-center justify-content-between">
                             <Card.Text className="mb-0">{product.price} USD</Card.Text>
                             <Card.Text>{product.stock_status || "Out of stock"}</Card.Text>
-                        </div>      
-                        
+                        </div>     
+
+                        {product.manage_stock && (
+                            <div className="d-flex align-items-center justify-content-between">
+                                <Card.Text className="mb-3 mt-3">Stock Quantity</Card.Text>
+                                <Card.Text className="mb-3 mt-3">{product.stock_quantity}</Card.Text>
+                            </div>
+                        )}
                         <div className="d-flex align-items-center justify-content-between">
                             <Card.Text className='mb-3 mt-3'>SKU: {product.sku}</Card.Text>
                             <Card.Text className='mb-3 mt-3'>Total sales: {product.total_sales}</Card.Text>
