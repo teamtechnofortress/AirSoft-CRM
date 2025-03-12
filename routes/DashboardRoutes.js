@@ -548,6 +548,16 @@ const useDashboardMenu = () => {
                 },
               ]
             : []),
+
+            {
+              id: uuid(),
+              title: 'Internal Messages',
+              icon: 'message-circle',
+              children: [
+                { id: uuid(), link: '/pages/internal_messages/addmessage', name: 'Messages' },
+               
+              ]
+            },
           // {
           //   id: uuid(),
           //   title: 'Task',
