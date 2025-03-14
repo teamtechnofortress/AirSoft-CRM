@@ -17,8 +17,6 @@ export async function GET(req) {
   
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
-
-    // console.log(decoded.permissions);
     
     let requiredpermission = '67b70a4f2a60496e39c85761';
 
@@ -29,20 +27,32 @@ export async function GET(req) {
         );
     }
 
-    // Fetch products from the WooCommerce API.
-    const response = await WooCommerc.get("customers");
+    // Fetch all customers by handling pagination
+    const allCustomers = [];
+    let page = 1;
 
-    // Check if the response is valid.
-    if (!response || response.status !== 200) {
-      return NextResponse.json(
-        { status: 'error', message: "Failed to fetch customer" },
-        { status: 500 }
-      );
+    while (true) {
+      const response = await WooCommerc.get("customers", {
+        per_page: 100, // Fetch maximum customers per request
+        page: page
+      });
+
+      if (!response || response.status !== 200) {
+        return NextResponse.json(
+          { status: 'error', message: "Failed to fetch customers" },
+          { status: 500 }
+        );
+      }
+
+      if (response.data.length === 0) break; // Stop when no more customers to fetch
+
+      allCustomers.push(...response.data);
+      page++; // Move to the next page
     }
 
-    // Return the fetched data.
+    // Return all customers
     return NextResponse.json(
-      { data: response.data, message: "Customer fetched successfully" },
+      { data: allCustomers, message: "All customers fetched successfully" },
       { status: 200 }
     );
     
@@ -56,7 +66,7 @@ export async function GET(req) {
     }
 
     return NextResponse.json(
-      { status: 'error', message: "Failed to fetch customer", error: error.message },
+      { status: 'error', message: "Failed to fetch customers", error: error.message },
       { status: 500 }
     );
   }

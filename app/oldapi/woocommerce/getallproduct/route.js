@@ -26,21 +26,32 @@ export async function GET(req) {
         );
     }
     
+    // Fetch all products by handling pagination
+    const allProducts = [];
+    let page = 1;
+    
+    while (true) {
+      const response = await WooCommerc.get("products", {
+        per_page: 100, // Max per request
+        page: page
+      });
 
-    // Fetch products from the WooCommerce API.
-    const response = await WooCommerc.get("products");
+      if (!response || response.status !== 200) {
+        return NextResponse.json(
+          { status: 'error', message: "Failed to fetch products" },
+          { status: 500 }
+        );
+      }
 
-    // Check if the response is valid.
-    if (!response || response.status !== 200) {
-      return NextResponse.json(
-        { status: 'error', message: "Failed to fetch products" },
-        { status: 500 }
-      );
+      if (response.data.length === 0) break; // No more products to fetch
+
+      allProducts.push(...response.data);
+      page++; // Move to the next page
     }
 
-    // Return the fetched data.
+    // Return all products
     return NextResponse.json(
-      { data: response.data, message: "Products fetched successfully" },
+      { data: allProducts, message: "All products fetched successfully" },
       { status: 200 }
     );
     

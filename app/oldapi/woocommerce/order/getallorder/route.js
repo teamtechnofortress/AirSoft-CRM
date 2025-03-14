@@ -27,21 +27,32 @@ export async function GET(req) {
         );
     }
     
+    // Fetch all orders by handling pagination
+    const allOrders = [];
+    let page = 1;
 
-    // Fetch products from the WooCommerce API.
-    const response = await WooCommerc.get("orders");
+    while (true) {
+      const response = await WooCommerc.get("orders", {
+        per_page: 100, // Fetch max orders per request
+        page: page
+      });
 
-    // Check if the response is valid.
-    if (!response || response.status !== 200) {
-      return NextResponse.json(
-        { status: 'error', message: "Failed to fetch orders" },
-        { status: 500 }
-      );
+      if (!response || response.status !== 200) {
+        return NextResponse.json(
+          { status: 'error', message: "Failed to fetch orders" },
+          { status: 500 }
+        );
+      }
+
+      if (response.data.length === 0) break; // Stop when no more orders to fetch
+
+      allOrders.push(...response.data);
+      page++; // Move to the next page
     }
 
-    // Return the fetched data.
+    // Return all orders
     return NextResponse.json(
-      { data: response.data, message: "Orders fetched successfully" },
+      { data: allOrders, message: "All orders fetched successfully" },
       { status: 200 }
     );
     
@@ -55,7 +66,7 @@ export async function GET(req) {
     }
 
     return NextResponse.json(
-      { status: 'error', message: "Failed to fetch products", error: error.message },
+      { status: 'error', message: "Failed to fetch orders", error: error.message },
       { status: 500 }
     );
   }
