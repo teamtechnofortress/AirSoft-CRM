@@ -51,8 +51,8 @@ const Home = () => {
 
                 if (response.data && response.data.data.length > 0) {
                     setProducts(prevProducts => [...prevProducts, ...response.data.data]); // ✅ Update state after each page
-                    await delay(1000);
-                    if (response.data.data.length === 50) {
+                    await delay(500);
+                    if (response.data.data.length === 100) {
                         page++; // ✅ Continue fetching next page
                     } else {
                         break; // ✅ Stop if less than 100 products (last page)
