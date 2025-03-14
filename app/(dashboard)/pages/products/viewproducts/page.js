@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect,useState,Fragment } from 'react';
+import React, { useEffect,useState,Fragment,useRef } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Cookies from "js-cookie";
@@ -63,7 +63,7 @@ const Home = () => {
     //         setLoading(false);
     //     }
     // };
-    const [hasFetched, setHasFetched] = useState(false); // Prevent multiple calls
+    const hasFetched = useRef(false); // Prevent multiple calls
 
     const fetchAllProducts = async (pageNumber = 1, accumulatedProducts = []) => {
         try {
@@ -91,11 +91,11 @@ const Home = () => {
     };
 
     useEffect(() => {
-        if (!hasFetched) {  // Ensuring it runs only once
-            setHasFetched(true);
+        if (!hasFetched.current) {
+            hasFetched.current = true;
             fetchAllProducts();
         }
-    }, [hasFetched]);
+    }, []); // Empty dependency array ensures it runs only once
 
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
