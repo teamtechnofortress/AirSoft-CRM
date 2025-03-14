@@ -25,37 +25,23 @@ export async function GET(req) {
       );
     }
 
-    // ✅ Step 1: Fetch first page to determine total pages
-    const firstResponse = await WooCommerc.get("products", { per_page: 50, page: 1 });
+    // ✅ Fetch ONLY 100 products (first page)
+    const response = await WooCommerc.get("products", {
+      per_page: 100, // Max WooCommerce allows per request
+      page: 1        // First page only
+    });
 
-    if (!firstResponse || firstResponse.status !== 200) {
+    // ✅ Handle API errors
+    if (!response || response.status !== 200) {
       return NextResponse.json(
         { status: 'error', message: "Failed to fetch products" },
         { status: 500 }
       );
     }
 
-    const totalProducts = parseInt(firstResponse.headers['x-wp-total'], 10) || firstResponse.data.length;
-    const totalPages = Math.ceil(totalProducts / 50);
-
-    // ✅ Step 2: Fetch all remaining pages in parallel
-    const requests = [];
-    for (let page = 2; page <= totalPages; page++) {
-      requests.push(WooCommerc.get("products", { per_page: 50, page }));
-    }
-
-    const responses = await Promise.allSettled(requests);
-
-    // ✅ Step 3: Merge all responses into one array
-    const allProducts = [
-      ...firstResponse.data,
-      ...responses
-        .filter(res => res.status === "fulfilled" && res.value.status === 200)
-        .flatMap(res => res.value.data)
-    ];
-
+    // ✅ Return the first 100 products
     return NextResponse.json(
-      { data: allProducts, message: "All products fetched successfully" },
+      { data: response.data, message: "Fetched first 100 products successfully" },
       { status: 200 }
     );
 
