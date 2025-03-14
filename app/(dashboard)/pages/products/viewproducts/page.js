@@ -36,31 +36,66 @@ const Home = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchAllProducts = async () => {
+    // const fetchAllProducts = async () => {
+    //     try {
+    //         const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`);
+
+    //         if (response.data && response.data.data) {
+
+    //             setProducts(response.data.data);
+    //             // const newProducts = accumulatedProducts.concat(response.data.data);
+
+
+    //             // if (response.data.data.length === 100) {
+    //             //     // ✅ Fetch next page recursively
+    //             //     fetchAllProducts(pageNumber + 1, newProducts);
+    //             // } else {
+    //             //     // ✅ Set final product list
+    //             //     setProducts(newProducts);
+    //                 setLoading(false);
+    //             // }
+    //         } else {
+    //             console.error("Unexpected API Response:", response.data);
+    //             setLoading(false);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching data:", error.message);
+    //         setLoading(false);
+    //     }
+    // };
+    const [hasFetched, setHasFetched] = useState(false); // Prevent multiple calls
+
+    const fetchAllProducts = async (pageNumber = 1, accumulatedProducts = []) => {
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`);
-            // console.log('API Response:', response.data);
-    
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`, {
+                params: { page: pageNumber }
+            });
+
             if (response.data && response.data.data) {
-                setProducts(response.data.data); // Set products to the state
-            }
-            // else if(response.data.status === 'tokenerror'){
-            //     Cookies.remove("token");
-            //     router.push(`${process.env.NEXT_PUBLIC_HOST}/authentication/login`);
-            // }
-             else {
-                console.error('Unexpected API Response:', response.data);
+                const newProducts = [...accumulatedProducts, ...response.data.data];
+
+                if (response.data.data.length === 100) {
+                    await fetchAllProducts(pageNumber + 1, newProducts);
+                } else {
+                    setProducts(newProducts);
+                    setLoading(false);
+                }
+            } else {
+                console.error("Unexpected API Response:", response.data);
+                setLoading(false);
             }
         } catch (error) {
-            console.error('Error fetching data:', error.message);  // Log the error message
-        } finally {
-            setLoading(false); // Set loading to false after data fetch
+            console.error("Error fetching data:", error.message);
+            setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchAllProducts(); // Fetch products when the component is mounted
-    }, []);
+        if (!hasFetched) {  // Ensuring it runs only once
+            setHasFetched(true);
+            fetchAllProducts();
+        }
+    }, [hasFetched]);
 
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>

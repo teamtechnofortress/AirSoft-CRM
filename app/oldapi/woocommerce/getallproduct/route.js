@@ -17,6 +17,10 @@ export async function GET(req) {
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
     let requiredpermission = '67b46bd87b14d62c9c5850d5';
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page"), 10) || 1; // Default to page 1
+console.log('page:',page);
+
 
     if (!decoded.permissions.includes(requiredpermission)) {
       return NextResponse.json(
@@ -28,7 +32,7 @@ export async function GET(req) {
     // ✅ Fetch ONLY 100 products (first page)
     const response = await WooCommerc.get("products", {
       per_page: 100, // Max WooCommerce allows per request
-      page: 1        // First page only
+      page: page,        // First page only
     });
 
     // ✅ Handle API errors
