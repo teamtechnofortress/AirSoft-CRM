@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect,useState,Fragment,useRef } from 'react';
+import React, { useEffect,useState,Fragment } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Cookies from "js-cookie";
@@ -34,26 +34,58 @@ const Home = () => {
     const router = useRouter();
 
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [hasFetched, setHasFetched] = useState(false); // Prevent multiple calls
 
-    // const fetchAllProducts = async () => {
+    let page = 1;
+    const fetchAllProducts = async () => {
+        try {
+            while (true) {
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct?page=${page}`);
+
+                if (response.data && response.data.data) {
+                    setProducts([...products, ...response.data.data]);
+
+                    if (response.data.data.length === 100) {
+                        page++;
+                    }else{
+                        break;
+                    }
+                } else {
+                    console.error("Unexpected API Response:", response.data);
+                    setLoading(false); 
+                    break;
+                }
+            }
+            // const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct?page=${page}`);
+
+            // if (response.data && response.data.data) {
+            //     setProducts(response.data.data);
+            // } else {
+            //     console.error("Unexpected API Response:", response.data);
+            //     setLoading(false);
+            // }
+        } catch (error) {
+            console.error("Error fetching data:", error.message);
+            setLoading(false);
+        }
+    };
+
+    // const fetchAllProducts = async (pageNumber = 1, accumulatedProducts = []) => {
     //     try {
-    //         const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`);
+    //         const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`, {
+    //             params: { page: pageNumber }
+    //         });
 
     //         if (response.data && response.data.data) {
+    //             const newProducts = [...accumulatedProducts, ...response.data.data];
 
-    //             setProducts(response.data.data);
-    //             // const newProducts = accumulatedProducts.concat(response.data.data);
-
-
-    //             // if (response.data.data.length === 100) {
-    //             //     // ✅ Fetch next page recursively
-    //             //     fetchAllProducts(pageNumber + 1, newProducts);
-    //             // } else {
-    //             //     // ✅ Set final product list
-    //             //     setProducts(newProducts);
+    //             if (response.data.data.length === 100) {
+    //                 await fetchAllProducts(pageNumber + 1, newProducts);
+    //             } else {
+    //                 setProducts(newProducts);
     //                 setLoading(false);
-    //             // }
+    //             }
     //         } else {
     //             console.error("Unexpected API Response:", response.data);
     //             setLoading(false);
@@ -63,39 +95,15 @@ const Home = () => {
     //         setLoading(false);
     //     }
     // };
-    const hasFetched = useRef(false); // Prevent multiple calls
-
-    const fetchAllProducts = async (pageNumber = 1, accumulatedProducts = []) => {
-        try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`, {
-                params: { page: pageNumber }
-            });
-
-            if (response.data && response.data.data) {
-                const newProducts = [...accumulatedProducts, ...response.data.data];
-
-                if (response.data.data.length === 100) {
-                    await fetchAllProducts(pageNumber + 1, newProducts);
-                } else {
-                    setProducts(newProducts);
-                    setLoading(false);
-                }
-            } else {
-                console.error("Unexpected API Response:", response.data);
-                setLoading(false);
-            }
-        } catch (error) {
-            console.error("Error fetching data:", error.message);
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
-        if (!hasFetched.current) {
-            hasFetched.current = true;
+        if (!hasFetched) {  // Ensuring it runs only once
+            setHasFetched(true);
             fetchAllProducts();
         }
-    }, []); // Empty dependency array ensures it runs only once
+    }, [hasFetched]);
+
+
 
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
