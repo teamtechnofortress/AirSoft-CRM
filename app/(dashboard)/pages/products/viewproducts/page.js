@@ -36,6 +36,7 @@ const Home = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const hasFetched = useRef(false);
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms)); 
 
     const fetchAllProducts = async () => {
         let page = 1;
@@ -50,7 +51,7 @@ const Home = () => {
 
                 if (response.data && response.data.data.length > 0) {
                     setProducts(prevProducts => [...prevProducts, ...response.data.data]); // ✅ Update state after each page
-
+                    await delay(500);
                     if (response.data.data.length === 100) {
                         page++; // ✅ Continue fetching next page
                     } else {
