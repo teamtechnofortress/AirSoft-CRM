@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect,useState,Fragment } from 'react';
+import React, { useEffect,useState,Fragment,useRef } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Cookies from "js-cookie";
@@ -35,41 +35,47 @@ const Home = () => {
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [hasFetched, setHasFetched] = useState(false); // Prevent multiple calls
+    const hasFetched = useRef(false);
 
-    let page = 1;
     const fetchAllProducts = async () => {
+        let page = 1;
+
         try {
             while (true) {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct?page=${page}`);
+                console.log(`Fetching Page: ${page}`); // Debugging log
 
-                if (response.data && response.data.data) {
-                    setProducts([...products, ...response.data.data]);
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`, {
+                    params: { page }
+                });
+
+                if (response.data && response.data.data.length > 0) {
+                    setProducts(prevProducts => [...prevProducts, ...response.data.data]); // ✅ Update state after each page
 
                     if (response.data.data.length === 100) {
-                        page++;
-                    }else{
-                        break;
+                        page++; // ✅ Continue fetching next page
+                    } else {
+                        break; // ✅ Stop if less than 100 products (last page)
                     }
                 } else {
                     console.error("Unexpected API Response:", response.data);
-                    setLoading(false); 
                     break;
                 }
             }
-            // const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct?page=${page}`);
 
-            // if (response.data && response.data.data) {
-            //     setProducts(response.data.data);
-            // } else {
-            //     console.error("Unexpected API Response:", response.data);
-            //     setLoading(false);
-            // }
+            setLoading(false); // ✅ Set loading to false when all pages are loaded
+
         } catch (error) {
             console.error("Error fetching data:", error.message);
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!hasFetched.current) {
+            hasFetched.current = true; // ✅ Ensuring API runs only once
+            fetchAllProducts();
+        }
+    }, []);
 
     // const fetchAllProducts = async (pageNumber = 1, accumulatedProducts = []) => {
     //     try {
@@ -96,12 +102,6 @@ const Home = () => {
     //     }
     // };
 
-    useEffect(() => {
-        if (!hasFetched) {  // Ensuring it runs only once
-            setHasFetched(true);
-            fetchAllProducts();
-        }
-    }, [hasFetched]);
 
 
 
