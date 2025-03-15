@@ -37,7 +37,7 @@ const Home = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
 
-    const productsPerPage = 100; // ✅ Show 10 products per page
+    const productsPerPage = 50; // ✅ Show 10 products per page
 
     // ✅ Fetch Products (Only If Not in Cache)
     const fetchProducts = async (page) => {
