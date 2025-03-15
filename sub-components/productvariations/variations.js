@@ -53,20 +53,20 @@ const AllProducts = ({products,status}) => {
     return (
         <Row className="mt-1">
             <Form.Group className="mb-4">
-                <Form.Control 
+                {/* <Form.Control 
                     type="text" 
                     placeholder="Search by product name or sku or price..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                /> */}
             </Form.Group>
             {filteredproducts?.filter(product => status === "all" || product.stock_status === status ).map((product) => (
                 <Col key={product.id} md={3} sm={6} xs={12} className="mb-4">
                     <Card style={{ width: "100%" }}>
                         <Card.Img 
                             variant="top" 
-                            src={product.images.length > 0 ? product.images[0].src : "https://via.placeholder.com/150"} 
-                            alt={product.images.length > 0 ? product.images[0].alt : "Product Image"} 
+                            src={product.image.length > 0 ? product.image.src : "https://via.placeholder.com/150"} 
+                            alt={product.image.length > 0 ? product.image.alt : "Product Image"} 
                             style={{ height: "180px", objectFit: "cover" }}
                         />
                         <Card.Body>
@@ -79,32 +79,17 @@ const AllProducts = ({products,status}) => {
 
                         {product.manage_stock && (
                             <div className="d-flex align-items-center justify-content-between">
-                                <Card.Text className="mt-3">Stock Quantity</Card.Text>
-                                <Card.Text className="mt-2">{product.stock_quantity}</Card.Text>
+                                <Card.Text className="mb-3 mt-3">Stock Quantity</Card.Text>
+                                <Card.Text className="mb-3 mt-3">{product.stock_quantity}</Card.Text>
                             </div>
                         )}
                         <div className="d-flex align-items-center justify-content-between">
                             <Card.Text className='mb-3 mt-3'>SKU: {product.sku}</Card.Text>
-                            <Card.Text className='mb-3 mt-3'>Total sales: {product.total_sales}</Card.Text>
+                            {/* <Card.Text className='mb-3 mt-3'>Total sales: {product.total_sales}</Card.Text> */}
                         </div>
-                        <div className="d-flex align-items-center justify-content-between">
-                            <div className='d-flex align-items-center justify-content-center'>
-                                {product.type === 'variable' && (
-                                    <Link href={`/pages/products/variations/${product.id}`}>
-                                        View all
-                                    </Link>
-                                )}
-                            </div>
-                            
-                            {/* <div>
-                                <Link href={`/pages/products/variations/${product.id}`}>
-                                    View all
-                                </Link>
-                            </div> */}
-                            <div className='d-flex align-items-center justify-content-end'>
+                        <div className="d-flex align-items-center justify-content-end">
                                 <Card.Text className="mb-0 me-3">{product.type}</Card.Text>
                                 <Card.Text className=''>{product.status}</Card.Text>
-                            </div>
                         </div>
                         
                         {/* <Button variant="primary">View Product</Button> */}

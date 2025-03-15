@@ -108,9 +108,9 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
         }
         setNotesMap(notesData);
     };
-    useEffect(() => {
-        fetchAllNotes();
-    }, [orders]);
+    // useEffect(() => {
+    //     fetchAllNotes();
+    // }, [orders]);
 
     const deleteorder = async (id) => { 
         try {
@@ -119,7 +119,7 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
             const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/deleteorder`,{id});
         //    console.log('Response:', response.data);
             if (response.data.status === 'success') {
-                await fetchAllOrders();
+                // await fetchAllOrders();
                 toast.success("Order deleted successfully!");
             } else {
                 toast.error("Order not delete!");

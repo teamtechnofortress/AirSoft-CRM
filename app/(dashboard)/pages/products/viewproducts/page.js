@@ -31,80 +31,60 @@ import BackOrrderStockProducts from "/sub-components/dashboard/BackOrrderStockPr
 import ProjectsStatsData from "data/dashboard/ProjectsStatsData";
 
 const Home = () => {
-    const router = useRouter();
-
-    const [products, setProducts] = useState([]);
+    const [products, setProducts] = useState([]); // ✅ Stores products for the current page
+    const [cachedProducts, setCachedProducts] = useState({}); // ✅ Stores all fetched pages
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
-    const hasFetched = useRef(false);
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms)); 
 
-    const fetchAllProducts = async () => {
-        let page = 1;
+    const productsPerPage = 100; // ✅ Show 10 products per page
+
+    // ✅ Fetch Products (Only If Not in Cache)
+    const fetchProducts = async (page) => {
+        if (cachedProducts[page]) {
+            setProducts(cachedProducts[page]); // ✅ Load from cache
+            return;
+        }
 
         try {
-            while (true) {
-                console.log(`Fetching Page: ${page}`); // Debugging log
+            setLoading(true);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`, {
+                params: { page}
+            });
 
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`, {
-                    params: { page }
-                });
-
-                if (response.data && response.data.data.length > 0) {
-                    setProducts(prevProducts => [...prevProducts, ...response.data.data]); // ✅ Update state after each page
-                    // await delay(500);
-                    if (response.data.data.length === 100) {
-                        page++; // ✅ Continue fetching next page
-                    } else {
-                        break; // ✅ Stop if less than 100 products (last page)
-                    }
-                } else {
-                    console.error("Unexpected API Response:", response.data);
-                    break;
-                }
+            if (response.data && response.data.data.length > 0) {
+                setProducts(response.data.data);
+                setCachedProducts(prevCache => ({
+                    ...prevCache,
+                    [page]: response.data.data // ✅ Store in cache
+                }));
+                if (page === 1) setTotalProducts(response.data.Total); // ✅ Set total count on first load
             }
-
-            setLoading(false); // ✅ Set loading to false when all pages are loaded
-
         } catch (error) {
             console.error("Error fetching data:", error.message);
+        } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (!hasFetched.current) {
-            hasFetched.current = true; // ✅ Ensuring API runs only once
-            fetchAllProducts();
+        fetchProducts(currentPage);
+    }, [currentPage]); // ✅ Fetch only when page changes
+
+    // ✅ Handle Next Page (Fetch if Not Cached)
+    const handleNextPage = () => {
+        if (currentPage < Math.ceil(totalProducts / productsPerPage)) {
+            setCurrentPage(prevPage => prevPage + 1);
         }
-    }, []);
+    };
 
-    // const fetchAllProducts = async (pageNumber = 1, accumulatedProducts = []) => {
-    //     try {
-    //         const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`, {
-    //             params: { page: pageNumber }
-    //         });
-
-    //         if (response.data && response.data.data) {
-    //             const newProducts = [...accumulatedProducts, ...response.data.data];
-
-    //             if (response.data.data.length === 100) {
-    //                 await fetchAllProducts(pageNumber + 1, newProducts);
-    //             } else {
-    //                 setProducts(newProducts);
-    //                 setLoading(false);
-    //             }
-    //         } else {
-    //             console.error("Unexpected API Response:", response.data);
-    //             setLoading(false);
-    //         }
-    //     } catch (error) {
-    //         console.error("Error fetching data:", error.message);
-    //         setLoading(false);
-    //     }
-    // };
-
-
-
+    // ✅ Handle Previous Page (No API Call, Uses Cache)
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setProducts(cachedProducts[currentPage - 1] || []);
+            setCurrentPage(prevPage => prevPage - 1);
+        }
+    };
 
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -113,108 +93,53 @@ const Home = () => {
             </Spinner>
         </div>
     );
-    
+
     return (
         <Fragment>
             <div className="bg-primary pt-10 pb-21"></div>
             <Container fluid className="mt-n22 px-6">
                 <Row>
-                    <Col lg={12} md={12} xs={12}>
-                        {/* Page header */}
-                        <div>
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <div className="mb-2 mb-lg-0">
-                                    <h3 className="mb-0  text-white">Products</h3>
-                                </div>
-                                <div>
-                                    <Link href="#" className="btn btn-white">Products</Link>
-                                </div>
-                            </div>
+                    <Col lg={12}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h3 className="mb-0 text-white">Products</h3>
+                            <Link href="#" className="btn btn-white">Products</Link>
                         </div>
                     </Col>
-                    {/* {ProjectsStatsData.map((item, index) => {
-                        return (
-                            <Col xl={3} lg={6} md={12} xs={12} className="mt-6" key={index}>
-                                <StatRightTopIcon info={item} />
-                            </Col>
-                        )
-                    })} */}
                 </Row>
-                <Row>
-                    <Col xl={12} lg={12} md={12} sm={12}>
-                        {/* <div id="accordion-example" className="mb-4">
-                            <h3>Example</h3>
-                            <p>
-                                Click the accordions below to expand/collapse the accordion
-                                content.
-                            </p>
-                        </div> */}
-                        <Tab.Container id="tab-container-1" defaultActiveKey="all">
-                            <Card>
-                                <Card.Header className="border-bottom-0 p-0 ">
-                                    <Nav className="nav-lb-tab">
-                                        <Nav.Item>
-                                            <Nav.Link eventKey="all" className="mb-sm-3 mb-md-0">
-                                                All
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                        <Nav.Item>
-                                            <Nav.Link eventKey="instock" className="mb-sm-3 mb-md-0">
-                                                InStock
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                        <Nav.Item>
-                                            <Nav.Link eventKey="outofstock" className="mb-sm-3 mb-md-0">
-                                                Out OF Stock
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                        <Nav.Item>
-                                            <Nav.Link eventKey="backorder" className="mb-sm-3 mb-md-0">
-                                                Back Order
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                    </Nav>
-                                </Card.Header>
-                                <Card.Body className="p-0">
-                                    <Tab.Content>
-                                        <Tab.Pane eventKey="all" className="pb-4 p-4">
-                                            <AllProducts products={products} status={'all'} />
-                                            {/* Active Projects  */}
-                                            {/* <ActiveProjects /> */}
-                                        </Tab.Pane>
-                                        <Tab.Pane eventKey="instock" className="pb-4 p-4 react-code">
-                                            {/* <InStockProducts products={products} status={'all'}  /> */}
-                                            <AllProducts products={products} status={'instock'} />
-                                        </Tab.Pane>
-                                        <Tab.Pane eventKey="outofstock" className="pb-4 p-4 react-code">
-                                            {/* <OutOfStockProducts products={products} status={'all'} /> */}
-                                            <AllProducts products={products} status={'outofstock'} />
-                                        </Tab.Pane>
-                                        <Tab.Pane eventKey="backorder" className="pb-4 p-4 react-code">
-                                            {/* <BackOrrderStockProducts products={products} status={'all'}  /> */}
-                                            <AllProducts products={products} status={'onbackorder'} />
-                                        </Tab.Pane>
-                                    </Tab.Content>
-                                </Card.Body>
-                            </Card>
-                        </Tab.Container>
+
+                {/* ✅ Render AllProducts Component */}
+                <AllProducts products={products} status={'all'} />
+
+                {/* ✅ Pagination UI */}
+                <Row className="mt-4">
+                    <Col className="d-flex justify-content-center">
+                        <nav>
+                            <ul className="pagination">
+                                {/* Previous Button */}
+                                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                                    <button className="page-link" onClick={handlePreviousPage}>Previous</button>
+                                </li>
+
+                                {/* Page Numbers */}
+                                {/* {Array.from({ length: Math.ceil(totalProducts / productsPerPage) }, (_, index) => (
+                                    <li key={index + 1} className={`page-item ${currentPage === index + 1 ? "active" : ""}`}>
+                                        <button className="page-link" onClick={() => setCurrentPage(index + 1)}>
+                                            {index + 1}
+                                        </button>
+                                    </li>
+                                ))} */}
+
+                                {/* Next Button */}
+                                <li className={`page-item ${currentPage >= Math.ceil(totalProducts / productsPerPage) ? "disabled" : ""}`}>
+                                    <button className="page-link" onClick={handleNextPage}>Next</button>
+                                </li>
+                            </ul>
+                        </nav>
                     </Col>
                 </Row>
-                {/* <Row className="my-6">
-                    <Col xl={4} lg={12} md={12} xs={12} className="mb-6 mb-xl-0">
-
-                        // Tasks Performance
-                        <TasksPerformance />
-                    </Col>
-                    // card 
-                    <Col xl={8} lg={12} md={12} xs={12}>
-
-                        // Teams
-                        <Teams />
-                    </Col>
-                </Row> */}
             </Container>
         </Fragment>
-    )
-}
+    );
+};
+
 export default Home;

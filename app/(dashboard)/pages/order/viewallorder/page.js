@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect,useState,Fragment } from 'react';
+import React, { useEffect,useState,Fragment,useRef} from 'react';
 import axios from 'axios';
 import { formatDistanceToNow } from "date-fns";
 
@@ -43,27 +43,50 @@ const ViewAllOrder = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const hasFetched = useRef(false);
+
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     const fetchAllOrders = async () => {
+        let page = 1;
+
         try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`);
-            console.log('API Response:', response.data);
-    
-            if (response.data && response.data.data) {
-                setOrders(response.data.data); // Set order to the state
-            } else {
-                console.error('Unexpected API Response:', response.data);
+            while (true) {
+                console.log(`Fetching Orders - Page: ${page}`); // Debugging log
+
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`, {
+                    params: { page, customer_id: customerid } // Include customer ID if needed
+                });
+
+                if (response.data && response.data.data.length > 0) {
+                    setOrders(prevOrders => [...prevOrders, ...response.data.data]); // ✅ Merge new orders with existing ones
+                    setLoading(false); // ✅ Ensure loading is set to false after fetching
+
+                    if (response.data.data.length === 100) {
+                        page++; // ✅ Fetch next page
+                        // await delay(500); // Optional delay to prevent API rate limiting
+                    } else {
+                        break; // ✅ Stop when less than 100 orders are returned (last page)
+                    }
+                } else {
+                    console.error("Unexpected API Response:", response.data);
+                    break;
+                }
             }
+
         } catch (error) {
-            console.error('Error fetching data:', error.message);  // Log the error message
+            console.error("Error fetching orders:", error.message);
         } finally {
-            setLoading(false); // Set loading to false after data fetch
+            setLoading(false); // ✅ Ensure loading is set to false after fetching
         }
     };
 
     useEffect(() => {
-        fetchAllOrders(); 
+        if (!hasFetched.current) {
+            hasFetched.current = true; // ✅ Ensure API only runs once
+            fetchAllOrders();
+        }
     }, []);
-
     const handleorderStatusChange = async (newStatus,id) => {
         try {
             // console.log('New Status:', newStatus);

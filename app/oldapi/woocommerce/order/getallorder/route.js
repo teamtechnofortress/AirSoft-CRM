@@ -20,6 +20,11 @@ export async function GET(req) {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
     let requiredpermission = '67b46cce7b14d62c9c5850e9';
 
+    
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page"), 10) || 1; // Default to page 1
+    console.log('page:',page);
+
     if (!decoded.permissions.includes(requiredpermission)) {
         return NextResponse.json(
           { status: "unauthorized", message: "Unauthorized" },
@@ -27,32 +32,14 @@ export async function GET(req) {
         );
     }
     
-    // Fetch all orders by handling pagination
-    const allOrders = [];
-    let page = 1;
-
-    while (true) {
-      const response = await WooCommerc.get("orders", {
-        per_page: 100, // Fetch max orders per request
-        page: page
-      });
-
-      if (!response || response.status !== 200) {
-        return NextResponse.json(
-          { status: 'error', message: "Failed to fetch orders" },
-          { status: 500 }
-        );
-      }
-
-      if (response.data.length === 0) break; // Stop when no more orders to fetch
-
-      allOrders.push(...response.data);
-      page++; // Move to the next page
-    }
+     const response = await WooCommerc.get("orders", {
+      per_page: 100, // Max WooCommerce allows per request
+      page: page,        // First page only
+    });
 
     // Return all orders
     return NextResponse.json(
-      { data: allOrders, message: "All orders fetched successfully" },
+      { data: response.data, message: "All orders fetched successfully" },
       { status: 200 }
     );
     
