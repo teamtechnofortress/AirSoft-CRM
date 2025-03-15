@@ -51,7 +51,7 @@ const Home = () => {
 
                 if (response.data && response.data.data.length > 0) {
                     setProducts(prevProducts => [...prevProducts, ...response.data.data]); // ✅ Update state after each page
-                    await delay(500);
+                    // await delay(500);
                     if (response.data.data.length === 100) {
                         page++; // ✅ Continue fetching next page
                     } else {
