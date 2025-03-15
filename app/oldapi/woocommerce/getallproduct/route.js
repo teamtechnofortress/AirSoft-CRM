@@ -31,7 +31,7 @@ export async function GET(req) {
 
     // ✅ Fetch ONLY 100 products (first page)
     const response = await WooCommerc.get("products", {
-      per_page: 50, // Max WooCommerce allows per request
+      per_page: 20, // Max WooCommerce allows per request
       page: page,        // First page only
     });
 
