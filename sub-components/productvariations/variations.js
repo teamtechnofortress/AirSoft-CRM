@@ -65,8 +65,8 @@ const AllProducts = ({products,status}) => {
                     <Card style={{ width: "100%" }}>
                         <Card.Img 
                             variant="top" 
-                            src={product.image.length > 0 ? product.image.src : "https://via.placeholder.com/150"} 
-                            alt={product.image.length > 0 ? product.image.alt : "Product Image"} 
+                            src={product.image?.length > 0 ? product.image.src : "https://via.placeholder.com/150"} 
+                            alt={product.image?.length > 0 ? product.image.alt : "Product Image"} 
                             style={{ height: "180px", objectFit: "cover" }}
                         />
                         <Card.Body>

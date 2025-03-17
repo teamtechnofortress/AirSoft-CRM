@@ -19,7 +19,7 @@ export async function GET(req) {
     let requiredpermission = '67b46bd87b14d62c9c5850d5';
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page"), 10) || 1; // Default to page 1
-    console.log('page:',page);
+    // console.log('page:',page);
 
 
     if (!decoded.permissions.includes(requiredpermission)) {
@@ -36,7 +36,7 @@ export async function GET(req) {
     });
 
     const totalproducts = parseInt(response.headers['x-wp-total'] || response.headers['X-WP-Total']) || 0;
-    console.log('Total:', totalproducts);
+    // console.log('Total:', totalproducts);
 
     // ✅ Handle API errors
     if (!response || response.status !== 200) {
