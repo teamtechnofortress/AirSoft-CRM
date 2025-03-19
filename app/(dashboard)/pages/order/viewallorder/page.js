@@ -143,7 +143,7 @@ const ViewAllOrder = () => {
                 console.log(response.data.Total);
             }
         } catch (error) {
-            toast.error("Failed to fetch orders by status!");
+            // toast.error("Failed to fetch orders by status!");
         } finally {
             setLoading(false);
         }

@@ -19,7 +19,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
         products.forEach(product => {
 
           console.log(`Product: ${product.name}, ID: ${product.id}, has_variations: ${product.has_variations}`);
-            if (product.has_variations ) {
+            if (product.variations ) {
                 fetchAllProductsVariations(product.id);
             }
         });
