@@ -177,14 +177,14 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
 
   return (
     <Row>
-        <Form.Group className="mb-3">
+        {/* <Form.Group className="mb-3">
                 <Form.Control 
                     type="text" 
                     placeholder="Search by order number or name or price..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
-        </Form.Group>
+        </Form.Group> */}
     
         {/* {
             filteredorders

@@ -16,33 +16,30 @@ export async function GET(req) {
 
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
-    let requiredPermission = '67b46bd87b14d62c9c5850d5';
+    let requiredpermission = '67b46bd87b14d62c9c5850d5';
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page"), 10) || 1;
-    let stockStatus = searchParams.get("stock_status");
+    const page = parseInt(searchParams.get("page"), 10) || 1; // Default to page 1
+    const search = searchParams.get("search") || "";
+    // console.log('page:',page);
 
-    // Default to "all" if stock_status is not provided
-    if (!stockStatus) {
-      stockStatus = "all";
-    }
 
-    console.log('page:', page, 'stock_status:', stockStatus);
-
-    if (!decoded.permissions.includes(requiredPermission)) {
+    if (!decoded.permissions.includes(requiredpermission)) {
       return NextResponse.json(
         { status: "unauthorized", message: "Unauthorized" },
         { status: 403 }
       );
     }
 
-    // ✅ Fetch products based on stock status
+    // ✅ Fetch ONLY 100 products (first page)
     const response = await WooCommerc.get("products", {
-      per_page: 20,
-      page: page,
-      stock_status: stockStatus !== "all" ? stockStatus : undefined,
+      per_page: 20, // Max WooCommerce allows per request
+      search: search,      // First page only
     });
 
-    const totalProducts = parseInt(response.headers['x-wp-total'] || response.headers['X-WP-Total']) || 0;
+    console.log(response.data);
+
+    const totalproducts = parseInt(response.headers['x-wp-total'] || response.headers['X-WP-Total']) || 0;
+    // console.log('Total:', totalproducts);
 
     // ✅ Handle API errors
     if (!response || response.status !== 200) {
@@ -52,9 +49,9 @@ export async function GET(req) {
       );
     }
 
-    // ✅ Return products with stock status filter
+    // ✅ Return the first 100 products
     return NextResponse.json(
-      { data: response.data, Total: totalProducts, message: "Fetched products successfully" },
+      { data: response.data,Total:totalproducts , message: "Fetched first 20 products successfully" },
       { status: 200 }
     );
 

@@ -22,6 +22,7 @@ export async function GET(req) {
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page"), 10) || 1;
+    const search = searchParams.get("search") || "";
     console.log('page:', page);
 
     if (!decoded.permissions.includes(requiredPermission)) {
@@ -33,13 +34,11 @@ export async function GET(req) {
     
     const response = await WooCommerc.get("orders", {
       per_page: 20,
-      page: page,
+      search:search,
     });
 
-    const totalorders = parseInt(response.headers['x-wp-total'] || response.headers['X-WP-Total']) || 0;
-
     return NextResponse.json(
-      { data: response.data, Total:totalorders,message: "All orders fetched successfully" },
+      { data: response.data, message: "All orders fetched successfully" },
       { status: 200 }
     );
     

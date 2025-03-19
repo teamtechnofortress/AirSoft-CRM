@@ -52,14 +52,7 @@ const AllProducts = ({products,status}) => {
    
     return (
         <Row className="mt-1">
-            <Form.Group className="mb-4">
-                <Form.Control 
-                    type="text" 
-                    placeholder="Search by product name or sku or price..." 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </Form.Group>
+              
             {filteredproducts?.filter(product => status === "all" || product.stock_status === status ).map((product) => (
                 <Col key={product.id} md={3} sm={6} xs={12} className="mb-4">
                     <Card style={{ width: "100%" }}>

@@ -16,17 +16,7 @@ export async function GET(req) {
 
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
-    let requiredPermission = '67b46bd87b14d62c9c5850d5';
-    const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page"), 10) || 1;
-    let stockStatus = searchParams.get("stock_status");
-
-    // Default to "all" if stock_status is not provided
-    if (!stockStatus) {
-      stockStatus = "all";
-    }
-
-    console.log('page:', page, 'stock_status:', stockStatus);
+    let requiredPermission = '67b70a4f2a60496e39c85761';
 
     if (!decoded.permissions.includes(requiredPermission)) {
       return NextResponse.json(
@@ -35,26 +25,28 @@ export async function GET(req) {
       );
     }
 
-    // ✅ Fetch products based on stock status
-    const response = await WooCommerc.get("products", {
-      per_page: 20,
-      page: page,
-      stock_status: stockStatus !== "all" ? stockStatus : undefined,
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page"), 10) || 1; // Default to page 1
+    const search = searchParams.get("search") || "";
+
+    // Fetch customers with pagination
+    const response = await WooCommerc.get("customers", {
+      per_page: 20, // Max WooCommerce allows per request
+      search:search,
     });
+    console.log(response.data);
 
-    const totalProducts = parseInt(response.headers['x-wp-total'] || response.headers['X-WP-Total']) || 0;
-
-    // ✅ Handle API errors
     if (!response || response.status !== 200) {
       return NextResponse.json(
-        { status: 'error', message: "Failed to fetch products" },
+        { status: 'error', message: "Failed to fetch customers" },
         { status: 500 }
       );
     }
 
-    // ✅ Return products with stock status filter
+    const totalCustomers = parseInt(response.headers['x-wp-total'] || response.headers['X-WP-Total']) || 0;
+
     return NextResponse.json(
-      { data: response.data, Total: totalProducts, message: "Fetched products successfully" },
+      { data: response.data, Total: totalCustomers, message: "Fetched customers successfully" },
       { status: 200 }
     );
 
@@ -66,7 +58,7 @@ export async function GET(req) {
     }
 
     return NextResponse.json(
-      { status: 'error', message: "Failed to fetch products", error: error.message },
+      { status: 'error', message: "Failed to fetch customers", error: error.message },
       { status: 500 }
     );
   }

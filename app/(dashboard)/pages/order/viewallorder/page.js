@@ -5,7 +5,7 @@ import axios from 'axios';
 import { formatDistanceToNow } from "date-fns";
 
 import Link from 'next/link';
-import { Col, Row, Card, Accordion, Nav, Tab, Tabs, Container,Button,Spinner,ListGroup,ListGroupItem,DropdownButton,ButtonGroup,Dropdown,Modal} from 'react-bootstrap';
+import { Col, Row, Card, Accordion, Nav, Tab, Tabs, Container,Button,Spinner,ListGroup,ListGroupItem,DropdownButton,ButtonGroup,Dropdown,Modal, Form} from 'react-bootstrap';
 import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
 import { HighlightCode } from 'widgets';
@@ -41,52 +41,127 @@ const ViewAllOrder = () => {
     const customerid = searchParams.get("id");
     // console.log(id);
     const [orders, setOrders] = useState([]);
+    const [cachedOrders, setCachedOrders] = useState({});
+    const [filteredCache, setFilteredCache] = useState({});
+    const [totalOrders, setTotalOrders] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
-
+    const [statusFilter, setStatusFilter] = useState("all");
+    
+    const ordersPerPage = 20;
     const hasFetched = useRef(false);
 
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    const fetchAllOrders = async () => {
-        let page = 1;
+    useEffect(() => {
+        if (!hasFetched.current) {
+            fetchAllOrders(currentPage);
+            hasFetched.current = true;
+        }
+    }, []);
+    
+    useEffect(() => {
+        if (statusFilter && statusFilter !== "all") { // Only fetch when status is set and not "all"
+            fetchStatusOrders();
+        } else {
+            fetchAllOrders(currentPage); // Ensure default fetchAllOrders() runs when status is empty or "all"
+        }
+    }, [statusFilter]);
 
+   
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchTerm) {
+                fetchFilteredOrders();
+            } else {
+                fetchAllOrders(currentPage);
+            }
+        }, 1000);
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, currentPage]);
+
+    
+    const fetchAllOrders = async (page) => {
+        if (!searchTerm && cachedOrders[page]) {
+            setOrders(cachedOrders[page]);
+            return;
+        }
         try {
-            while (true) {
-                console.log(`Fetching Orders - Page: ${page}`); // Debugging log
-
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`, {
-                    params: { page, customer_id: customerid } // Include customer ID if needed
-                });
-
-                if (response.data && response.data.data.length > 0) {
-                    setOrders(prevOrders => [...prevOrders, ...response.data.data]); // ✅ Merge new orders with existing ones
-                    setLoading(false); // ✅ Ensure loading is set to false after fetching
-
-                    if (response.data.data.length === 100) {
-                        page++; // ✅ Fetch next page
-                        // await delay(500); // Optional delay to prevent API rate limiting
-                    } else {
-                        break; // ✅ Stop when less than 100 orders are returned (last page)
-                    }
-                } else {
-                    console.error("Unexpected API Response:", response.data);
-                    break;
-                }
+            setLoading(true);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`, {
+                params: { page, customer_id: customerid }
+            });
+            if (response.data?.data) {
+                setOrders(response.data.data);
+                setCachedOrders(prevCache => ({ ...prevCache, [page]: response.data.data }));
+                console.log(response.data.Total);
+                if (page === 1) setTotalOrders(response.data.Total);
             }
 
         } catch (error) {
-            console.error("Error fetching orders:", error.message);
+            toast.error("Failed to fetch orders!");
         } finally {
-            setLoading(false); // ✅ Ensure loading is set to false after fetching
+            setLoading(false);
         }
     };
 
-    useEffect(() => {
-        if (!hasFetched.current) {
-            hasFetched.current = true; // ✅ Ensure API only runs once
-            fetchAllOrders();
+     const fetchFilteredOrders = async () => {
+        if (filteredCache[searchTerm]) {
+            setOrders(filteredCache[searchTerm]);
+            return;
         }
-    }, []);
+        try {
+            setLoading(true);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/filterorders`, { params: { search: searchTerm } });
+            if (response.data?.data) {
+                setOrders(response.data.data);
+                setFilteredCache(prevCache => ({ ...prevCache, [searchTerm]: response.data.data }));
+            }
+        } catch (error) {
+            toast.error("Failed to fetch orders!");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchStatusOrders = async () => {
+        if (cachedOrders[statusFilter]) {
+            setOrders(cachedOrders[statusFilter]);
+            return;
+        }
+        try {
+            setLoading(true);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/statusorder`, {
+                params: { status: statusFilter }
+            });
+            if (response.data?.data) {
+                setOrders(response.data.data);
+                setCachedOrders(prevCache => ({ ...prevCache, [statusFilter]: response.data.data }));
+                if (page === 1) setTotalOrders(response.data.Total);
+                console.log(response.data.Total);
+            }
+        } catch (error) {
+            toast.error("Failed to fetch orders by status!");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < Math.ceil(totalOrders / ordersPerPage)) {
+            setCurrentPage(prev => prev + 1);
+            
+        }
+       
+    };
+
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(prev => prev - 1);
+        }
+    };
     const handleorderStatusChange = async (newStatus,id) => {
         try {
             // console.log('New Status:', newStatus);
@@ -138,6 +213,14 @@ const ViewAllOrder = () => {
                                 </div>
                             </div>
                         </Col>
+                        <Form.Group className="mb-3">
+                                    <Form.Control 
+                                        type="text" 
+                                        placeholder="Search order" 
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                            </Form.Group>
                         {/* {ProjectsStatsData.map((item, index) => {
                             return (
                                 <Col xl={3} lg={6} md={12} xs={12} className="mt-6" key={index}>
@@ -155,101 +238,59 @@ const ViewAllOrder = () => {
                                     content.
                                 </p>
                             </div> */}
-                            <Tab.Container id="tab-container-1" defaultActiveKey="all">
-                                <Card>
-                                    <Card.Header className="border-bottom-0 p-0 ">
-                                        <Nav className="nav-lb-tab">
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="all" className="mb-sm-3 mb-md-0">
-                                                    All
-                                                </Nav.Link>
-                                            </Nav.Item>
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="pending" className="mb-sm-3 mb-md-0">
-                                                    Pending
-                                                </Nav.Link>
-                                            </Nav.Item>
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="processing" className="mb-sm-3 mb-md-0">
-                                                    Processing
-                                                </Nav.Link>
-                                            </Nav.Item>
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="on-hold" className="mb-sm-3 mb-md-0">
-                                                    On-hold
-                                                </Nav.Link>
-                                            </Nav.Item>
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="completed" className="mb-sm-3 mb-md-0">
-                                                    Completed
-                                                </Nav.Link>
-                                            </Nav.Item>
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="cancelled" className="mb-sm-3 mb-md-0">
-                                                    Cancelled
-                                                </Nav.Link>
-                                            </Nav.Item>
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="refunded" className="mb-sm-3 mb-md-0">
-                                                    Refunded
-                                                </Nav.Link>
-                                            </Nav.Item>
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="draft" className="mb-sm-3 mb-md-0">
-                                                  Draft
-                                                </Nav.Link>
-                                            </Nav.Item>
-                                            <Nav.Item>
-                                                <Nav.Link eventKey="failed" className="mb-sm-3 mb-md-0">
-                                                    Failed
-                                                </Nav.Link>
-                                            </Nav.Item>
-                                        </Nav>
-                                    </Card.Header>
-                                    <Card.Body className="p-0">
-                                        <Tab.Content>
-                                            <Tab.Pane eventKey="all" className="pb-4 p-4">
-                                                <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'all'} customerid={customerid} />
-                                            </Tab.Pane>
-                        
-                                            <Tab.Pane eventKey="pending" className="pb-4 p-4 react-code">
-                                              <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'pending'} customerid={customerid}  />
-                                            </Tab.Pane>
-
-                                            <Tab.Pane eventKey="processing" className="pb-4 p-4 react-code">
-                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'processing'} customerid={customerid}  />
-                                            </Tab.Pane>
-
-                                            <Tab.Pane eventKey="on-hold" className="pb-4 p-4 react-code">
-                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'on-hold'} customerid={customerid}  />
-                                            </Tab.Pane>
-
-                                            <Tab.Pane eventKey="completed" className="pb-4 p-4 react-code">
-                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'completed'} customerid={customerid}  />
-                                            </Tab.Pane>
-
-                                            <Tab.Pane eventKey="cancelled" className="pb-4 p-4 react-code">
-                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'cancelled'} customerid={customerid}  />
-                                            </Tab.Pane>
-
-                                            <Tab.Pane eventKey="refunded" className="pb-4 p-4 react-code">
-                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'refunded'} customerid={customerid}  />
-                                            </Tab.Pane>
-
-                                            <Tab.Pane eventKey="draft" className="pb-4 p-4 react-code">
-                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'checkout-draft'} customerid={customerid}  />
-                                            </Tab.Pane>
-
-                                            <Tab.Pane eventKey="failed" className="pb-4 p-4 react-code">
-                                             <AllOrder orders={orders} handleorderStatusChange={handleorderStatusChange} fetchAllOrders={fetchAllOrders} status={'failed'} customerid={customerid}  />
-                                            </Tab.Pane>
-                                        </Tab.Content>
-                                    </Card.Body>
-                                </Card>
-                            </Tab.Container>
+                             <Tab.Container id="tab-container-1" activeKey={statusFilter} onSelect={(status) => setStatusFilter(status)}>
+                    <Card>
+                        <Card.Header className="border-bottom-0 p-0">
+                            <Nav className="nav-lb-tab">
+                                {["all", "pending", "processing", "on-hold", "completed", "cancelled", "refunded", "draft", "failed"].map(status => (
+                                    <Nav.Item key={status}>
+                                        <Nav.Link eventKey={status} className="mb-sm-3 mb-md-0">
+                                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                                        </Nav.Link>
+                                    </Nav.Item>
+                                ))}
+                            </Nav>
+                        </Card.Header>
+                        <Card.Body className="p-0">
+                            <Tab.Content>
+                                {["all", "pending", "processing", "on-hold", "completed", "cancelled", "refunded", "draft", "failed"].map(status => (
+                                    <Tab.Pane key={status} eventKey={status} className="pb-4 p-4">
+                                        <AllOrder orders={orders} fetchStatusOrders={fetchStatusOrders} status={status} customerid={customerid} />
+                                    </Tab.Pane>
+                                ))}
+                            </Tab.Content>
+                        </Card.Body>
+                    </Card>
+                </Tab.Container>
                         </Col>
                     </Row>
                     
+                    <Row className="mt-4">
+                                        <Col className="d-flex justify-content-center">
+                                            <nav>
+                                                <ul className="pagination">
+                                                    {/* Previous Button */}
+                                                    <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                                                        <button className="page-link" onClick={handlePreviousPage}>Previous</button>
+                                                    </li>
+                    
+                                                    {/* Page Numbers */}
+                                                    {/* {Array.from({ length: Math.ceil(totalProducts / productsPerPage) }, (_, index) => (
+                                                        <li key={index + 1} className={`page-item ${currentPage === index + 1 ? "active" : ""}`}>
+                                                            <button className="page-link" onClick={() => setCurrentPage(index + 1)}>
+                                                                {index + 1}
+                                                            </button>
+                                                        </li>
+                                                    ))} */}
+                    
+                                                    {/* Next Button */}
+                                                    <li className={`page-item ${currentPage >= Math.ceil(totalOrders / ordersPerPage) ? "disabled" : ""}`}>
+                                                        <button className="page-link" onClick={handleNextPage}>Next</button>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        </Col>
+                                    </Row>
                     {/* <Row className="my-6">
                         <Col xl={4} lg={12} md={12} xs={12} className="mb-6 mb-xl-0">
 

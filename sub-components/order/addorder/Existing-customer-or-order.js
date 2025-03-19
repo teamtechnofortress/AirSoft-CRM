@@ -1,40 +1,106 @@
-import { Col, Row, Card, Nav, Tab, Button, Modal, Form } from "react-bootstrap";
-import React, { useState, useMemo, useCallback } from "react";
+import { Col, Row, Card, Nav, Tab, Button, Modal, Form,Spinner } from "react-bootstrap";
+import React, { useState, useMemo, useCallback,useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 // ✅ Move Modal Outside Parent Component to Prevent Re-renders
 const MyVerticallyCenteredAddressModal = ({ 
   show, 
   onHide, 
-  customers, 
-  orders, 
-  setFormData 
+  setFormData, 
+  customers: initialCustomers, 
+  orders: initialOrders 
 }) => {
   const [searchTermCustomer, setSearchTermCustomer] = useState("");
   const [searchTermOrder, setSearchTermOrder] = useState("");
+  const [customers, setCustomers] = useState(initialCustomers);
+  const [orders, setOrders] = useState(initialOrders);
+  const [filteredCache, setFilteredCache] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchTermCustomer) {
+        fetchFilterCustomer();
+      } else {
+        setCustomers(initialCustomers);
+      }
+    }, 1000);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTermCustomer, initialCustomers]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchTermOrder) {
+        fetchFilteredOrders();
+      } else {
+        setOrders(initialOrders);
+      }
+    }, 1000);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTermOrder, initialOrders]);
+
+  const fetchFilterCustomer = async () => {
+    if (filteredCache[searchTermCustomer]) {
+      setCustomers(filteredCache[searchTermCustomer]);
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/customer/filtercustomer`, { params: { search: searchTermCustomer } });
+      if (response.data?.data) {
+        setCustomers(response.data.data);
+        setFilteredCache(prevCache => ({ ...prevCache, [searchTermCustomer]: response.data.data }));
+      }
+    } catch (error) {
+      toast.error("Failed to fetch users!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFilteredOrders = async () => {
+    if (filteredCache[searchTermOrder]) {
+      setOrders(filteredCache[searchTermOrder]);
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/filterorders`, { params: { search: searchTermOrder } });
+      if (response.data?.data) {
+        setOrders(response.data.data);
+        setFilteredCache(prevCache => ({ ...prevCache, [searchTermOrder]: response.data.data }));
+      }
+    } catch (error) {
+      toast.error("Failed to fetch orders!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ✅ Use useMemo to optimize search filtering
-  const displayedCustomers = useMemo(() => {
-    return searchTermCustomer.trim()
-      ? customers.filter((customer) =>
-        `${customer.billing?.first_name} ${customer.billing?.last_name} `?.toLowerCase().includes(searchTermCustomer.toLowerCase()) ||
-          // customer.billing?.first_name?.toLowerCase().includes(searchTermCustomer.toLowerCase()) ||
-          // customer.billing?.last_name?.toLowerCase().includes(searchTermCustomer.toLowerCase()) ||
-          customer.billing?.email?.toLowerCase().includes(searchTermCustomer.toLowerCase())
-        )
-      : customers;
-  }, [searchTermCustomer, customers]);
+  // const displayedCustomers = useMemo(() => {
+  //   return searchTermCustomer.trim()
+  //     ? customers.filter((customer) =>
+  //       `${customer.billing?.first_name} ${customer.billing?.last_name} `?.toLowerCase().includes(searchTermCustomer.toLowerCase()) ||
+  //         // customer.billing?.first_name?.toLowerCase().includes(searchTermCustomer.toLowerCase()) ||
+  //         // customer.billing?.last_name?.toLowerCase().includes(searchTermCustomer.toLowerCase()) ||
+  //         customer.billing?.email?.toLowerCase().includes(searchTermCustomer.toLowerCase())
+  //       )
+  //     : customers;
+  // }, [searchTermCustomer, customers]);
 
-  const displayedOrders = useMemo(() => {
-    return searchTermOrder.trim()
-      ? orders.filter((order) =>
-          `${order.billing?.first_name} ${order.billing?.last_name} `?.toLowerCase().includes(searchTermOrder.toLowerCase()) ||
-          // order.billing?.first_name?.toLowerCase().includes(searchTermOrder.toLowerCase()) ||
-          // order.billing?.last_name?.toLowerCase().includes(searchTermOrder.toLowerCase()) ||
-          order.billing?.email?.toLowerCase().includes(searchTermOrder.toLowerCase()) ||
-          order.number?.toString().includes(searchTermOrder)
-        )
-      : orders;
-  }, [searchTermOrder, orders]);
+  // const displayedOrders = useMemo(() => {
+  //   return searchTermOrder.trim()
+  //     ? orders.filter((order) =>
+  //         `${order.billing?.first_name} ${order.billing?.last_name} `?.toLowerCase().includes(searchTermOrder.toLowerCase()) ||
+  //         // order.billing?.first_name?.toLowerCase().includes(searchTermOrder.toLowerCase()) ||
+  //         // order.billing?.last_name?.toLowerCase().includes(searchTermOrder.toLowerCase()) ||
+  //         order.billing?.email?.toLowerCase().includes(searchTermOrder.toLowerCase()) ||
+  //         order.number?.toString().includes(searchTermOrder)
+  //       )
+  //     : orders;
+  // }, [searchTermOrder, orders]);
 
   return (
     <Modal show={show} onHide={onHide} centered contentClassName="custom-modal-content">
@@ -67,8 +133,12 @@ const MyVerticallyCenteredAddressModal = ({
                         onChange={(e) => setSearchTermCustomer(e.target.value)}
                         className="mb-3"
                       />
-                      {displayedCustomers.length > 0 ? (
-                        displayedCustomers.map((customer, index) => (
+                      {loading ? (
+                        <div className="d-flex justify-content-center my-3">
+                          <Spinner animation="border" variant="primary" />
+                        </div>
+                      ) : customers.length > 0 ? (
+                        customers.map((customer, index) => (
                           <div
                             key={index}
                             onClick={() => {
@@ -125,8 +195,12 @@ const MyVerticallyCenteredAddressModal = ({
                         onChange={(e) => setSearchTermOrder(e.target.value)}
                         className="mb-3"
                       />
-                      {displayedOrders.length > 0 ? (
-                        displayedOrders.map((order, index) => (
+                      {loading ? (
+                        <div className="d-flex justify-content-center my-3">
+                          <Spinner animation="border" variant="primary" />
+                        </div>
+                      ) : orders.length > 0 ? (
+                        orders.map((order, index) => (
                           <div
                             key={index}
                             onClick={() => {

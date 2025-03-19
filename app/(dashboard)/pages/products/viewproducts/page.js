@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Cookies from "js-cookie";
 import Link from 'next/link';
-import { Col, Row, Card, Accordion, Nav, Tab, Tabs, Container,Spinner } from 'react-bootstrap';
+import { Col, Row, Card, Accordion, Nav, Tab, Tabs, Container,Spinner, Form } from 'react-bootstrap';
 import { HighlightCode } from 'widgets';
 import {
 	AccordionBasicCode,
@@ -33,44 +33,93 @@ import ProjectsStatsData from "data/dashboard/ProjectsStatsData";
 const Home = () => {
     const [products, setProducts] = useState([]); // ✅ Stores products for the current page
     const [cachedProducts, setCachedProducts] = useState({}); // ✅ Stores all fetched pages
+    const [filteredCache, setFilteredCache] = useState({});
     const [totalProducts, setTotalProducts] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(false);
+    const [stockStatus, setStockStatus] = useState("all");
 
     const productsPerPage = 20; // ✅ Show 10 products per page
+    const hasFetched = useRef(false);
+
+    useEffect(() => {
+        if (!hasFetched.current) {
+            fetchProducts(currentPage, "all");
+            hasFetched.current = true;
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchStockStatusProducts();
+    }, [stockStatus]);
+
+    
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchTerm) {
+                fetchFilteredProducts();
+            } else {
+                fetchProducts(currentPage);
+            }
+        }, 1000);
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, currentPage]);
 
     // ✅ Fetch Products (Only If Not in Cache)
-    const fetchProducts = async (page) => {
-        if (cachedProducts[page]) {
-            setProducts(cachedProducts[page]); // ✅ Load from cache
+    const fetchProducts = async (page, stock_status) => {
+        const cacheKey = `${stock_status}-${page}`;
+        if (cachedProducts[cacheKey]) {
+            setProducts(cachedProducts[cacheKey]);
             return;
         }
 
         try {
             setLoading(true);
             const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`, {
-                params: { page}
+                params: { page, stock_status }
             });
 
             if (response.data && response.data.data.length > 0) {
                 setProducts(response.data.data);
                 setCachedProducts(prevCache => ({
                     ...prevCache,
-                    [page]: response.data.data // ✅ Store in cache
+                    [cacheKey]: response.data.data // ✅ Store in cache
                 }));
                 if (page === 1) setTotalProducts(response.data.Total); // ✅ Set total count on first load
             }
         } catch (error) {
-            console.error("Error fetching data:", error.message);
+            toast.error("Failed to fetch products!");
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchProducts(currentPage);
-    }, [currentPage]); // ✅ Fetch only when page changes
+    const fetchStockStatusProducts = () => {
+        fetchProducts(currentPage, stockStatus);
+    };
 
+    const fetchFilteredProducts = async () => {
+        if (filteredCache[searchTerm]) {
+            setProducts(filteredCache[searchTerm]);
+            return;
+        }
+        try {
+            setLoading(true);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/filterproducts`, { params: { search: searchTerm } });
+            if (response.data?.data) {
+                setProducts(response.data.data);
+                setFilteredCache(prevCache => ({ ...prevCache, [searchTerm]: response.data.data }));
+            }
+        } catch (error) {
+            toast.error("Failed to fetch products!");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    
     // ✅ Handle Next Page (Fetch if Not Cached)
     const handleNextPage = () => {
         if (currentPage < Math.ceil(totalProducts / productsPerPage)) {
@@ -105,10 +154,55 @@ const Home = () => {
                             <Link href="#" className="btn btn-white">Products</Link>
                         </div>
                     </Col>
+                    <Form.Group className="mb-3">
+                    <Form.Control 
+                        type="text" 
+                        placeholder="Search for products..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </Form.Group>
                 </Row>
+
+                <Row>
+                    <Col xl={12} lg={12} md={12} sm={12}>
+                                            {/* <div id="accordion-example" className="mb-4">
+                                                <h3>Example</h3>
+                                                <p>
+                                                    Click the accordions below to expand/collapse the accordion
+                                                    content.
+                                                </p>
+                                            </div> */}
+                                <Tab.Container id="tab-container-1" activeKey={stockStatus} onSelect={(status) => setStockStatus(status)}>
+                                <Card>
+                                    <Card.Header className="border-bottom-0 p-0">
+                                        <Nav className="nav-lb-tab">
+                                            {["all", "instock", "outofstock", "onbackorder"].map(status => (
+                                                <Nav.Item key={status}>
+                                                    <Nav.Link eventKey={status} className="mb-sm-3 mb-md-0">
+                                                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                                                    </Nav.Link>
+                                                </Nav.Item>
+                                            ))}
+                                        </Nav>
+                                    </Card.Header>
+                                    <Card.Body className="p-0">
+                                        <Tab.Content>
+                                            {["all", "instock", "outofstock", "onbackorder"].map(status => (
+                                                <Tab.Pane key={status} eventKey={status} className="pb-4 p-4">
+                                                    <AllProducts products={products} fetchStockStatusProducts={fetchStockStatusProducts} stockStatus={status} />
+                                                </Tab.Pane>
+                                            ))}
+                                        </Tab.Content>
+                                    </Card.Body>
+                                </Card>
+                            </Tab.Container>
+                        </Col>
+                    </Row>
 
                 {/* ✅ Render AllProducts Component */}
                 <AllProducts products={products} status={'all'} />
+                 
 
                 {/* ✅ Pagination UI */}
                 <Row className="mt-4">
