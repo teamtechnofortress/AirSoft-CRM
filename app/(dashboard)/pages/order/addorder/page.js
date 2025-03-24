@@ -169,14 +169,15 @@ const Addorder = () => {
   }, []);
 
   useEffect(() => {
-    setCart(selectedProducts.map(product => ({
-      id: product.id,
-      quantity: 1, // Default quantity set to 1
-      price: product.price
-    })));
-
-    // console.log('Cart items',cart);
+    setCart(
+      selectedProducts.map((product) => ({
+        id: product.id,
+        quantity: 1,
+        price: product.price || product.sale_price || product.regular_price || 0,
+      }))
+    );
   }, [selectedProducts]);
+  
 
 
   // useEffect(() => {
@@ -264,10 +265,24 @@ const Addorder = () => {
         country: isShippingEnabled ? formData.country : shippingData.shippingcountry,
         phone: isShippingEnabled ? formData.phone : shippingData.shippingphone,
       },
-      line_items: cart.map((item) => ({
-        product_id: item.id,
-        quantity: item.quantity,
-      })),
+      line_items: cart.map((item) => {
+        const selected = selectedProducts.find(p => p.id === item.id);
+      
+        if (selected?.parent_id) {
+          // It's a variation
+          return {
+            product_id: selected.parent_id,   // parent product ID
+            variation_id: selected.id,        // variation ID
+            quantity: item.quantity
+          };
+        } else {
+          // It's a simple/base product
+          return {
+            product_id: item.id,
+            quantity: item.quantity
+          };
+        }
+      }),
       shipping_lines: [
         {
           method_id: orderData.shippingmethodid?.toLowerCase().replace(/\s+/g, "_") || "free_shipping",
@@ -641,130 +656,92 @@ const Addorder = () => {
                         <ProductsModel setSelectedProducts={setSelectedProducts} selectedProducts={selectedProducts} />
                       </Col>
                     </Row>
-                    { selectedProducts.length > 0 && (
-                      <Row className="mb-3 d-flex align-items-center justify-content-start">
-                        <Col md={4} xs={12}>
-                            <h5 className="mb-3 mt-2"></h5>
-                        </Col>
-                        <Col md={8} xs={12}>
-                          <Card style={{ width: "100%" }}>
-                            <Card.Body style={{padding:'0px'}}>
-                                <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px',paddingTop:'15px'  }}>
-                                    <div>
-                                        <Card.Title>
-                                            Product
-                                        </Card.Title>
-                                        {/* <Card.Subtitle className="" style={{fontSize: 12,}}># {'1233'}</Card.Subtitle> */}
-                                    </div>
-                                    <div>
-                                      <Card.Title style={{
-                                        }}>
-                                            {/* {"on-hold" } */}
-                                        </Card.Title>
-                                    </div>
-                                </div>
-                                <div className='' style={{backgroundColor:'#eceef0'}}>
-                                    {/* <Card.Subtitle className="mb-3 mt-2" style={{fontSize: 12,padding:'5px 5px 5px 15px'}}>
-                                        {
-                                          "time"
-                                        }
-                                    </Card.Subtitle> */}
-                                </div>
-                                <hr/>
-                                {selectedProducts.map((product, index) => {
-                                  const cartItem = cart.find((item) => item.id === product.id) || { quantity: 0 };
-                              
-                                  return(
-                                  <div key={index} className="d-flex align-items-center justify-content-between mb-2 gap-2" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
-                                    <div className='d-flex align-items-center justify-content-start gap-2'>
-                                      <div>
-                                        <i className="fas fa-times" onClick={() => removeproduct(product.id)} style={{ cursor: "pointer" }}></i>
-                                      </div>
-                                      <div className='d-flex align-items-center justify-content-start gap-2'>
-                                        <div>
-                                          {/* Dynamically set image source */}
-                                          {/* <Card.Img
-                                            variant="top"
-                                            src={'/images/avatar/avatar-2.jpg'} // Use item image if available
-                                            alt={"Product Image"}
-                                          /> */}
-                                          <Card.Img 
-                                            variant="top" 
-                                            src={product.images.length > 0 ? product.images[0].src : "https://via.placeholder.com/150"} 
-                                            alt={product.images.length > 0 ? product.images[0].alt : "Product Image"} 
-                                            style={{ height: '85px', width: '85px', objectFit: 'cover' }}
-                                          />
-                                        </div>
-                                        <div>
-                                          <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 14 }}>
-                                            {product.name || "Unknown"}
-                                          </Card.Subtitle>
-                                    
-                                          <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-                                            SKU: {product.sku || "N/A"}
-                                          </Card.Subtitle>
-                                    
-                                          <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-                                            {product.price} USD
-                                          </Card.Subtitle>
-                                    
-                                          <Card.Subtitle style={{ fontSize: 12 }}>
-                                            Quantity: {"87"}
-                                          </Card.Subtitle>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="d-flex align-items-center gap-2">
-                                      <i className="fe fe-plus" onClick={() => updateQuantity(product.id, product.price, 1)} style={{ cursor: "pointer" }}></i>
-                                      <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
-                                      <i className="fe fe-minus" onClick={() => updateQuantity(product.id, product.price, -1)} style={{ cursor: "pointer" }}></i>
-                                    </div>                                
-                                  </div>
-                                );
-                                })}
-                                <hr />
-                                <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px'}}>
-                                    <div>
-                                       <Card.Subtitle className="mb-1 mt-1" style={{fontSize: 13,}}>Quantity: {totalQuantity}</Card.Subtitle>
-                                    </div>
-                                    <div>
-                                        <Card.Subtitle className="mb-1 mt-1" style={{fontSize: 13,}}>Total: {totalPrice} $</Card.Subtitle>
-                                    </div>
-                                </div>
-                                <div className='' style={{backgroundColor:'#eceef0'}}>
-                                    {/* <Card.Subtitle className="mb-1 mt-1" style={{fontSize: 12,padding:'5px 5px 5px 15px'}}>{'No payment method specified'}</Card.Subtitle> */}
-                                </div>
-                              
-                                {/* <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: 'px', paddingRight: 'px',paddingBottom:'px' }}>
-                                    <div className="d-flex align-items-center justify-content-between" >
-                                         <OrderModelAddress order={order} /> 
-                                         <OrderModelNote order={order} setToast={setToastMessage} />
-                                    </div>
-                                    <div className="">
-                                        <DropdownButton
-                                            as={ButtonGroup}
-                                            id="dropdown-button-drop-up"
-                                            drop="up"
-                                            variant=""
-                                            title={<i className="fa fa-ellipsis-h" aria-hidden="true" style={{ fontSize: '20px' }}></i>}
-                                            className="me-1 mb-2 mb-lg-0 dropup-orderaction"
-                                            style={{padding:0,border:'none',backgroundColor: 'transparent',}}
-                                        >
-                                            <Dropdown.Item eventKey="1">Edit order</Dropdown.Item>
-                                            <Dropdown.Item eventKey="2">Show notes</Dropdown.Item>
-                                            <Dropdown.Item eventKey="4">Custom fields</Dropdown.Item>
-                                            <Dropdown.Item eventKey="6">Duplicate order</Dropdown.Item>
-                                            <Dropdown.Divider />
-                                            <Dropdown.Item eventKey="7" className='text-danger'>Delete order</Dropdown.Item>
-                                        </DropdownButton>
-                                    </div>
-                                </div> */}
-                                
-                            </Card.Body>
-                        </Card>
-                        </Col>
-                      </Row>
-                    )}
+                    {selectedProducts.length > 0 && (
+  <Row className="mb-3 d-flex align-items-center justify-content-start">
+    <Col md={4} xs={12}>
+      <h5 className="mb-3 mt-2"></h5>
+    </Col>
+    <Col md={8} xs={12}>
+      <Card style={{ width: "100%" }}>
+        <Card.Body style={{ padding: '0px' }}>
+          <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px', paddingTop: '15px' }}>
+            <div>
+              <Card.Title>Product</Card.Title>
+            </div>
+            <div><Card.Title></Card.Title></div>
+          </div>
+
+          <hr />
+
+          {selectedProducts.map((product, index) => {
+            const cartItem = cart.find((item) => item.id === product.id) || { quantity: 0 };
+            const isVariation = !!product.parent_id;
+
+            return (
+              <div key={index} className="d-flex align-items-center justify-content-between mb-2 gap-2" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
+                <div className="d-flex align-items-center justify-content-start gap-2">
+                  <div>
+                    <i className="fas fa-times" onClick={() => removeproduct(product.id)} style={{ cursor: "pointer" }}></i>
+                  </div>
+                  <div className="d-flex align-items-center justify-content-start gap-2">
+                    <div>
+                      <Card.Img
+                        variant="top"
+                        src={product?.image?.src || product?.images?.[0]?.src || "https://via.placeholder.com/150"}
+                        alt={product?.image?.alt || product?.images?.[0]?.alt || "Product Image"}
+                        style={{ height: '85px', width: '85px', objectFit: 'cover' }}
+                      />
+                    </div>
+                    <div>
+                      <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 14 }}>
+                        {isVariation ? `${product.parent_name || "Product"} (Variation)` : product.name || "Unknown"}
+                      </Card.Subtitle>
+
+                      {product.attributes && product.attributes.length > 0 && (
+                        <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
+                          {product.attributes.map(attr => `${attr.name}: ${attr.option}`).join(', ')}
+                        </Card.Subtitle>
+                      )}
+
+                      <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
+                        SKU: {product.sku || "N/A"}
+                      </Card.Subtitle>
+
+                      <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
+                        {product.price || product.sale_price || product.regular_price || "0.00"} USD
+                      </Card.Subtitle>
+
+                      <Card.Subtitle style={{ fontSize: 12 }}>
+                        Quantity: {cartItem.quantity}
+                      </Card.Subtitle>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="d-flex align-items-center gap-2">
+                  <i className="fe fe-plus" onClick={() => updateQuantity(product.id, product.price, 1)} style={{ cursor: "pointer" }}></i>
+                  <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
+                  <i className="fe fe-minus" onClick={() => updateQuantity(product.id, product.price, -1)} style={{ cursor: "pointer" }}></i>
+                </div>
+              </div>
+            );
+          })}
+
+          <hr />
+          <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
+            <div>
+              <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Quantity: {totalQuantity}</Card.Subtitle>
+            </div>
+            <div>
+              <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Total: {totalPrice} $</Card.Subtitle>
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
+    </Col>
+  </Row>
+)}
+
                     <Row className="mb-3 d-flex align-items-center justify-content-start">
                       <Col md={4} xs={12}>
                            <h5 className="mb-3 mt-2">Billing information</h5>

@@ -18,9 +18,10 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
       }
         products.forEach(product => {
 
-          console.log(`Product: ${product.name}, ID: ${product.id}, has_variations: ${product.has_variations}`);
+          console.log(`Product: ${product.name}, ID: ${product.id}, has_variations: ${product.variations}`);
             if (product.variations ) {
-                fetchAllProductsVariations(product.id);
+              const response =  fetchAllProductsVariations(product.id);
+              console.log(response.data);
             }
         });
     }
@@ -110,15 +111,28 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
 
   const handleProductSelect = (product, variation = null) => {
     setTempSelectedProducts((prevSelected) => {
-        const isAlreadySelected = prevSelected.some(p => p.id === (variation ? variation.id : product.id));
-
-        if (isAlreadySelected) {
-            return prevSelected.filter(p => p.id !== (variation ? variation.id : product.id));
-        }
-
-        return variation ? [...prevSelected, variation] : [...prevSelected, product];
+      const idToCheck = variation ? variation.id : product.id;
+      const isAlreadySelected = prevSelected.some(p => p.id === idToCheck);
+  
+      if (isAlreadySelected) {
+        return prevSelected.filter(p => p.id !== idToCheck);
+      }
+  
+      if (variation) {
+        return [
+          ...prevSelected,
+          {
+            ...variation,
+            parent_id: product.id,       // ✅ Add parent product ID
+            parent_name: product.name,   // ✅ Add parent product name (optional)
+          },
+        ];
+      }
+  
+      return [...prevSelected, product];
     });
-};
+  };
+  
 
 
   const handleConfirmSelection = () => {
@@ -195,6 +209,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
 
                                                         {/* ✅ Variations List */}
                                                         {product.variations && product.variations.length > 0 && (
+                                                          
                                                             <div className="variation-container ms-4">
                                                                 {product.variations.map((variation, index) => (
                                                                     <div 
@@ -202,9 +217,15 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
                                                                         className="d-flex justify-content-between align-items-center px-4 py-1"
                                                                     >
                                                                         <div>
-                                                                            <span style={{ fontSize: 14 }}>{variation.name || "Variation"}</span>
+                                                                        <Card.Img 
+                                                                          variant="top"
+                                                                          src={variation.image?.src || "https://via.placeholder.com/150"}
+                                                                          alt={variation.image?.alt}
+                                                                          style={{ height: "35px", width: "35px", objectFit: "cover" }}
+                                                                        />
+                                                                            <span style={{ fontSize: 14 }}>{variation.name || variation.description}</span>
                                                                             <span style={{ fontSize: 12, marginLeft: 10 }}>
-                                                                                Price: {variation.price || variation.regular_price} USD
+                                                                                Price: {variation.price || variation.sale_price} USD
                                                                             </span>
                                                                             <span style={{ fontSize: 12, marginLeft: 10 }}>
                                                                                 SKU: {variation.sku || "N/A"}
