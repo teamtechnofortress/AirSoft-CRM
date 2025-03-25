@@ -9,6 +9,10 @@ import { NextResponse } from 'next/server';
 export async function GET(req) {
   const cookieStore = cookies();
   const token = cookieStore.get('token');
+  const searchParams = req.nextUrl.searchParams;
+  const date_min = searchParams.get("date_min");
+  const date_max = searchParams.get("date_max");
+  console.log(date_min);
 
   if (!token) {
     const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });
@@ -21,7 +25,11 @@ export async function GET(req) {
     
 
     // Fetch products from the WooCommerce API.
-    const response = await WooCommerc.get("reports/sales");
+    const response = await WooCommerc.get("reports/sales", {
+      date_min,
+      date_max,
+    });
+
     // console.log(response.data);
     // Check if the response is valid.
     if (!response || response.status !== 200) {

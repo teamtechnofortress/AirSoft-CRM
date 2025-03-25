@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect,useState,Fragment,useRef} from 'react';
+import React, { useEffect,useState,Fragment,useRef, useCallback} from 'react';
 import axios from 'axios';
 import { formatDistanceToNow } from "date-fns";
 
@@ -48,6 +48,7 @@ const ViewAllOrder = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState("all");
+    const [statusList, setStatusList] = useState([]);
     
     const ordersPerPage = 20;
     const hasFetched = useRef(false);
@@ -82,6 +83,21 @@ const ViewAllOrder = () => {
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm, currentPage]);
 
+    const fetchStatuses = useCallback(async () => {
+        try {
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/gettotalorder`);
+          if (Array.isArray(response.data.data)) {
+            // Add "All" status at the beginning
+            setStatusList([{ slug: "all", name: "All" }, ...response.data.data]);
+          }
+        } catch (err) {
+          console.error("Failed to fetch statuses", err.message);
+        }
+      }, []);
+
+      useEffect(() => {
+        fetchStatuses();
+      }, []);
     
     const fetchAllOrders = async (page) => {
         if (!searchTerm && cachedOrders[page]) {
@@ -238,30 +254,40 @@ const ViewAllOrder = () => {
                                     content.
                                 </p>
                             </div> */}
-                             <Tab.Container id="tab-container-1" activeKey={statusFilter} onSelect={(status) => setStatusFilter(status)}>
-                    <Card>
-                        <Card.Header className="border-bottom-0 p-0">
+                      <Tab.Container id="tab-container-1" activeKey={statusFilter} onSelect={(status) => setStatusFilter(status)}>
+                        <Card>
+                            <Card.Header className="border-bottom-0 p-0">
                             <Nav className="nav-lb-tab">
-                                {["all", "pending", "processing", "on-hold", "completed", "cancelled", "refunded", "draft", "failed"].map(status => (
-                                    <Nav.Item key={status}>
-                                        <Nav.Link eventKey={status} className="mb-sm-3 mb-md-0">
-                                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                                        </Nav.Link>
-                                    </Nav.Item>
+                                {statusList.map(status => (
+                                <Nav.Item key={status.slug}>
+                                    <Nav.Link eventKey={status.slug} className="mb-sm-3 mb-md-0">
+                                    {status.name} 
+                                    {/* {status.total !== undefined ? `(${status.total})` : ""} */}
+                                    </Nav.Link>
+                                </Nav.Item>
                                 ))}
                             </Nav>
-                        </Card.Header>
-                        <Card.Body className="p-0">
+                            </Card.Header>
+
+                            <Card.Body className="p-0">
                             <Tab.Content>
-                                {["all", "pending", "processing", "on-hold", "completed", "cancelled", "refunded", "draft", "failed"].map(status => (
-                                    <Tab.Pane key={status} eventKey={status} className="pb-4 p-4">
-                                        <AllOrder orders={orders} fetchStatusOrders={fetchStatusOrders} status={status} customerid={customerid} />
-                                    </Tab.Pane>
+                                {statusList.map(status => (
+                                <Tab.Pane key={status.slug} eventKey={status.slug} className="pb-4 p-4">
+                                    <AllOrder
+                                    handleorderStatusChange={handleorderStatusChange}
+                                    statusList={statusList}
+                                    orders={orders}
+                                    fetchStatusOrders={fetchStatusOrders}
+                                    status={status.slug}
+                                    customerid={customerid}
+                                    />
+                                </Tab.Pane>
                                 ))}
                             </Tab.Content>
-                        </Card.Body>
-                    </Card>
-                </Tab.Container>
+                            </Card.Body>
+                        </Card>
+                        </Tab.Container>
+
                         </Col>
                     </Row>
                     

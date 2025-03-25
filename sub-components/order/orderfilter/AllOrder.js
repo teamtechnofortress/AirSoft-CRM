@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from 'react'
+import React, { useEffect,useState, useCallback } from 'react'
 import OrderLineItem from '/sub-components/order/OrderLineItem.js'
 import OrderModelAddress from '/sub-components/order/OrderModelAddress.js'
 import OrderAllNotes from '/sub-components/order/OrderAllNotes.js'
@@ -13,13 +13,15 @@ import Link from 'next/link';
 
 
 
-const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customerid}) => {
+const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customerid,statusList}) => {
     const [toastMessage, setToastMessage] = useState(false);
     const [loading, setLoading] = useState(false);
     // const [modalOrderAllNotesShow, setModalOrderAllNotesShow] = React.useState(false);
     const [notesMap, setNotesMap] = useState({});
     const [searchTerm, setSearchTerm] = useState("");
     const [permissionList, setPermissionList] = useState([]);
+    const [orderStatuses, setOrderStatuses] = useState([]);
+    const [loadingNoteId, setLoadingNoteId] = useState(null);
     
     const tokedecodeapi = async () => {
         try {
@@ -41,6 +43,21 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
     useEffect(()=>{
         tokedecodeapi();
     },[]);
+
+    // const fetchOrderStatuses = useCallback(async () => {
+    //     try {
+    //       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/gettotalorder`);
+    //       if (Array.isArray(response.data?.data)) {
+    //         setOrderStatuses(response.data.data);
+    //       }
+    //     } catch (error) {
+    //       console.error("Failed to fetch order statuses:", error);
+    //     }
+    //   }, []);
+      
+    //   useEffect(() => {
+    //     fetchOrderStatuses();
+    //   }, []);
 
     useEffect(() => {
       if (toastMessage == "Note added successfully!") {
@@ -101,13 +118,21 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
         }
     };
 
-    const fetchAllNotes = async () => {
-        const notesData = {};
-        for (const order of orders) {
-            notesData[order.id] = await fetchNotes(order.id);
-        }
-        setNotesMap(notesData);
-    };
+    const handleFetchNotes = async (orderId) => {
+        // setLoadingNoteId(orderId);
+        const notes = await fetchNotes(orderId);
+        console.log(notes);
+        setNotesMap((prev) => ({ ...prev, [orderId]: notes }));
+        // setLoadingNoteId(null);
+      };
+
+    // const fetchAllNotes = async () => {
+    //     const notesData = {};
+    //     for (const order of orders) {
+    //         notesData[order.id] = await fetchNotes(order.id);
+    //     }
+    //     setNotesMap(notesData);
+    // };
     // useEffect(() => {
     //     fetchAllNotes();
     // }, [orders]);
@@ -218,8 +243,9 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                                     </Card.Title>
                                     <Card.Subtitle style={{ fontSize: 12 }}># {order.number}</Card.Subtitle>
                                 </div>
-                                <div>
-                                    <select
+                                </div>
+                                <div style={{ textAlign: "right",}}>
+                                <select
                                     value={order.status}
                                     onChange={(e) => handleStatusChange(e.target.value, order.id)}
                                     style={{
@@ -227,18 +253,15 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                                         fontSize: "13px",
                                         borderRadius: "6px",
                                         border: "1px solid rgb(193, 193, 193)",
+                                        width: "auto",
                                     }}
                                     >
-                                    <option value="on-hold">On-hold</option>
-                                    <option value="processing">Processing</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="cancelled">Cancelled</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="refunded">Refunded</option>
-                                    <option value="failed">Failed</option>
-                                    <option value="checkout-draft">Draft</option>
+                                    {statusList.map((status) => (
+                                        <option key={status.slug} value={status.slug}>
+                                        {status.name}
+                                        </option>
+                                    ))}
                                     </select>
-                                </div>
                                 </div>
             
                                 <div style={{ backgroundColor: "#eceef0" }}>
@@ -289,9 +312,18 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                                         Edit order
                                         </Dropdown.Item>
                                     )}
-                                    <Dropdown.Item eventKey="2">
-                                        <OrderAllNotes notes={notesMap[order.id] || []} />
-                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                        eventKey="2"
+                                        onClick={() => handleFetchNotes(order.id)} // this fetches notes and stores in notesMap
+                                        >
+                                        <OrderAllNotes
+                                            notes={notesMap[order.id] || []}
+                                            orderId={order.id}
+                                            fetchNotes={fetchNotes}
+                                            handleFetchNotes={handleFetchNotes}
+                                        />
+                                        </Dropdown.Item>
+
                                     <Dropdown.Item eventKey="4">
                                         <OrderAllCustomfields fields={order.meta_data || []} />
                                     </Dropdown.Item>

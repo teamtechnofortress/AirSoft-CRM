@@ -50,7 +50,8 @@ const Page = () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/gettotalorder`);
       if (response.data && Array.isArray(response.data.data)) {
-        setOrders(response.data.data);
+        setOrders(response.data.data); 
+        console.log(response.data.data);
       } else {
         setError("Unexpected API response");
       }
@@ -198,9 +199,12 @@ const Page = () => {
         params: dateRange,
       });
 
+      console.log(dateRange);
       if (response.data?.data?.length > 0) {
+        console.log(response.data);
         const sales = response.data.data[0];
 
+        
         const salesParams = [
           { key: "total_sales", title: "Total Sales" },
           { key: "net_sales", title: "Net Sales" },
@@ -217,8 +221,24 @@ const Page = () => {
         // Generate chart data
         const updatedChartData = {};
         salesParams.forEach(({ key }) => {
-          updatedChartData[key] = generateChartData(dateRange.date_min, dateRange.date_max, sales[key]);
+          updatedChartData[key] = generateChartDataFromGroupedTotals(sales.totals, mapToTotalKey(key));
         });
+        function mapToTotalKey(key) {
+          // Maps to keys in `totals` object of the API response
+          const mapping = {
+            total_sales: "sales",
+            net_sales: "sales", // optionally same as total if not split
+            average_sales: "sales", // you can also calculate average if needed
+            total_orders: "orders",
+            total_items: "items",
+            total_tax: "tax",
+            total_shipping: "shipping",
+            total_discount: "discount",
+          };
+        
+          return mapping[key] || key;
+        }
+        
 
         setChartData(updatedChartData);
       } else {
@@ -232,30 +252,18 @@ const Page = () => {
     }
   };
 
-  function generateChartData(startDate, endDate, totalValue) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-
-    if (days <= 0) return [];
-
-    const dailyValue = totalValue / days;
+  function generateChartDataFromGroupedTotals(totals, key) {
     const data = [];
-
-    for (let i = 0; i < days; i++) {
-      const currentDate = new Date(start);
-      currentDate.setDate(start.getDate() + i);
-      const formattedDate = currentDate.toISOString().split("T")[0];
-
+  
+    for (const [month, values] of Object.entries(totals)) {
       data.push({
-        date: formattedDate,
-        value: Math.round(dailyValue),
+        date: month,
+        value: Math.round(parseFloat(values[key]) || 0),
       });
     }
-
+  
     return data;
   }
-
 
 
 
