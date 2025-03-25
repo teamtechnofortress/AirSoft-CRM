@@ -266,34 +266,104 @@ const ProductsModel = ({ setSelectedProducts, selectedProducts,productIds }) => 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filteredCache, setFilteredCache] = useState({});
+  const [hasInitializedSelection, setHasInitializedSelection] = useState(false);
   // console.log(productIds);
 
   useEffect(() => {
-    if (productIds && products.length > 0) {
-      const selectedProductsFiltered = products.filter(product =>
-        productIds.some(item => item.product_id === product.id)
-      );
-      setSelectedProducts(selectedProductsFiltered); 
-      // console.log(selectedProductsFiltered);
+    const loadAndSelect = async () => {
+      const variationFetches = [];
+  
+      for (const pid of productIds) {
+        const parentProduct = pid.parent_id
+          ? products.find(p => p.id === pid.parent_id)
+          : products.find(p => p.id === pid.product_id);
+  
+        if (!parentProduct) continue;
+  
+        if (pid.parent_id) {
+          if (!parentProduct.variations || parentProduct.variations.length === 0) {
+            variationFetches.push(fetchAllProductsVariations(parentProduct.id));
+          }
+        }
+      }
+  
+      await Promise.all(variationFetches);
+  
+      const selected = [];
+  
+      for (const pid of productIds) {
+        const parentProduct = pid.parent_id
+          ? products.find(p => p.id === pid.parent_id)
+          : products.find(p => p.id === pid.product_id);
+  
+        if (!parentProduct) continue;
+  
+        if (pid.parent_id) {
+          const variation = parentProduct.variations?.find(v => v.id === pid.product_id);
+          if (variation) {
+            selected.push({
+              ...variation,
+              parent_id: parentProduct.id,
+              parent_name: parentProduct.name,
+            });
+          }
+        } else {
+          selected.push(parentProduct);
+        }
+      }
+  
+      setSelectedProducts(selected);
+      setHasInitializedSelection(true); // ✅ prevent future resets
+    };
+  
+    if (
+      productIds &&
+      products.length > 0 &&
+      !hasInitializedSelection // ✅ only run once
+    ) {
+      loadAndSelect();
     }
-  }, [products, productIds]);
+  }, [products, productIds, hasInitializedSelection]);
+  
+  
+  
 
 
   const fetchAllProducts = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`);
-      if (response.data && response.data.data) {
-        setProducts(response.data.data);
-        console.log(response.data.data);
+      if (response.data?.data) {
+        const allProducts = response.data.data;
+  
+        // Fetch variations for all variable products
+        const variationPromises = allProducts.map(async (product) => {
+          if (product.variations) {
+            const variationResponse = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/productvariations`, { id: product.id });
+            const variations = variationResponse.data?.data || [];
+  
+            return {
+              ...product,
+              variations: variations.map((variation, index) => ({
+                ...variation,
+                id: variation.id || `${product.id}-var-${index}`
+              }))
+            };
+          }
+          return product;
+        });
+  
+        const productsWithVariations = await Promise.all(variationPromises);
+        setProducts(productsWithVariations);
       } else {
         console.error("Unexpected API Response:", response.data);
       }
     } catch (error) {
-      console.error("Error fetching data:", error.message);
+      console.error("Error fetching products:", error.message);
     } finally {
       setLoading(false);
     }
   };
+  
   const handleClose = () => {
     setSelectedProducts([]); 
     setModalShow(false); 

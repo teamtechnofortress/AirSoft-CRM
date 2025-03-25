@@ -88,16 +88,15 @@ const EditOrder = ({params}) => {
           // const fetchedProductIds = response.data.data.line_items.map(item => item.product_id); 
 
           // setProductIds(fetchedProductIds);
-
+          console.log(response.data.data.line_items);
           const fetchedProductIds = response.data.data.line_items.map(item => ({
-            product_id: item.product_id,
+            product_id: item.variation_id !== 0 ? item.variation_id : item.product_id,  // Use variation_id if it's valid
+            parent_id: item.variation_id !== 0 ? item.product_id : null,                // Save parent ID if it's a variation
             quantity: item.quantity
           }));
-          // console.log('fetchedProductIds line 89:',fetchedProductIds.product_id);
-
           setProductIds(fetchedProductIds);
-
-          // console.log('fetchedProductIds line 89:',fetchedProductIds);
+          console.log(fetchedProductIds);
+           console.log('fetchedProductIds line 89:',fetchedProductIds.product_id);
 
 
           setOrderData({
@@ -160,6 +159,41 @@ const EditOrder = ({params}) => {
       // setLoading(false);
     }
   };
+
+  //
+  const fetchAllProductsVariations = async (id) => {
+    try {
+      
+        setLoading(true);
+        console.log(`Fetching variations for product ID: ${id}`);
+        
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/productvariations`, { id });
+
+        if (response.data?.data?.length > 0) {
+            console.log(`Variations for product ${id}:`, response.data.data);
+
+            const variationsWithIDs = response.data.data.map((variation, index) => ({
+                ...variation,
+                id: variation.id || `${id}-var-${index}` 
+            }));
+
+            setProducts(prevProducts =>
+                prevProducts.map(product =>
+                    product.id === id
+                        ? { ...product, variations: variationsWithIDs }
+                        : product
+                )
+            );
+        } else {
+            console.warn(`No variations found for product ID: ${id}`);
+        }
+    } catch (error) {
+        console.error("Error fetching variations:", error.message);
+    } finally {
+        setLoading(false);
+    }
+};
+
   const fetchAllPaymentgateway = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/paymentgateway/getallpaymentgateway`);
@@ -266,21 +300,22 @@ const EditOrder = ({params}) => {
   // }, [selectedProducts]);
 
   useEffect(() => {
-    setCart(
-      selectedProducts.map(product => {
-        const productInCart = productIds.find(item => item.product_id === product.id);
-        // console.log(product.id);
-        // console.log(product.product_id);
-        return {
-          id: product.id,
-          quantity: productInCart ? productInCart.quantity : 1, // Default quantity is 1 if not found
-          price: product.price
-        };
-      })
-    );
-    //    console.log("Selected product:",selectedProducts);
-    // console.log("Selected cart:",cart);
-    // console.log("Selected cart:",productIds);
+    const updatedCart = selectedProducts.map(product => {
+      // If product is a variation, its real ID is `product.id`, and parent is in `parent_id`
+      const isVariation = !!product.parent_id;
+  
+      const matchedCartItem = productIds.find(item => item.product_id === product.id);
+  
+      return {
+        id: product.id, // product/variation ID
+        variation_id: isVariation ? product.id : 0, // variation_id if it's a variation, 0 for simple product
+        product_id: isVariation ? product.parent_id : product.id, // parent product ID or same for simple
+        quantity: matchedCartItem ? matchedCartItem.quantity : 1,
+        price: parseFloat(product.price),
+      };
+    });
+  
+    setCart(updatedCart);
   }, [selectedProducts, productIds]);
   
 
@@ -546,40 +581,55 @@ const EditOrder = ({params}) => {
       },
     
       line_items: [
-        // Update existing products (if found in cart)
+        // Update existing products
         ...fetchedproduct?.line_items?.map(existingItem => {
-          const updatedItem = cart.find(cartItem => cartItem.id === existingItem.product_id);
+          const updatedItem = cart.find(cartItem => {
+            const isVariation = existingItem.variation_id && existingItem.variation_id !== 0;
+            return isVariation
+              ? cartItem.id === existingItem.variation_id
+              : cartItem.id === existingItem.product_id;
+          });
+      
           if (updatedItem) {
-            return { 
-              id: existingItem.id, 
+            return {
+              id: existingItem.id,
               product_id: existingItem.product_id,
-              quantity: updatedItem.quantity,
               variation_id: existingItem.variation_id || 0,
-              price: existingItem.price, 
-              subtotal: (existingItem.price * updatedItem.quantity).toFixed(2), 
-              total: (existingItem.price * updatedItem.quantity).toFixed(2), 
+              quantity: updatedItem.quantity,
+              price: existingItem.price,
+              subtotal: (existingItem.price * updatedItem.quantity).toFixed(2),
+              total: (existingItem.price * updatedItem.quantity).toFixed(2),
             };
           }
-          // If product is missing in `cart`, set `quantity: 0` to remove it
-          return { 
+      
+          // Product removed from cart: set quantity to 0 to remove from WooCommerce
+          return {
             id: existingItem.id,
             product_id: existingItem.product_id,
-            quantity: 0 
+            variation_id: existingItem.variation_id || 0,
+            quantity: 0,
           };
         }),
-    
-        // Add new products that aren't in `fetchedproduct.line_items`
-        ...cart.filter(cartItem => !fetchedproduct?.line_items?.some(existingItem => existingItem.product_id === cartItem.id))
-          .map(newItem => ({
-            product_id: newItem.id,
-            quantity: newItem.quantity,
-            variation_id: newItem.variation_id || 0,
-            price: newItem.price,
-            subtotal: (newItem.price * newItem.quantity).toFixed(2), 
-            total: (newItem.price * newItem.quantity).toFixed(2), 
-          }))
+      
+        // Add new products not in original line_items
+        ...cart.filter(cartItem => {
+          const alreadyExists = fetchedproduct?.line_items?.some(existingItem => {
+            const isVariation = existingItem.variation_id && existingItem.variation_id !== 0;
+            return isVariation
+              ? existingItem.variation_id === cartItem.id
+              : existingItem.product_id === cartItem.id;
+          });
+          return !alreadyExists;
+        }).map(newItem => ({
+          product_id: newItem.variation_id !== 0 ? newItem.variation_id : newItem.id,
+          variation_id: newItem.variation_id || 0,
+          quantity: newItem.quantity,
+          price: newItem.price,
+          subtotal: (newItem.price * newItem.quantity).toFixed(2),
+          total: (newItem.price * newItem.quantity).toFixed(2),
+        }))
       ],
-    
+      
       //Preserve shipping methods safely
       shipping_lines: fetchedproduct?.shipping_lines?.map(line => ({
         id: line.id, 
@@ -917,130 +967,87 @@ const EditOrder = ({params}) => {
                         <ProductsModel setSelectedProducts={setSelectedProducts} selectedProducts={selectedProducts}  productIds={productIds} />
                       </Col>
                     </Row>
-                    { selectedProducts.length > 0 && (
-                      <Row className="mb-3 d-flex align-items-center justify-content-start">
-                        <Col md={4} xs={12}>
-                            <h5 className="mb-3 mt-2"></h5>
-                        </Col>
-                        <Col md={8} xs={12}>
-                          <Card style={{ width: "100%" }}>
-                            <Card.Body style={{padding:'0px'}}>
-                                <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px',paddingTop:'15px'  }}>
+                    {selectedProducts.length > 0 && (
+                    <Row className="mb-3 d-flex align-items-center justify-content-start">
+                      <Col md={4} xs={12}>
+                        <h5 className="mb-3 mt-2"></h5>
+                      </Col>
+                      <Col md={8} xs={12}>
+                        <Card style={{ width: "100%" }}>
+                          <Card.Body style={{ padding: "0px" }}>
+                            <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px', paddingTop: '15px' }}>
+                              <div>
+                                <Card.Title>Product</Card.Title>
+                              </div>
+                            </div>
+                            <div className='' style={{ backgroundColor: '#eceef0' }}></div>
+                            <hr />
+
+                            {selectedProducts.map((product, index) => {
+                              const cartItem = cart.find((item) => item.id === product.id) || { quantity: 0 };
+                              const isVariation = product.parent_id !== undefined && product.parent_id !== null;
+
+                              return (
+                                <div key={index} className="d-flex align-items-center justify-content-between mb-2 gap-2" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
+                                  <div className='d-flex align-items-center justify-content-start gap-2'>
                                     <div>
-                                        <Card.Title>
-                                            Product
-                                        </Card.Title>
-                                        {/* <Card.Subtitle className="" style={{fontSize: 12,}}># {'1233'}</Card.Subtitle> */}
+                                      <i className="fas fa-times" onClick={() => removeproduct(product.id)} style={{ cursor: "pointer" }}></i>
                                     </div>
-                                    <div>
-                                      <Card.Title style={{
-                                        }}>
-                                            {/* {"on-hold" } */}
-                                        </Card.Title>
-                                    </div>
-                                </div>
-                                <div className='' style={{backgroundColor:'#eceef0'}}>
-                                    {/* <Card.Subtitle className="mb-3 mt-2" style={{fontSize: 12,padding:'5px 5px 5px 15px'}}>
-                                        {
-                                          "time"
-                                        }
-                                    </Card.Subtitle> */}
-                                </div>
-                                <hr/>
-                                {selectedProducts.map((product, index) => {
-                                  const cartItem = cart.find((item) => item.id === product.id) || { quantity: 0 };
-                              
-                                  return(
-                                  <div key={index} className="d-flex align-items-center justify-content-between mb-2 gap-2" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
                                     <div className='d-flex align-items-center justify-content-start gap-2'>
                                       <div>
-                                        <i className="fas fa-times" onClick={() => removeproduct(product.id)} style={{ cursor: "pointer" }}></i>
+                                        <Card.Img
+                                          variant="top"
+                                          src={product.image?.src || product.images?.[0]?.src || "https://via.placeholder.com/150"}
+                                          alt={product.image?.alt || product.images?.[0]?.alt || "Product Image"}
+                                          style={{ height: '85px', width: '85px', objectFit: 'cover' }}
+                                        />
                                       </div>
-                                      <div className='d-flex align-items-center justify-content-start gap-2'>
-                                        <div>
-                                          {/* Dynamically set image source */}
-                                          {/* <Card.Img
-                                            variant="top"
-                                            src={'/images/avatar/avatar-2.jpg'} // Use item image if available
-                                            alt={"Product Image"}
-                                          /> */}
-                                          <Card.Img 
-                                            variant="top" 
-                                            src={product.images.length > 0 ? product.images[0].src : "https://via.placeholder.com/150"} 
-                                            alt={product.images.length > 0 ? product.images[0].alt : "Product Image"} 
-                                            style={{ height: '85px', width: '85px', objectFit: 'cover' }}
-                                          />
-                                        </div>
-                                        <div>
-                                          <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 14 }}>
-                                            {product.name || "Unknown"}
-                                          </Card.Subtitle>
-                                    
-                                          <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-                                            SKU: {product.sku || "N/A"}
-                                          </Card.Subtitle>
-                                    
-                                          <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-                                            {product.price} USD
-                                          </Card.Subtitle>
-                                    
-                                          <Card.Subtitle style={{ fontSize: 12 }}>
-                                            Quantity: {"87"}
-                                          </Card.Subtitle>
-                                        </div>
+                                      <div>
+                                        <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 14 }}>
+                                          {isVariation
+                                            ? `${product.parent_name || "Product"} - ${product.name || product.description}`
+                                            : product.name || "Unknown"}
+                                        </Card.Subtitle>
+
+                                        <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
+                                          SKU: {product.sku || "N/A"}
+                                        </Card.Subtitle>
+
+                                        <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
+                                          {product.price} USD
+                                        </Card.Subtitle>
+
+                                        <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
+                                          Quantity: {cartItem.quantity}
+                                        </Card.Subtitle>
                                       </div>
                                     </div>
-                                    <div className="d-flex align-items-center gap-2">
-                                      <i className="fe fe-plus" onClick={() => updateQuantity(product.id, product.price, 1)} style={{ cursor: "pointer" }}></i>
-                                      <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
-                                      <i className="fe fe-minus" onClick={() => updateQuantity(product.id, product.price, -1)} style={{ cursor: "pointer" }}></i>
-                                    </div>                                
                                   </div>
-                                );
-                                })}
-                                <hr />
-                                <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px'}}>
-                                    <div>
-                                       <Card.Subtitle className="mb-1 mt-1" style={{fontSize: 13,}}>Quantity: {totalQuantity}</Card.Subtitle>
-                                    </div>
-                                    <div>
-                                        <Card.Subtitle className="mb-1 mt-1" style={{fontSize: 13,}}>Total: {totalPrice} $</Card.Subtitle>
-                                    </div>
-                                </div>
-                                <div className='' style={{backgroundColor:'#eceef0'}}>
-                                    {/* <Card.Subtitle className="mb-1 mt-1" style={{fontSize: 12,padding:'5px 5px 5px 15px'}}>{'No payment method specified'}</Card.Subtitle> */}
-                                </div>
-                              
-                                {/* <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: 'px', paddingRight: 'px',paddingBottom:'px' }}>
-                                    <div className="d-flex align-items-center justify-content-between" >
-                                         <OrderModelAddress order={order} /> 
-                                         <OrderModelNote order={order} setToast={setToastMessage} />
-                                    </div>
-                                    <div className="">
-                                        <DropdownButton
-                                            as={ButtonGroup}
-                                            id="dropdown-button-drop-up"
-                                            drop="up"
-                                            variant=""
-                                            title={<i className="fa fa-ellipsis-h" aria-hidden="true" style={{ fontSize: '20px' }}></i>}
-                                            className="me-1 mb-2 mb-lg-0 dropup-orderaction"
-                                            style={{padding:0,border:'none',backgroundColor: 'transparent',}}
-                                        >
-                                            <Dropdown.Item eventKey="1">Edit order</Dropdown.Item>
-                                            <Dropdown.Item eventKey="2">Show notes</Dropdown.Item>
-                                            <Dropdown.Item eventKey="4">Custom fields</Dropdown.Item>
-                                            <Dropdown.Item eventKey="6">Duplicate order</Dropdown.Item>
-                                            <Dropdown.Divider />
-                                            <Dropdown.Item eventKey="7" className='text-danger'>Delete order</Dropdown.Item>
-                                        </DropdownButton>
-                                    </div>
-                                </div> */}
-                                
-                            </Card.Body>
-                        </Card>
-                        </Col>
-                      </Row>
-                    )}
+
+                <div className="d-flex align-items-center gap-2">
+                  <i className="fe fe-plus" onClick={() => updateQuantity(product.id, product.price, 1)} style={{ cursor: "pointer" }}></i>
+                  <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
+                  <i className="fe fe-minus" onClick={() => updateQuantity(product.id, product.price, -1)} style={{ cursor: "pointer" }}></i>
+                </div>
+              </div>
+            );
+          })}
+
+          <hr />
+          <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
+            <div>
+              <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Quantity: {totalQuantity}</Card.Subtitle>
+            </div>
+            <div>
+              <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Total: {totalPrice} $</Card.Subtitle>
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
+    </Col>
+  </Row>
+)}
+
                     <Row className="mb-3 d-flex align-items-center justify-content-start">
                       <Col md={4} xs={12}>
                            <h5 className="mb-3 mt-2">Billing information</h5>
