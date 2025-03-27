@@ -24,7 +24,7 @@ const OrderLineItem = ({ item, index }) => {
           </Card.Subtitle>
 
           <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-            {item.price} USD
+            {item.price} GBP
           </Card.Subtitle>
 
           <Card.Subtitle style={{ fontSize: 12 }}>

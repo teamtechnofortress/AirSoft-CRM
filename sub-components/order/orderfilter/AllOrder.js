@@ -280,7 +280,7 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                                 <div></div>
                                 <div>
                                     <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>
-                                    Total: {order.total} $
+                                    Total: {order.total} £
                                     </Card.Subtitle>
                                 </div>
                                 </div>

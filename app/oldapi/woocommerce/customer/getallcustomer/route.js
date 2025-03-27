@@ -32,7 +32,10 @@ export async function GET(req) {
     const response = await WooCommerc.get("customers", {
       per_page: 20, // Max WooCommerce allows per request
       page: page,
+      role:"all",
     });
+
+    console.log(response.data);
 
     if (!response || response.status !== 200) {
       return NextResponse.json(

@@ -43,21 +43,55 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
       setProducts(filteredCache[searchTerm]);
       return;
     }
+  
     try {
-       setLoading(true);
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/filterproducts`, { params: { search: searchTerm } });
+      setLoading(true);
+  
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/filterproducts`, {
+        params: { search: searchTerm }
+      });
+  
       if (response.data?.data) {
-        console.log(response.data.data);
-        setProducts(response.data.data);
-        setFilteredCache(prevCache => ({ ...prevCache, [searchTerm]: response.data.data }));
+        const filteredProducts = response.data.data;
+  
+        // 🔁 Fetch variations for variable products
+        const productsWithVariations = await Promise.all(
+          filteredProducts.map(async (product) => {
+            if (product.variations) {
+              try {
+                const variationResponse = await axios.post(
+                  `${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/productvariations`,
+                  { id: product.id }
+                );
+                const variations = variationResponse.data?.data || [];
+  
+                return {
+                  ...product,
+                  variations: variations.map((variation, index) => ({
+                    ...variation,
+                    id: variation.id || `${product.id}-var-${index}`,
+                  })),
+                };
+              } catch (error) {
+                console.warn(`Failed to fetch variations for product ${product.id}`, error.message);
+                return product; // Return without variations if error occurs
+              }
+            }
+  
+            return product; // Return simple product
+          })
+        );
+  
+        setProducts(productsWithVariations);
+        setFilteredCache((prevCache) => ({ ...prevCache, [searchTerm]: productsWithVariations }));
       }
     } catch (error) {
       toast.error("Failed to fetch products!");
-     } 
-    finally {
+    } finally {
       setLoading(false);
     }
   };
+  
   const fetchAllProductsVariations = async (id) => {
     try {
       
@@ -191,7 +225,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
                                                                         SKU: {product.sku || "N/A"}
                                                                     </Card.Subtitle>
                                                                     <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-                                                                        {product.price} USD
+                                                                        {product.price} GBP
                                                                     </Card.Subtitle>
                                                                     <Card.Subtitle style={{ fontSize: 12 }}>
                                                                         {product.stock_status || "Out of stock"}
@@ -225,7 +259,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
                                                                         />
                                                                             <span style={{ fontSize: 14 }}>{variation.name || variation.description}</span>
                                                                             <span style={{ fontSize: 12, marginLeft: 10 }}>
-                                                                                Price: {variation.price || variation.sale_price} USD
+                                                                                Price: {variation.price || variation.sale_price} GBP
                                                                             </span>
                                                                             <span style={{ fontSize: 12, marginLeft: 10 }}>
                                                                                 SKU: {variation.sku || "N/A"}

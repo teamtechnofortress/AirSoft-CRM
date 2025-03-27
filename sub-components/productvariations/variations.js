@@ -65,15 +65,15 @@ const AllProducts = ({products,status}) => {
                     <Card style={{ width: "100%" }}>
                         <Card.Img 
                             variant="top" 
-                            src={product.image?.length > 0 ? product.image.src : "https://via.placeholder.com/150"} 
-                            alt={product.image?.length > 0 ? product.image.alt : "Product Image"} 
+                            src={product.image?.src || "https://via.placeholder.com/150"} 
+                            alt={product.image?.alt} 
                             style={{ height: "180px", objectFit: "cover" }}
                         />
                         <Card.Body>
                         <Card.Title className="text-dark me-2">{product.name}</Card.Title>
 
                         <div className="d-flex align-items-center justify-content-between">
-                            <Card.Text className="mb-0">{product.price} USD</Card.Text>
+                            <Card.Text className="mb-0">{product.price} GBP</Card.Text>
                             <Card.Text>{product.stock_status || "Out of stock"}</Card.Text>
                         </div>     
 

@@ -66,7 +66,7 @@ const AllProducts = ({products,status}) => {
                         <Card.Title className="text-dark me-2">{product.name}</Card.Title>
 
                         <div className="d-flex align-items-center justify-content-between">
-                            <Card.Text className="mb-0">{product.price} USD</Card.Text>
+                            <Card.Text className="mb-0">{product.price} GBP</Card.Text>
                             <Card.Text>{product.stock_status || "Out of stock"}</Card.Text>
                         </div>     
 

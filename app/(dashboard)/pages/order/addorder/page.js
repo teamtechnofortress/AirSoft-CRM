@@ -237,7 +237,7 @@ const Addorder = () => {
     const Data = {
       payment_method: orderData.paymentmethodid || "default_method",
       payment_method_title: orderData.paymentmethodtitle || "Unknown Payment Method", 
-      set_paid: false,
+      set_paid: true,
       billing: {
         first_name: formData.firstname || "",
         last_name: formData.lastname || "",
@@ -708,7 +708,7 @@ const Addorder = () => {
                       </Card.Subtitle>
 
                       <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-                        {product.price || product.sale_price || product.regular_price || "0.00"} USD
+                        {product.price || product.sale_price || product.regular_price || "0.00"} GBP
                       </Card.Subtitle>
 
                       <Card.Subtitle style={{ fontSize: 12 }}>

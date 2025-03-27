@@ -104,8 +104,10 @@ const ViewAllOrder = () => {
             setOrders(cachedOrders[page]);
             return;
         }
+
         try {
             setLoading(true);
+            console.log(customerid);
             const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getallorder`, {
                 params: { page, customer_id: customerid }
             });
@@ -132,6 +134,7 @@ const ViewAllOrder = () => {
             setLoading(true);
             const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/filterorders`, { params: { search: searchTerm } });
             if (response.data?.data) {
+                console.log(response.data.data);
                 setOrders(response.data.data);
                 setFilteredCache(prevCache => ({ ...prevCache, [searchTerm]: response.data.data }));
             }

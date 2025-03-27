@@ -1014,7 +1014,7 @@ const EditOrder = ({params}) => {
                                         </Card.Subtitle>
 
                                         <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
-                                          {product.price} USD
+                                          {product.price} GBP
                                         </Card.Subtitle>
 
                                         <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
