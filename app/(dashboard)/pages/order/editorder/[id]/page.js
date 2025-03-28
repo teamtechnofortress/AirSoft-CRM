@@ -383,13 +383,29 @@ const EditOrder = ({params}) => {
         paymentmethodtitle: title, // Set Title separately
       }));
     } else if (name === "shippingmethod") {
-      const [id, title] = value.split("|"); // Extract ID and Title
+      const selected = JSON.parse(value);
+      const { method_id, method_title, raw_cost } = selected;
+    
+      const qty = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const cost = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    
+      let calculatedCost = raw_cost
+        ?.replace(/\[qty\]/gi, qty)
+        ?.replace(/\[cost\]/gi, cost.toFixed(2));
+    
+      try {
+        calculatedCost = Function(`return (${calculatedCost})`)();
+      } catch (err) {
+        calculatedCost = 0;
+      }
+    
       setOrderData((prevData) => ({
         ...prevData,
-        shippingmethodid: id,
-        shippingmethodtitle: title, 
+        shippingmethodid: method_id,
+        shippingmethodtitle: method_title,
+        shipping_cost: calculatedCost.toFixed(2)
       }));
-    } else if (name === "orderstatus") {
+    }else if (name === "orderstatus") {
       setOrderData((prevData) => ({
         ...prevData,
         [name]: value,
@@ -635,6 +651,7 @@ const EditOrder = ({params}) => {
         id: line.id, 
         method_id: orderData.shippingmethodid?.toLowerCase().replace(/\s+/g, "_") || line.method_id || "free_shipping",
         method_title: orderData.shippingmethodtitle || line.method_title || "Free Shipping",
+        total: orderData.shipping_cost || line.total || "0.00",
       })) || [],
     
       status: fetchedproduct?.status || "pending",
@@ -924,18 +941,36 @@ const EditOrder = ({params}) => {
                     <Row className="mb-3">
                        <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="shippingmethod">Shipping Method</Form.Label>
                       <Col md={8} xs={12}>
-                        <Form.Select id='shippingmethod' name='shippingmethod'
-                               value={orderData.shippingmethodid && orderData.shippingmethodtitle ? `${orderData.shippingmethodid}|${orderData.shippingmethodtitle}` : ""} 
-                               onChange={handleChange} required>
-                            <option value="" disabled hidden>Choose...</option>
-                            {shippingmethods
-                            .map((shippingmethod) => (
-                              <option key={shippingmethod.id} value={`${shippingmethod.id}|${shippingmethod.title}`}>
-                                {shippingmethod.title}
-                              </option>
+                      <Form.Select
+                          id="shippingmethod"
+                          name="shippingmethod"
+                          value={
+                            orderData.shippingmethodid && orderData.shippingmethodtitle
+                              ? JSON.stringify({
+                                  method_id: orderData.shippingmethodid,
+                                  method_title: orderData.shippingmethodtitle,
+                                  raw_cost: shippingmethods.find(m => m.method_id === orderData.shippingmethodid)?.settings?.cost?.value || "0"
+                                })
+                              : ""
+                          }
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value="" disabled hidden>Choose...</option>
+                          {shippingmethods.map((shippingmethod) => (
+                            <option
+                              key={shippingmethod.id}
+                              value={JSON.stringify({
+                                method_id: shippingmethod.method_id,
+                                method_title: shippingmethod.title,
+                                raw_cost: shippingmethod.settings?.cost?.value || "0"
+                              })}
+                            >
+                              {shippingmethod.title}
+                            </option>
                           ))}
-                            
-                        </Form.Select>
+                      </Form.Select>
+
                       </Col>
                     </Row>
                     <Row className="mb-3">
