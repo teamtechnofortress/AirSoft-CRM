@@ -27,7 +27,7 @@ export async function GET(req) {
     }
     
     // Fetch products from the WooCommerce API.
-    const response = await WooCommerc.get("shipping_methods");
+    const response = await WooCommerc.get("shipping/zones/1/methods");
 
     // Check if the response is valid.
     if (!response || response.status !== 200) {

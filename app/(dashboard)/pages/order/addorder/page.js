@@ -157,6 +157,7 @@ const Addorder = () => {
       setOrder(ordersRes.data?.data || []);
       setPaymentgateway(paymentRes.data?.data || []);
       setShippingmethods(shippingRes.data?.data || []);
+      console.log(shippingRes);
     } catch (error) {
       console.error("Error fetching data:", error.message);
     } finally {
@@ -196,12 +197,33 @@ const Addorder = () => {
         paymentmethodid: id, // Set ID separately
         paymentmethodtitle: title, // Set Title separately
       }));
-    } else if (name === "shippingmethod") {
-      const [id, title] = value.split("|"); // Extract ID and Title
+    }  else if (name === "shippingmethod") {
+      const selected = JSON.parse(value);
+      const { method_id, instance_id, method_title, raw_cost } = selected;
+    
+      // Compute shipping cost dynamically
+      const qty = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const cost = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    
+      // Replace placeholders in the cost string
+      let calculatedCost = raw_cost
+        ?.replace(/\[qty\]/gi, qty)
+        ?.replace(/\[cost\]/gi, cost.toFixed(2));
+    
+      try {
+        // Evaluate basic expressions like "10.00 * 2"
+        // WARNING: Safe only for your controlled cost strings
+        // Don't use eval on user input
+        calculatedCost = Function(`return (${calculatedCost})`)();
+      } catch (err) {
+        calculatedCost = 0; // fallback
+      }
+    
       setOrderData((prevData) => ({
         ...prevData,
-        shippingmethodid: id,
-        shippingmethodtitle: title, 
+        shippingmethodid: `${method_id}:${instance_id}`,
+        shippingmethodtitle: method_title,
+        shippingcost: parseFloat(calculatedCost).toFixed(2) || "0.00"
       }));
     } else if (name === "orderstatus") {
       setOrderData((prevData) => ({
@@ -221,6 +243,13 @@ const Addorder = () => {
     }
   };
 
+  const updatePrice = (productId, newPrice) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === productId ? { ...item, price: parseFloat(newPrice) || 0 } : item
+      )
+    );
+  };
   const handleSubmit = async (event) => {  
     event.preventDefault();
     // console.log("formData at submit:", formData);
@@ -273,13 +302,17 @@ const Addorder = () => {
           return {
             product_id: selected.parent_id,   // parent product ID
             variation_id: selected.id,        // variation ID
-            quantity: item.quantity
+            quantity: item.quantity,
+          //  subtotal: (item.quantity * item.price).toFixed(2),
+            total: (item.quantity * item.price).toFixed(2),
           };
         } else {
           // It's a simple/base product
           return {
             product_id: item.id,
-            quantity: item.quantity
+            quantity: item.quantity,
+          //  subtotal: (item.quantity * item.price).toFixed(2),
+            total: (item.quantity * item.price).toFixed(2),
           };
         }
       }),
@@ -287,6 +320,7 @@ const Addorder = () => {
         {
           method_id: orderData.shippingmethodid?.toLowerCase().replace(/\s+/g, "_") || "free_shipping",
           method_title: orderData.shippingmethodtitle || "Free Shipping",
+          total: orderData.shippingcost || "0.00"
           // total: cart.reduce(
           //   (sum, item) => sum + item.quantity * parseFloat(item.price),
           //   0
@@ -300,8 +334,8 @@ const Addorder = () => {
       // total_quantity: cart.reduce((sum, item) => sum + item.quantity, 0),
     };
 
-    // console.log("Data:", Data);
-    // return;
+     console.log("Data:", Data);
+   //  return;
 
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/addorder`, Data);
@@ -619,9 +653,17 @@ const Addorder = () => {
                             <option value="" disabled hidden>Choose...</option>
                             {shippingmethods
                             .map((shippingmethod) => (
-                              <option key={shippingmethod.id} value={`${shippingmethod.id}|${shippingmethod.title}`}>
-                                {shippingmethod.title}
-                              </option>
+                              <option
+                              key={shippingmethod.instance_id}
+                              value={JSON.stringify({
+                                method_id: shippingmethod.method_id,
+                                instance_id: shippingmethod.instance_id,
+                                method_title: shippingmethod.method_title,
+                                raw_cost: shippingmethod.settings?.cost?.value || "0"
+                              })}
+                            >
+                              {shippingmethod.title}
+                            </option>
                           ))}
                             
                         </Form.Select>
@@ -706,14 +748,21 @@ const Addorder = () => {
                       <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
                         SKU: {product.sku || "N/A"}
                       </Card.Subtitle>
-
-                      <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-                        {product.price || product.sale_price || product.regular_price || "0.00"} GBP
-                      </Card.Subtitle>
-
                       <Card.Subtitle style={{ fontSize: 12 }}>
                         Quantity: {cartItem.quantity}
                       </Card.Subtitle>
+
+                      <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 12 }}>
+                        Price: 
+                        <input
+                          type="number"
+                          value={cartItem.price}
+                          onChange={(e) => updatePrice(product.id, e.target.value)}
+                          style={{ marginLeft: 5, width: 70 }}
+                        /> 
+                       GBP
+                      </Card.Subtitle>
+
                     </div>
                   </div>
                 </div>
