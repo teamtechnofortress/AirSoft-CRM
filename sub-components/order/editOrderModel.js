@@ -173,7 +173,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
 
 
   const handleConfirmSelection = () => {
-    // console.log("Selected Products:", tempSelectedProducts);
+   // console.log("Selected Products:", tempSelectedProducts);
     setSelectedProducts(tempSelectedProducts);
     setModalShow(false);
   };

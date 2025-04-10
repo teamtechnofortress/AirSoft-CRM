@@ -1124,6 +1124,7 @@ const EditOrder = ({params}) => {
                                 <hr />
 
                                 {selectedProducts.map((product, index) => {
+                                  console.log(product);
                                   const data = product.data || product;
                                   const quantity = product.quantity || 1;
                                   const cartItem = cart.find((item) => item.id === data.id) || { quantity: 1 };
@@ -1146,19 +1147,27 @@ const EditOrder = ({params}) => {
                                         <div className='d-flex align-items-center justify-content-start gap-2'>
                                           <div>
                                           <Card.Img
-                                            variant="top"
-                                            src={
-                                              typeof data.image === "string"
-                                                ? data.image
-                                                : data.images?.src || data.images?.[0]?.src || "/fallback.jpg"
-                                            }
-                                            alt={
-                                              typeof data.image === "string"
-                                                ? data.name
-                                                : data.image?.alt || data.images?.[0]?.alt || "Product Image"
-                                            }
-                                            style={{ height: '85px', width: '85px', objectFit: 'cover' }}
-                                          />
+                                              variant="top"
+                                              src={
+                                                data.type === 'variation'
+                                                  ? (typeof data.image === 'string'
+                                                      ? data.image
+                                                      : data.image?.src || data.image?.[0]?.src || "/fallback.jpg")
+                                                  : (typeof data.images === 'string'
+                                                      ? data.images
+                                                      : data.images?.src || data.images?.[0]?.src || "/fallback.jpg")
+                                              }
+                                              alt={
+                                                data.type === 'variation'
+                                                  ? (typeof data.image === 'string'
+                                                      ? data.name
+                                                      : data.image?.alt || data.image?.[0]?.alt || "Product Image")
+                                                  : (typeof data.images === 'string'
+                                                      ? data.name
+                                                      : data.images?.alt || data.images?.[0]?.alt || "Product Image")
+                                              }
+                                              style={{ height: '85px', width: '85px', objectFit: 'cover' }}
+                                            />
                                           </div>
                                           <div>
                                             <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 14 }}>
