@@ -39,6 +39,7 @@ const Home = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(false);
     const [stockStatus, setStockStatus] = useState("all");
+    const [searchField, setSearchField] = useState('search');
 
     const productsPerPage = 20; // ✅ Show 10 products per page
     const hasFetched = useRef(false);
@@ -59,13 +60,13 @@ const Home = () => {
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             if (searchTerm) {
-                fetchFilteredProducts();
+                fetchFilteredProducts(searchField, searchTerm);
             } else {
                 fetchProducts(currentPage);
             }
         }, 1000);
         return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm, currentPage]);
+    }, [searchTerm, searchField, currentPage]);
 
     // ✅ Fetch Products (Only If Not in Cache)
     const fetchProducts = async (page, stock_status) => {
@@ -100,17 +101,20 @@ const Home = () => {
         fetchProducts(currentPage, stockStatus);
     };
 
-    const fetchFilteredProducts = async () => {
-        if (filteredCache[searchTerm]) {
-            setProducts(filteredCache[searchTerm]);
+    const fetchFilteredProducts = async (field = searchField, term = searchTerm) => {
+        const cacheKey = `${field}-${term}`;
+        if (filteredCache[cacheKey]) {
+            setProducts(filteredCache[cacheKey]);
             return;
         }
         try {
             setLoading(true);
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/filterproducts`, { params: { search: searchTerm } });
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/filterproducts`, {
+                params: { searchby: field, search: term }
+            });
             if (response.data?.data) {
                 setProducts(response.data.data);
-                setFilteredCache(prevCache => ({ ...prevCache, [searchTerm]: response.data.data }));
+                setFilteredCache(prev => ({ ...prev, [cacheKey]: response.data.data }));
             }
         } catch (error) {
             toast.error("Failed to fetch products!");
@@ -154,14 +158,31 @@ const Home = () => {
                             <Link href="#" className="btn btn-white">Products</Link>
                         </div>
                     </Col>
-                    <Form.Group className="mb-3">
-                    <Form.Control 
-                        type="text" 
-                        placeholder="Search for products..." 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </Form.Group>
+                    <Col lg={4}>
+                        <Form.Group className="mb-3">
+                            <Form.Select
+                                value={searchField}
+                                onChange={(e) => setSearchField(e.target.value)}
+                            >
+                                <option value="search">Name / Keyword</option>
+                                <option value="sku">SKU</option>
+                                {/* <option value="category">Category ID</option>
+                                <option value="tag">Tag ID</option>
+                                <option value="min_price">Min Price</option>
+                                <option value="max_price">Max Price</option> */}
+                            </Form.Select>
+                        </Form.Group>
+                    </Col>
+                    <Col lg={8}>
+                        <Form.Group className="mb-3">
+                        <Form.Control
+                            type="text"
+                            placeholder="Search for products..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        </Form.Group>
+                    </Col>
                 </Row>
 
                 <Row>

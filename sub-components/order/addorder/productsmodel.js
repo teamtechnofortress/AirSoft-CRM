@@ -2,7 +2,7 @@ import { Col, Row, Form, Card, Nav, Tab, Button, Modal,Spinner } from "react-boo
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelectedProducts, selectedProducts, setModalShow, setLoading, setProducts, filteredCache, setFilteredCache }) => {
+const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelectedProducts,fetchAllProducts, selectedProducts, setModalShow, setLoading, setProducts,searchField,setSearchField , filteredCache, setFilteredCache }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [tempSelectedProducts, setTempSelectedProducts] = useState([]);
   // const [filteredCache, setFilteredCache] = useState({});
@@ -28,19 +28,22 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
 }, [show, selectedProducts]);
 
 
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (searchTerm) {
-        fetchFilteredProducts();
-      }
-    }, 1000);
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
+useEffect(() => {
+  const delayDebounceFn = setTimeout(() => {
+    if (searchTerm) {
+      fetchFilteredProducts(searchField, searchTerm);
+    }else{
+      setLoading(true);
+      fetchAllProducts();
+    }
+  }, 1000);
+  return () => clearTimeout(delayDebounceFn);
+}, [searchTerm,searchField]);
 
-  const fetchFilteredProducts = async () => {
-    console.log(searchTerm);
-    if (filteredCache[searchTerm]) {
-      setProducts(filteredCache[searchTerm]);
+  const fetchFilteredProducts = async (field = searchField, term = searchTerm) => {
+    const cacheKey = `${field}-${term}`;
+    if (filteredCache[cacheKey]) {
+      setProducts(filteredCache[cacheKey]);
       return;
     }
   
@@ -48,7 +51,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
       setLoading(true);
   
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/filterproducts`, {
-        params: { search: searchTerm }
+        params: { searchby: field, search: term }
       });
   
       if (response.data?.data) {
@@ -182,14 +185,33 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
       </Modal.Header>
       <Modal.Body className="pb-0">
         <Row>
+        <Col lg={4}>
+              <Form.Group className="mb-3">
+                  <Form.Select 
+                      value={searchField}
+                      onChange={(e) => setSearchField(e.target.value)}
+                  >
+                      <option value="search">Name / Keyword</option>
+                      <option value="sku">SKU</option>
+                      {/* <option value="category">Category ID</option>
+                      <option value="tag">Tag ID</option>
+                      <option value="min_price">Min Price</option>
+                      <option value="max_price">Max Price</option> */}
+                  </Form.Select>
+              </Form.Group>
+          </Col>
+          <Col lg={8}>
+              <Form.Group className="mb-3">
+              <Form.Control 
+                  type="text" 
+                  placeholder="Search for products..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              </Form.Group>
+          </Col>
           <Col xl={12}>
-            <Form.Control
-              type="text"
-              placeholder="Search by Name or Price"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="mb-3"
-            />
+         
             <Tab.Container id="tab-container-1" defaultActiveKey="customer">
               <Card>
                 <Card.Header className="border-bottom-0 p-0">
@@ -301,6 +323,8 @@ const ProductsModel = ({ setSelectedProducts, selectedProducts,productIds }) => 
   const [loading, setLoading] = useState(true);
   const [filteredCache, setFilteredCache] = useState({});
   const [hasInitializedSelection, setHasInitializedSelection] = useState(false);
+  const [searchField, setSearchField] = useState('search');
+  
   // console.log(productIds);
 
   useEffect(() => {
@@ -424,6 +448,9 @@ const ProductsModel = ({ setSelectedProducts, selectedProducts,productIds }) => 
         setModalShow={setModalShow}
         filteredCache={filteredCache}
         setFilteredCache={setFilteredCache}
+        searchField={searchField}
+        setSearchField={setSearchField}
+        fetchAllProducts={fetchAllProducts}
       />
     </>
   );

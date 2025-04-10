@@ -1,4 +1,4 @@
-// Mark this route as dynamic to ensure it’s executed at request time.
+// Mark this route as dynamic to ensure it's executed at request time.
 export const dynamic = 'force-dynamic';
 
 import WooCommerc from "@/helper/woocommerce";
@@ -20,6 +20,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page"), 10) || 1; // Default to page 1
     const search = searchParams.get("search") || "";
+    const searchby = searchParams.get("searchby") || "search";
     // console.log('page:',page);
 
 
@@ -30,11 +31,16 @@ export async function GET(req) {
       );
     }
 
-    // ✅ Fetch ONLY 100 products (first page)
-    const response = await WooCommerc.get("products", {
-      per_page: 20, // Max WooCommerce allows per request
-      search: search,      // First page only
-    });
+    const query = {
+      per_page: 20,
+      page: page,
+    };
+    
+    if (search) {
+      query[searchby] = search;
+    }
+    
+    const response = await WooCommerc.get("products", query);
 
     console.log(response.data);
 
