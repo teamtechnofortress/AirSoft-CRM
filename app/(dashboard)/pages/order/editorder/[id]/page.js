@@ -7,7 +7,7 @@ import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
 import { Col, Row, Form, Card, Button, Image,Container,Tab,Tabs,Nav,DropdownButton,ButtonGroup,Dropdown,Spinner } from 'react-bootstrap';
 import ExistingCustomerOrOrder from '/sub-components/order/addorder/Existing-customer-or-order.js'
-import ProductsModel from '/sub-components/order/EditOrderModel.js'
+import ProductsModel from '/sub-components/order/editOrderModel.js'
 import ShippingAddress from '/sub-components/order/addorder/shippingaddress.js'
 import Link from 'next/link';
 
