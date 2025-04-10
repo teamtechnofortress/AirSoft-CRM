@@ -7,7 +7,7 @@ import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
 import { Col, Row, Form, Card, Button, Image,Container,Tab,Tabs,Nav,DropdownButton,ButtonGroup,Dropdown,Spinner } from 'react-bootstrap';
 import ExistingCustomerOrOrder from '/sub-components/order/addorder/Existing-customer-or-order.js'
-import ProductsModel from '/sub-components/order/addorder/productsmodel.js'
+import ProductsModel from '/sub-components/order/EditOrderModel.js'
 import ShippingAddress from '/sub-components/order/addorder/shippingaddress.js'
 import Link from 'next/link';
 
@@ -33,6 +33,8 @@ const EditOrder = ({params}) => {
   const [isShippingEnabled, setIsShippingEnabled] = useState(true);
   const [productIds, setProductIds] = useState([]);
   const [fetchedproduct, setFetchedproduct] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [productLoading, setProductLoading] = useState(true);
 
   // console.log("customers",customers);
   // console.log("orders",orders);
@@ -78,25 +80,33 @@ const EditOrder = ({params}) => {
 
   const fetchorder = async (orderid) => {
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getsingelorder`,{id:orderid});
-      // console.log(response.status);
-      setFetchedproduct(response.data.data);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getsingelorder`, { id: orderid });
+    
       if (response.status === 200 && response.data) {
-          // console.log('api response:',response.data);
+            console.log(response.data.data);
+            const order = response.data.data;
+            setFetchedproduct(order);
+        
+            const lineItems = order.line_items || [];
 
-
-          // const fetchedProductIds = response.data.data.line_items.map(item => item.product_id); 
-
-          // setProductIds(fetchedProductIds);
-          console.log(response.data.data.line_items);
-          const fetchedProductIds = response.data.data.line_items.map(item => ({
-            product_id: item.variation_id !== 0 ? item.variation_id : item.product_id,  // Use variation_id if it's valid
-            parent_id: item.variation_id !== 0 ? item.product_id : null,                // Save parent ID if it's a variation
-            quantity: item.quantity
-          }));
-          setProductIds(fetchedProductIds);
-          console.log(fetchedProductIds);
-           console.log('fetchedProductIds line 89:',fetchedProductIds.product_id);
+            const selected = lineItems.map(item => ({
+              id: item.variation_id && item.variation_id !== 0 ? item.variation_id : item.product_id,
+              product_id: item.product_id,
+              variation_id: item.variation_id,
+              name: item.name,
+              parent_name: item.parent_name || '',
+              quantity: item.quantity,
+              price: item.price,
+              sku: item.sku,
+              images: {
+                src: item.image || '/fallback.jpg',
+                alt: item.name || 'Product image',
+              }, // wrap as array if needed
+              meta_data: item.meta_data || [],
+            }));
+            console.log(selected);
+          
+            setSelectedProducts(selected);
 
 
           setOrderData({
@@ -239,6 +249,77 @@ const EditOrder = ({params}) => {
     }
   };
 
+  // const fetchAllProducts = async () => {
+  //   try {
+  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`);
+  //     if (response.data?.data) {
+  //       const allProducts = response.data.data;
+  
+  //       const productsWithVariations = await Promise.all(
+  //         allProducts.map(async (product) => {
+  //           if (product.variations) {
+  //             const variationResponse = await axios.post(
+  //               `${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/productvariations`,
+  //               { id: product.id }
+  //             );
+  //             const variations = variationResponse.data?.data || [];
+  //             return {
+  //               ...product,
+  //               variations: variations.map((v, index) => ({
+  //                 ...v,
+  //                 id: v.id || `${product.id}-var-${index}`,
+  //               })),
+  //             };
+  //           }
+  //           return product;
+  //         })
+  //       );
+  
+  //       setProducts(productsWithVariations);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching products:", error.message);
+  //   } finally {
+  //     setProductLoading(false);
+  //   }
+  // };
+  
+  // useEffect(() => {
+  //   const selected = [];
+
+  //   console.log(productIds);
+
+  //   const initializeSelectedProducts = async () => {
+  //     if (productIds.length === 0 || products.length === 0) return;
+  
+  
+  //     for (const pid of productIds) {
+  //       const parent = pid.parent_id
+  //         ? products.find(p => p.id === pid.parent_id)
+  //         : products.find(p => p.id === pid.product_id);
+  
+  //       if (!parent) continue;
+  
+  //       if (pid.parent_id && parent.variations?.length > 0) {
+  //         const variation = parent.variations.find(v => v.id === pid.product_id);
+  //         if (variation) {
+  //           selected.push({
+  //             ...variation,
+  //             parent_id: parent.id,
+  //             parent_name: parent.name,
+  //           });
+  //         }
+  //       } else {
+  //         selected.push(parent);
+  //       }
+  //     }
+  //     console.log(selected);
+  //     setSelectedProducts(selected);
+  //   };
+  
+  //   initializeSelectedProducts();
+  // }, [productIds, products]);
+  
   // const runallfuntion = async () => {
   //   try {
   //     await fetchorder(id);
@@ -268,6 +349,7 @@ const EditOrder = ({params}) => {
         fetchAllOrder(),
         fetchAllPaymentgateway(),
         fetchAllShippingmethods(),
+        // fetchAllProducts(),
       ]);
   
       // console.log("All API calls completed successfully.");
@@ -300,20 +382,20 @@ const EditOrder = ({params}) => {
   // }, [selectedProducts]);
 
   useEffect(() => {
-    const updatedCart = selectedProducts.map(product => {
-      // If product is a variation, its real ID is `product.id`, and parent is in `parent_id`
-      const isVariation = !!product.parent_id;
-  
-      const matchedCartItem = productIds.find(item => item.product_id === product.id);
-  
-      return {
-        id: product.id, // product/variation ID
-        variation_id: isVariation ? product.id : 0, // variation_id if it's a variation, 0 for simple product
-        product_id: isVariation ? product.parent_id : product.id, // parent product ID or same for simple
-        quantity: matchedCartItem ? matchedCartItem.quantity : 1,
-        price: parseFloat(product.price),
-      };
-    });
+     const updatedCart = selectedProducts.map(product => {
+    const data = product.data || product; // support both formats
+    const isVariation = !!data.parent_id;
+
+    const matchedCartItem = productIds.find(item => item.product_id === data.id);
+
+    return {
+      id: data.id,
+      variation_id: isVariation ? data.id : 0,
+      product_id: isVariation ? data.parent_id : data.id,
+      quantity: matchedCartItem ? matchedCartItem.quantity : product.quantity || 1,
+      price: parseFloat(data.price) || 0
+    };
+  });
   
     setCart(updatedCart);
   }, [selectedProducts, productIds]);
@@ -421,6 +503,23 @@ const EditOrder = ({params}) => {
         [name]: value,
       }));
     }
+  };
+
+  const updatePrice = (productId, newPrice) => {
+    const parsedPrice = parseFloat(newPrice);
+    const price = isNaN(parsedPrice) ? 0 : parsedPrice;
+  
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === productId ? { ...item, price } : item
+      )
+    );
+  
+    setSelectedProducts((prevSelected) =>
+      prevSelected.map((item) =>
+        item.id === productId ? { ...item, price } : item
+      )
+    );
   };
 
   const handleSubmit = async (event) => {  
@@ -612,13 +711,12 @@ const EditOrder = ({params}) => {
               product_id: existingItem.product_id,
               variation_id: existingItem.variation_id || 0,
               quantity: updatedItem.quantity,
-              price: existingItem.price,
-              subtotal: (existingItem.price * updatedItem.quantity).toFixed(2),
-              total: (existingItem.price * updatedItem.quantity).toFixed(2),
+              price: updatedItem.price, // ✅ use updated price from cart
+              total: (updatedItem.price * updatedItem.quantity).toFixed(2),
             };
           }
       
-          // Product removed from cart: set quantity to 0 to remove from WooCommerce
+          // Product removed from cart: set quantity to 0
           return {
             id: existingItem.id,
             product_id: existingItem.product_id,
@@ -627,7 +725,7 @@ const EditOrder = ({params}) => {
           };
         }),
       
-        // Add new products not in original line_items
+        // Add new products
         ...cart.filter(cartItem => {
           const alreadyExists = fetchedproduct?.line_items?.some(existingItem => {
             const isVariation = existingItem.variation_id && existingItem.variation_id !== 0;
@@ -641,10 +739,10 @@ const EditOrder = ({params}) => {
           variation_id: newItem.variation_id || 0,
           quantity: newItem.quantity,
           price: newItem.price,
-          subtotal: (newItem.price * newItem.quantity).toFixed(2),
           total: (newItem.price * newItem.quantity).toFixed(2),
         }))
       ],
+      
       
       //Preserve shipping methods safely
       shipping_lines: fetchedproduct?.shipping_lines?.map(line => ({
@@ -856,7 +954,12 @@ const EditOrder = ({params}) => {
 
   // Calculate total quantity and price
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  console.log("Cart contents:", cart);
+  const totalPrice = cart.reduce((sum, item) => {
+    const price = parseFloat(item.price) || 0;
+    const quantity = parseInt(item.quantity) || 0;
+    return sum + price * quantity;
+  }, 0);
 
   if (loading) return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -999,90 +1102,135 @@ const EditOrder = ({params}) => {
                            <h5 className="mb-3 mt-2">Product items</h5>
                       </Col>
                       <Col md={4} xs={12}>
-                        <ProductsModel setSelectedProducts={setSelectedProducts} selectedProducts={selectedProducts}  productIds={productIds} />
+                        <ProductsModel setSelectedProducts={setSelectedProducts} selectedProducts={selectedProducts}  productIds={productIds} products={products}
+                            setProducts={setProducts}
+                            loading={productLoading}
+                            setLoading={setProductLoading}
+                             />
                       </Col>
                     </Row>
                     {selectedProducts.length > 0 && (
-                    <Row className="mb-3 d-flex align-items-center justify-content-start">
-                      <Col md={4} xs={12}>
-                        <h5 className="mb-3 mt-2"></h5>
-                      </Col>
-                      <Col md={8} xs={12}>
-                        <Card style={{ width: "100%" }}>
-                          <Card.Body style={{ padding: "0px" }}>
-                            <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px', paddingTop: '15px' }}>
-                              <div>
-                                <Card.Title>Product</Card.Title>
-                              </div>
-                            </div>
-                            <div className='' style={{ backgroundColor: '#eceef0' }}></div>
-                            <hr />
+                        <Row className="mb-3 d-flex align-items-center justify-content-start">
+                          <Col md={4} xs={12}>
+                            <h5 className="mb-3 mt-2"></h5>
+                          </Col>
+                          <Col md={8} xs={12}>
+                            <Card style={{ width: "100%" }}>
+                              <Card.Body style={{ padding: "0px" }}>
+                                <div className="d-flex align-items-center justify-content-between" style={{ padding: '15px' }}>
+                                  <Card.Title>Product</Card.Title>
+                                </div>
+                                <div className='' style={{ backgroundColor: '#eceef0' }}></div>
+                                <hr />
 
-                            {selectedProducts.map((product, index) => {
-                              const cartItem = cart.find((item) => item.id === product.id) || { quantity: 0 };
-                              const isVariation = product.parent_id !== undefined && product.parent_id !== null;
+                                {selectedProducts.map((product, index) => {
+                                  const data = product.data || product;
+                                  const quantity = product.quantity || 1;
+                                  const cartItem = cart.find((item) => item.id === data.id) || { quantity: 1 };
+                                  const isVariation = data.parent_id !== undefined && data.parent_id !== null;
 
-                              return (
-                                <div key={index} className="d-flex align-items-center justify-content-between mb-2 gap-2" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
-                                  <div className='d-flex align-items-center justify-content-start gap-2'>
-                                    <div>
-                                      <i className="fas fa-times" onClick={() => removeproduct(product.id)} style={{ cursor: "pointer" }}></i>
-                                    </div>
-                                    <div className='d-flex align-items-center justify-content-start gap-2'>
-                                      <div>
-                                        <Card.Img
-                                          variant="top"
-                                          src={product.image?.src || product.images?.[0]?.src || "https://via.placeholder.com/150"}
-                                          alt={product.image?.alt || product.images?.[0]?.alt || "Product Image"}
-                                          style={{ height: '85px', width: '85px', objectFit: 'cover' }}
-                                        />
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="d-flex align-items-center justify-content-between mb-2 gap-2"
+                                      style={{ paddingLeft: '15px', paddingRight: '15px' }}
+                                    >
+                                      <div className='d-flex align-items-center justify-content-start gap-2'>
+                                        <div>
+                                          <i
+                                            className="fas fa-times"
+                                            onClick={() => removeproduct(data.id)}
+                                            style={{ cursor: "pointer" }}
+                                          ></i>
+                                        </div>
+                                        <div className='d-flex align-items-center justify-content-start gap-2'>
+                                          <div>
+                                          <Card.Img
+                                            variant="top"
+                                            src={
+                                              typeof data.image === "string"
+                                                ? data.image
+                                                : data.images?.src || data.images?.[0]?.src || "/fallback.jpg"
+                                            }
+                                            alt={
+                                              typeof data.image === "string"
+                                                ? data.name
+                                                : data.image?.alt || data.images?.[0]?.alt || "Product Image"
+                                            }
+                                            style={{ height: '85px', width: '85px', objectFit: 'cover' }}
+                                          />
+                                          </div>
+                                          <div>
+                                            <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 14 }}>
+                                              {isVariation
+                                                ? `${data.parent_name || "Product"} - ${data.name || data.description}`
+                                                : data.name || "Unknown"}
+                                            </Card.Subtitle>
+
+                                            <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
+                                              SKU: {data.sku || "N/A"}
+                                            </Card.Subtitle>
+
+                                            {/* <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
+                                            {parseFloat(data.price).toFixed(2)} GBP
+                                            </Card.Subtitle> */}
+
+                                            <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
+                                              Quantity: {quantity}
+                                            </Card.Subtitle>
+
+                                            <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 12 }}>
+                                              Price: 
+                                              <input
+                                                type="text"
+                                                value={parseFloat(data.price).toFixed(2)}
+                                                onChange={(e) => updatePrice(product.id, e.target.value)}
+                                                style={{ marginLeft: 5, width: 70 }}
+                                              /> 
+                                              GBP
+                                            </Card.Subtitle>
+                                          </div>
+                                        </div>
                                       </div>
-                                      <div>
-                                        <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 14 }}>
-                                          {isVariation
-                                            ? `${product.parent_name || "Product"} - ${product.name || product.description}`
-                                            : product.name || "Unknown"}
-                                        </Card.Subtitle>
 
-                                        <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
-                                          SKU: {product.sku || "N/A"}
-                                        </Card.Subtitle>
-
-                                        <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
-                                          {product.price} GBP
-                                        </Card.Subtitle>
-
-                                        <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
-                                          Quantity: {cartItem.quantity}
-                                        </Card.Subtitle>
+                                      <div className="d-flex align-items-center gap-2">
+                                        <i
+                                          className="fe fe-plus"
+                                          onClick={() => updateQuantity(data.id, data.price, 1)}
+                                          style={{ cursor: "pointer" }}
+                                        ></i>
+                                        <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
+                                        <i
+                                          className="fe fe-minus"
+                                          onClick={() => updateQuantity(data.id, data.price, -1)}
+                                          style={{ cursor: "pointer" }}
+                                        ></i>
                                       </div>
                                     </div>
+                                  );
+                                })}
+
+                                <hr />
+                                <div
+                                  className="d-flex align-items-center justify-content-between mb-3"
+                                  style={{ paddingLeft: '15px', paddingRight: '15px' }}
+                                >
+                                  <div>
+                                    <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>
+                                      Quantity: {totalQuantity}
+                                    </Card.Subtitle>
                                   </div>
-
-                <div className="d-flex align-items-center gap-2">
-                  <i className="fe fe-plus" onClick={() => updateQuantity(product.id, product.price, 1)} style={{ cursor: "pointer" }}></i>
-                  <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
-                  <i className="fe fe-minus" onClick={() => updateQuantity(product.id, product.price, -1)} style={{ cursor: "pointer" }}></i>
-                </div>
-              </div>
-            );
-          })}
-
-          <hr />
-          <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
-            <div>
-              <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Quantity: {totalQuantity}</Card.Subtitle>
-            </div>
-            <div>
-              <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Total: {totalPrice} $</Card.Subtitle>
-            </div>
-          </div>
-        </Card.Body>
-      </Card>
-    </Col>
-  </Row>
-)}
-
+                                  <div>
+                                    <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>
+                                      Total: {totalPrice.toFixed(2)} £
+                                    </Card.Subtitle>
+                                  </div>
+                                </div>
+                              </Card.Body>
+                            </Card>
+                          </Col>
+                        </Row>
+                      )}
                     <Row className="mb-3 d-flex align-items-center justify-content-start">
                       <Col md={4} xs={12}>
                            <h5 className="mb-3 mt-2">Billing information</h5>
