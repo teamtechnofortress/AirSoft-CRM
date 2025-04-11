@@ -46,7 +46,7 @@ const ShippingAddress = ({shippingData,handleChange,countries}) => {
             </Col>
         </Row>
         <Row className="mb-3">
-            <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="contactinfo">Contact info</Form.Label>
+            <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="contactinfo">Phone/Company</Form.Label>
             <Col sm={4} className="mb-3 mb-lg-0">
               <Form.Control type="text" value={shippingData.shippingphone} onChange={handleChange} name="shippingphone" placeholder="Enter phone" id="contactinfo" required />
             </Col>
