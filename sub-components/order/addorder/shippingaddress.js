@@ -51,7 +51,7 @@ const ShippingAddress = ({shippingData,handleChange,countries}) => {
               <Form.Control type="text" value={shippingData.shippingphone} onChange={handleChange} name="shippingphone" placeholder="Enter phone" id="contactinfo" required />
             </Col>
             <Col sm={4} className="mb-3 mb-lg-0">
-             <Form.Control type="text" value={shippingData.shippingcompany} onChange={handleChange} name="shippingcompany" placeholder="Enter company" id="contactinfo" required />
+             <Form.Control type="text" value={shippingData.shippingcompany} onChange={handleChange} name="shippingcompany" placeholder="Enter company" id="contactinfo" />
             </Col>
         </Row>
         <Row className="mb-3">
@@ -60,7 +60,7 @@ const ShippingAddress = ({shippingData,handleChange,countries}) => {
             <Form.Control type="text" value={shippingData.shippingaddressline1} onChange={handleChange} name="shippingaddressline1" placeholder="Enter Address line 1" id="Address" required />
           </Col>
           <Col sm={4}>
-            <Form.Control type="text" value={shippingData.shippingaddressline2} onChange={handleChange} name="shippingaddressline2" placeholder="Enter Address line 2" id="Address" required />
+            <Form.Control type="text" value={shippingData.shippingaddressline2} onChange={handleChange} name="shippingaddressline2" placeholder="Enter Address line 2" id="Address" />
           </Col>
         </Row>
         {/* <Row className="mb-3">

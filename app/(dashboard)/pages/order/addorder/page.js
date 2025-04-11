@@ -881,10 +881,10 @@ const Addorder = () => {
                     <Row className="mb-3">
                       <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="TranscationID/Note">TranscationID/Note</Form.Label>
                       <Col sm={4} className="mb-3 mb-lg-0">
-                        <Form.Control type="text" value={formData.tranctionid} onChange={handleChange} name="tranctionid" placeholder="Enter Transcation ID" id="TranscationID/Note" required />
+                        <Form.Control type="text" value={formData.tranctionid} onChange={handleChange} name="tranctionid" placeholder="Enter Transcation ID" id="TranscationID/Note" />
                       </Col>
                       <Col sm={4}>
-                        <Form.Control type="text" value={formData.customernote} onChange={handleChange} name="customernote" placeholder="Enter Note" id="TranscationID/Note" required />
+                        <Form.Control type="text" value={formData.customernote} onChange={handleChange} name="customernote" placeholder="Enter Note" id="TranscationID/Note" />
                       </Col>
                     </Row>
                     <Row className="mb-3">
@@ -893,13 +893,13 @@ const Addorder = () => {
                         <Form.Control type="text" value={formData.addressline1} onChange={handleChange} name="addressline1" placeholder="Enter Address line 1" id="Address" required />
                       </Col>
                       <Col sm={4}>
-                        <Form.Control type="text" value={formData.addressline2} onChange={handleChange} name="addressline2" placeholder="Enter Address line 2" id="Address" required />
+                        <Form.Control type="text" value={formData.addressline2} onChange={handleChange} name="addressline2" placeholder="Enter Address line 2" id="Address" />
                       </Col>
                     </Row>
                     <Row className="mb-3">
                       <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="companyinfo">Company info</Form.Label>
                       <Col sm={4} className="mb-3 mb-lg-0">
-                        <Form.Control type="text" value={formData.company} onChange={handleChange} name="company" placeholder="Enter company" id="companyinfo" required />
+                        <Form.Control type="text" value={formData.company} onChange={handleChange} name="company" placeholder="Enter company" id="companyinfo"  />
                       </Col>
                       <Col sm={4}>
                         {/* <Form.Control type="email" value={formData.email} onChange={handleChange} name="email" placeholder="Enter email" id="companyinfo" required /> */}
