@@ -8,6 +8,7 @@ const MyVerticallyCenteredAddressModal = ({
   show, 
   onHide, 
   setFormData, 
+  setShippingData,
   customers: initialCustomers, 
   orders: initialOrders 
 }) => {
@@ -139,6 +140,7 @@ const MyVerticallyCenteredAddressModal = ({
                         </div>
                       ) : customers.length > 0 ? (
                         customers.map((customer, index) => (
+                          // console.log(customer, "customer"),
                           <div
                             key={index}
                             onClick={() => {
@@ -148,11 +150,28 @@ const MyVerticallyCenteredAddressModal = ({
                                 lastname: customer.billing?.last_name || "",
                                 email: customer.billing?.email || "",
                                 phone: customer.billing?.phone || "",
+                                company: customer.billing?.company || "",
                                 country: customer.billing?.country || "",
                                 province: customer.billing?.state || "",
                                 city: customer.billing?.city || "",
                                 zipcode: customer.billing?.postcode || "",
-                                fulladdress: `${customer.billing?.address_1 || ""}, ${customer.billing?.country || ""}, ${customer.billing?.state || ""}, ${customer.billing?.city || ""} ${customer.billing?.postcode || ""}`,
+                                addressline1: customer.billing?.address_1 || "",
+                                addressline2: customer.billing?.address_2 || "",
+                                // fulladdress: `${customer.billing?.address_1 || ""}, ${customer.billing?.country || ""}, ${customer.billing?.state || ""}, ${customer.billing?.city || ""} ${customer.billing?.postcode || ""}`,
+                              });
+                              setShippingData({
+                                shippingfirstname: customer.shipping?.first_name || "",
+                                shippinglastname: customer.shipping?.last_name || "",
+                                shippingemail:  customer.shipping?.email || "", 
+                                shippingcompany: customer.shipping?.company || "",
+                                shippingcountry: customer.shipping?.country || "",
+                                shippingprovince: customer.shipping?.state || "",
+                                shippingphone: customer.shipping?.phone || "",
+                                shippingcity: customer.shipping?.city || "",
+                                shippingzipcode: customer.shipping?.postcode || "",
+                                shippingaddressline1: customer.shipping?.address_1 || "",
+                                shippingaddressline2: customer.shipping?.address_2 || "",
+                                // shippingfulladdress:  `${customer.shipping?.address_1 || ""}, ${customer.shipping?.country || ""}, ${customer.shipping?.state || ""}, ${customer.shipping?.city || ""} ${customer.shipping?.postcode || ""}`,
                               });
                             }}
                             style={{ cursor: "pointer" }}
@@ -201,6 +220,7 @@ const MyVerticallyCenteredAddressModal = ({
                         </div>
                       ) : orders.length > 0 ? (
                         orders.map((order, index) => (
+                          // console.log(order, "order"),
                           <div
                             key={index}
                             onClick={() => {
@@ -210,11 +230,29 @@ const MyVerticallyCenteredAddressModal = ({
                                 lastname: order.billing?.last_name || "",
                                 email: order.billing?.email || "",
                                 phone: order.billing?.phone || "",
+                                company: order.billing?.company || "",
                                 country: order.billing?.country || "",
+                                customernote: order?.customer_note || "",
+                                tranctionid: order?.transaction_id || "",
                                 province: order.billing?.state || "",
                                 city: order.billing?.city || "",
                                 zipcode: order.billing?.postcode || "",
-                                fulladdress: `${order.billing?.address_1 || ""}, ${order.billing?.country || ""}, ${order.billing?.state || ""}, ${order.billing?.city || ""} ${order.billing?.postcode || ""}`,
+                                addressline1: order.billing?.address_1 || "",
+                                addressline2: order.billing?.address_2 || "",
+                                // fulladdress: `${order.billing?.address_1 || ""}, ${order.billing?.country || ""}, ${order.billing?.state || ""}, ${order.billing?.city || ""} ${order.billing?.postcode || ""}`,
+                              });
+                              setShippingData({
+                                shippingfirstname: order.shipping?.first_name || "",
+                                shippinglastname: order.shipping?.last_name || "",
+                                shippingemail:  order.shipping?.email || "", 
+                                shippingcompany: order.shipping?.company || "",
+                                shippingcountry: order.shipping?.country || "",
+                                shippingprovince: order.shipping?.state || "",
+                                shippingphone: order.shipping?.phone || "",
+                                shippingcity: order.shipping?.city || "",
+                                shippingaddressline1: order.shipping?.address_1 || "",
+                                shippingaddressline2: order.shipping?.address_2 || "",
+                                // shippingfulladdress:  `${order.shipping?.address_1 || ""}, ${order.shipping?.country || ""}, ${order.shipping?.state || ""}, ${order.shipping?.city || ""} ${order.shipping?.postcode || ""}`,
                               });
                             }}
                             style={{ cursor: "pointer" }}
@@ -262,7 +300,7 @@ const MyVerticallyCenteredAddressModal = ({
 };
 
 // ✅ Parent Component
-const ExistingCustomerOrOrder = ({ orders, customers, setFormData }) => {
+const ExistingCustomerOrOrder = ({ orders, customers, setFormData,setShippingData }) => {
   const [modalAddressShow, setModalAddressShow] = useState(false);
   return (
     <>
@@ -275,6 +313,7 @@ const ExistingCustomerOrOrder = ({ orders, customers, setFormData }) => {
         customers={customers} 
         orders={orders} 
         setFormData={setFormData} 
+        setShippingData={setShippingData}
       />
     </>
   );

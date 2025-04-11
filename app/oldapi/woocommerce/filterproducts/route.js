@@ -42,7 +42,7 @@ export async function GET(req) {
     
     const response = await WooCommerc.get("products", query);
 
-    console.log(response.data);
+    // console.log(response.data);
 
     const totalproducts = parseInt(response.headers['x-wp-total'] || response.headers['X-WP-Total']) || 0;
     // console.log('Total:', totalproducts);

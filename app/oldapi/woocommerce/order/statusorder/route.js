@@ -23,7 +23,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page"), 10) || 1;
     const status = searchParams.get("status") || "all";
-    console.log('page:', page, 'status:', status);
+    // console.log('page:', page, 'status:', status);
 
     if (!decoded.permissions.includes(requiredPermission)) {
         return NextResponse.json(
@@ -37,7 +37,7 @@ export async function GET(req) {
       status:status,
     });
 
-    console.log(response.data);
+    // console.log(response.data);
     const totalorders = parseInt(response.headers['x-wp-total'] || response.headers['X-WP-Total']) || 0;
 
     return NextResponse.json(

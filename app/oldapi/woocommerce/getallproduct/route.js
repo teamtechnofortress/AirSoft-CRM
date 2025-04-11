@@ -26,7 +26,7 @@ export async function GET(req) {
       stockStatus = "all";
     }
 
-    console.log('page:', page, 'stock_status:', stockStatus);
+    // console.log('page:', page, 'stock_status:', stockStatus);
 
     if (!decoded.permissions.includes(requiredPermission)) {
       return NextResponse.json(

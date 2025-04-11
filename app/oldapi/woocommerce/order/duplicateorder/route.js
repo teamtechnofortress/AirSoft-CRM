@@ -38,7 +38,7 @@ export async function POST(req) {
 
     // Fetch products from the WooCommerce API.
     const order = await WooCommerc.get(`orders/${id}`);
-    console.log(order.data);
+    // console.log(order.data);
     // return;
     const orderData = order.data;
 

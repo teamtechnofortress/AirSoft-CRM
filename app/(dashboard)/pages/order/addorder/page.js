@@ -48,11 +48,14 @@ const Addorder = () => {
         shippingfirstname: '',
         shippinglastname: '',
         shippingemail: '',
+        shippingcompany: '',
         shippingcountry: '',
         shippingprovince: '',
         shippingphone: '',
         shippingcity: '',
         shippingzipcode: '',
+        shippingaddressline1: '',
+        shippingaddressline2: '',
         shippingfulladdress: '',
   });
   const [formData, setFormData] = useState({
@@ -60,10 +63,15 @@ const Addorder = () => {
         lastname: '',
         email: '',
         country: '',
+        company: '',
+        tranctionid: '',
+        customernote: '',
         province: '',
         phone: '',
         city: '',
         zipcode: '',
+        addressline1: '',
+        addressline2: '',
         fulladdress: '',
   });
 
@@ -230,7 +238,7 @@ const Addorder = () => {
         ...prevData,
         [name]: value,
       }));
-    } else if (name === "shippingfirstname" || name === "shippinglastname" || name === "shippingcountry" || name === "shippingprovince" || name === "shippingcity" || name === "shippingzipcode" || name === "shippingfulladdress" || name === "shippingphone") {
+    } else if (name === "shippingfirstname" || name === "shippinglastname" || name === "shippingcountry" || name === "shippingprovince" || name === "shippingcity" || name === "shippingzipcode" || name === "shippingfulladdress" || name === "shippingphone" || name === "shippingcompany" || name === "shippingaddressline1"  || name === "shippingaddressline2") {
       setShippingData((prevData) => ({
         ...prevData,
         [name]: value,
@@ -266,16 +274,19 @@ const Addorder = () => {
     const Data = {
       payment_method: orderData.paymentmethodid || "default_method",
       payment_method_title: orderData.paymentmethodtitle || "Unknown Payment Method", 
+      customer_note: formData.customernote || "", 
+      transaction_id: formData.tranctionid || "", 
       set_paid: true,
       billing: {
         first_name: formData.firstname || "",
         last_name: formData.lastname || "",
-        address_1: formData.fulladdress?.split(",")[0] || "",
-        address_2: formData.fulladdress?.split(",").slice(1).join(", ") || "",
+        address_1: formData.addressline1 || "",
+        address_2: formData.addressline2 || "",
         city: formData.city || "",
         state: formData.province || "",
         postcode: formData.zipcode || "",
         country: formData.country || "",
+        company: formData.company || "",
         email: formData.email || "",
         phone: formData.phone || "",
       },
@@ -283,12 +294,13 @@ const Addorder = () => {
         first_name: isShippingEnabled ? formData.firstname : shippingData.shippingfirstname,
         last_name: isShippingEnabled ? formData.lastname : shippingData.shippinglastname,
         address_1: isShippingEnabled 
-            ? formData.fulladdress?.split(",")[0] || "" 
-            : shippingData.shippingfulladdress?.split(",")[0] || "",
+            ? formData.addressline1 || "" 
+            : shippingData.shippingaddressline1 || "",
         address_2: isShippingEnabled 
-            ? formData.fulladdress?.split(",").slice(1).join(", ") || "" 
-            : shippingData.shippingfulladdress?.split(",").slice(1).join(", ") || "",
+            ? formData.addressline2 || "" 
+            : shippingData.shippingaddressline2 || "",
         city: isShippingEnabled ? formData.city : shippingData.shippingcity,
+        company: isShippingEnabled ? formData.company : shippingData.shippingcompany,
         state: isShippingEnabled ? formData.province : shippingData.shippingprovince,
         postcode: isShippingEnabled ? formData.zipcode : shippingData.shippingzipcode,
         country: isShippingEnabled ? formData.country : shippingData.shippingcountry,
@@ -334,7 +346,7 @@ const Addorder = () => {
       // total_quantity: cart.reduce((sum, item) => sum + item.quantity, 0),
     };
 
-     console.log("Data:", Data);
+    //  console.log("Data:", Data);
    //  return;
 
     try {
@@ -356,29 +368,35 @@ const Addorder = () => {
             firstname: '',
             lastname: '',
             email: '',
+            company: '',
             country: '',
             province: '',
+            customernote: '',
+            tranctionid: '',
             phone: '',
             city: '',
             zipcode: '',
+            addressline1: '',
+            addressline2: '',
             fulladdress: '',
           });
           setShippingData({
             shippingfirstname: '',
             shippinglastname: '',
             shippingemail: '',
+            shippingcompany: '',
             shippingcountry: '',
             shippingprovince: '',
             shippingphone: '',
             shippingcity: '',
             shippingzipcode: '',
+            shippingaddressline1: '',
+            shippingaddressline2: '',
             shippingfulladdress: '',
           });
           setSelectedProducts([]);
           setCart([]);
           setSubmitting(false);
-
-
       } else {
           toast.error("Order Not Added!");
           console.log('Error:', response.data.message);
@@ -699,104 +717,103 @@ const Addorder = () => {
                       </Col>
                     </Row>
                     {selectedProducts.length > 0 && (
-  <Row className="mb-3 d-flex align-items-center justify-content-start">
-    <Col md={4} xs={12}>
-      <h5 className="mb-3 mt-2"></h5>
-    </Col>
-    <Col md={8} xs={12}>
-      <Card style={{ width: "100%" }}>
-        <Card.Body style={{ padding: '0px' }}>
-          <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px', paddingTop: '15px' }}>
-            <div>
-              <Card.Title>Product</Card.Title>
-            </div>
-            <div><Card.Title></Card.Title></div>
-          </div>
+                      <Row className="mb-3 d-flex align-items-center justify-content-start">
+                        <Col md={4} xs={12}>
+                          <h5 className="mb-3 mt-2"></h5>
+                        </Col>
+                        <Col md={8} xs={12}>
+                          <Card style={{ width: "100%" }}>
+                            <Card.Body style={{ padding: '0px' }}>
+                              <div className="d-flex align-items-center justify-content-between" style={{ paddingLeft: '15px', paddingRight: '15px', paddingTop: '15px' }}>
+                                <div>
+                                  <Card.Title>Product</Card.Title>
+                                </div>
+                                <div><Card.Title></Card.Title></div>
+                              </div>
 
-          <hr />
+                              <hr />
 
-          {selectedProducts.map((product, index) => {
-            const cartItem = cart.find((item) => item.id === product.id) || { quantity: 0 };
-            const isVariation = !!product.parent_id;
+                              {selectedProducts.map((product, index) => {
+                                const cartItem = cart.find((item) => item.id === product.id) || { quantity: 0 };
+                                const isVariation = !!product.parent_id;
 
-            return (
-              <div key={index} className="d-flex align-items-center justify-content-between mb-2 gap-2" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
-                <div className="d-flex align-items-center justify-content-start gap-2">
-                  <div>
-                    <i className="fas fa-times" onClick={() => removeproduct(product.id)} style={{ cursor: "pointer" }}></i>
-                  </div>
-                  <div className="d-flex align-items-center justify-content-start gap-2">
-                    <div>
-                      <Card.Img
-                        variant="top"
-                        src={product?.image?.src || product?.images?.[0]?.src || "https://via.placeholder.com/150"}
-                        alt={product?.image?.alt || product?.images?.[0]?.alt || "Product Image"}
-                        style={{ height: '85px', width: '85px', objectFit: 'cover' }}
-                      />
-                    </div>
-                    <div>
-                      <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 14 }}>
-                        {isVariation ? `${product.parent_name || "Product"} (Variation)` : product.name || "Unknown"}
-                      </Card.Subtitle>
+                                return (
+                                  <div key={index} className="d-flex align-items-center justify-content-between mb-2 gap-2" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
+                                    <div className="d-flex align-items-center justify-content-start gap-2">
+                                      <div>
+                                        <i className="fas fa-times" onClick={() => removeproduct(product.id)} style={{ cursor: "pointer" }}></i>
+                                      </div>
+                                      <div className="d-flex align-items-center justify-content-start gap-2">
+                                        <div>
+                                          <Card.Img
+                                            variant="top"
+                                            src={product?.image?.src || product?.images?.[0]?.src || "https://via.placeholder.com/150"}
+                                            alt={product?.image?.alt || product?.images?.[0]?.alt || "Product Image"}
+                                            style={{ height: '85px', width: '85px', objectFit: 'cover' }}
+                                          />
+                                        </div>
+                                        <div>
+                                          <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 14 }}>
+                                            {isVariation ? `${product.parent_name || "Product"} (Variation)` : product.name || "Unknown"}
+                                          </Card.Subtitle>
 
-                      {product.attributes && product.attributes.length > 0 && (
-                        <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-                          {product.attributes.map(attr => `${attr.name}: ${attr.option}`).join(', ')}
-                        </Card.Subtitle>
-                      )}
+                                          {product.attributes && product.attributes.length > 0 && (
+                                            <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
+                                              {product.attributes.map(attr => `${attr.name}: ${attr.option}`).join(', ')}
+                                            </Card.Subtitle>
+                                          )}
 
-                      <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
-                        SKU: {product.sku || "N/A"}
-                      </Card.Subtitle>
-                      <Card.Subtitle style={{ fontSize: 12 }}>
-                        Quantity: {cartItem.quantity}
-                      </Card.Subtitle>
+                                          <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
+                                            SKU: {product.sku || "N/A"}
+                                          </Card.Subtitle>
+                                          <Card.Subtitle style={{ fontSize: 12 }}>
+                                            Quantity: {cartItem.quantity}
+                                          </Card.Subtitle>
 
-                      <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 12 }}>
-                        Price: 
-                        <input
-                          type="number"
-                          value={cartItem.price}
-                          onChange={(e) => updatePrice(product.id, e.target.value)}
-                          style={{ marginLeft: 5, width: 70 }}
-                        /> 
-                       GBP
-                      </Card.Subtitle>
+                                          <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 12 }}>
+                                            Price: 
+                                            <input
+                                              type="number"
+                                              value={cartItem.price}
+                                              onChange={(e) => updatePrice(product.id, e.target.value)}
+                                              style={{ marginLeft: 5, width: 70 }}
+                                            /> 
+                                          GBP
+                                          </Card.Subtitle>
 
-                    </div>
-                  </div>
-                </div>
+                                        </div>
+                                      </div>
+                                    </div>
 
-                <div className="d-flex align-items-center gap-2">
-                  <i className="fe fe-plus" onClick={() => updateQuantity(product.id, product.price, 1)} style={{ cursor: "pointer" }}></i>
-                  <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
-                  <i className="fe fe-minus" onClick={() => updateQuantity(product.id, product.price, -1)} style={{ cursor: "pointer" }}></i>
-                </div>
-              </div>
-            );
-          })}
+                                    <div className="d-flex align-items-center gap-2">
+                                      <i className="fe fe-plus" onClick={() => updateQuantity(product.id, product.price, 1)} style={{ cursor: "pointer" }}></i>
+                                      <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
+                                      <i className="fe fe-minus" onClick={() => updateQuantity(product.id, product.price, -1)} style={{ cursor: "pointer" }}></i>
+                                    </div>
+                                  </div>
+                                );
+                              })}
 
-          <hr />
-          <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
-            <div>
-              <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Quantity: {totalQuantity}</Card.Subtitle>
-            </div>
-            <div>
-              <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Total: {totalPrice} $</Card.Subtitle>
-            </div>
-          </div>
-        </Card.Body>
-      </Card>
-    </Col>
-  </Row>
-)}
-
+                              <hr />
+                              <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
+                                <div>
+                                  <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Quantity: {totalQuantity}</Card.Subtitle>
+                                </div>
+                                <div>
+                                  <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Total: {totalPrice} $</Card.Subtitle>
+                                </div>
+                              </div>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      </Row>
+                    )}
                     <Row className="mb-3 d-flex align-items-center justify-content-start">
                       <Col md={4} xs={12}>
                            <h5 className="mb-3 mt-2">Billing information</h5>
                       </Col>
                       <Col md={4} xs={12}>
-                        <ExistingCustomerOrOrder orders={orders} customers={customers} setFormData={setFormData} />
+                        <ExistingCustomerOrOrder orders={orders} customers={customers} setFormData={setFormData} setShippingData={setShippingData} />
                       </Col>
                     </Row>
                     <Row className="mb-3">
@@ -823,7 +840,7 @@ const Addorder = () => {
                       </Col>
                     </Row> */}
                     <Row className="mb-3">
-                      <Form.Label className="col-sm-4" htmlFor="countryprovince">Country / Province</Form.Label>
+                      <Form.Label className="col-sm-4" htmlFor="countryprovince">Country / State</Form.Label>
                       <Col sm={4} className="mb-3 mb-lg-0">
                         <Form.Select
                              onChange={handleChange}
@@ -861,6 +878,33 @@ const Addorder = () => {
                         <Form.Control type="email" value={formData.email} onChange={handleChange} name="email" placeholder="Enter email" id="contactinfo" required />
                       </Col>
                     </Row>
+                    <Row className="mb-3">
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="TranscationID/Note">TranscationID/Note</Form.Label>
+                      <Col sm={4} className="mb-3 mb-lg-0">
+                        <Form.Control type="text" value={formData.tranctionid} onChange={handleChange} name="tranctionid" placeholder="Enter Transcation ID" id="TranscationID/Note" required />
+                      </Col>
+                      <Col sm={4}>
+                        <Form.Control type="text" value={formData.customernote} onChange={handleChange} name="customernote" placeholder="Enter Note" id="TranscationID/Note" required />
+                      </Col>
+                    </Row>
+                    <Row className="mb-3">
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="Address">Address line 1/2</Form.Label>
+                      <Col sm={4} className="mb-3 mb-lg-0">
+                        <Form.Control type="text" value={formData.addressline1} onChange={handleChange} name="addressline1" placeholder="Enter Address line 1" id="Address" required />
+                      </Col>
+                      <Col sm={4}>
+                        <Form.Control type="text" value={formData.addressline2} onChange={handleChange} name="addressline2" placeholder="Enter Address line 2" id="Address" required />
+                      </Col>
+                    </Row>
+                    <Row className="mb-3">
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="companyinfo">Company info</Form.Label>
+                      <Col sm={4} className="mb-3 mb-lg-0">
+                        <Form.Control type="text" value={formData.company} onChange={handleChange} name="company" placeholder="Enter company" id="companyinfo" required />
+                      </Col>
+                      <Col sm={4}>
+                        {/* <Form.Control type="email" value={formData.email} onChange={handleChange} name="email" placeholder="Enter email" id="companyinfo" required /> */}
+                      </Col>
+                    </Row>
                     {/* row */}
                     {/* <Row className="mb-3">
                       <Form.Label className="col-sm-4" htmlFor="phone">Phone 
@@ -870,9 +914,8 @@ const Addorder = () => {
                         <Form.Control type="text" value={formData.phone} onChange={handleChange} name="phone" placeholder="Enter Phone" id="phone" />
                       </Col>
                     </Row> */}
-
                     {/* Location */}
-                    <Row className="mb-3">
+                    {/* <Row className="mb-3">
                       <Form.Label className="col-sm-4" htmlFor="country">Address</Form.Label>
                       <Col md={8} xs={12}>
                         <Form.Control
@@ -884,7 +927,7 @@ const Addorder = () => {
                             required
                         />
                       </Col>
-                    </Row>
+                    </Row> */}
                     {/* Address Line One */}
                     {/* <Row className="mb-3">
                       <Form.Label className="col-sm-4" htmlFor="addressLine">Address line 1</Form.Label>

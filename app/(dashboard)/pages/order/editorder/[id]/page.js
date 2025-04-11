@@ -55,28 +55,36 @@ const EditOrder = ({params}) => {
         shippingmethodtitle: '',
   });
 
-  const [shippingData, setShippingData] = useState({
-        shippingfirstname: '',
-        shippinglastname: '',
-        shippingemail: '',
-        shippingcountry: '',
-        shippingprovince: '',
-        shippingphone: '',
-        shippingcity: '',
-        shippingzipcode: '',
-        shippingfulladdress: '',
-  });
-  const [formData, setFormData] = useState({
-        firstname: '',
-        lastname: '',
-        email: '',
-        country: '',
-        province: '',
-        phone: '',
-        city: '',
-        zipcode: '',
-        fulladdress: '',
-  });
+ const [shippingData, setShippingData] = useState({
+         shippingfirstname: '',
+         shippinglastname: '',
+         shippingemail: '',
+         shippingcompany: '',
+         shippingcountry: '',
+         shippingprovince: '',
+         shippingphone: '',
+         shippingcity: '',
+         shippingzipcode: '',
+         shippingaddressline1: '',
+         shippingaddressline2: '',
+         shippingfulladdress: '',
+   });
+   const [formData, setFormData] = useState({
+         firstname: '',
+         lastname: '',
+         email: '',
+         country: '',
+         company: '',
+         tranctionid: '',
+         customernote: '',
+         province: '',
+         phone: '',
+         city: '',
+         zipcode: '',
+         addressline1: '',
+         addressline2: '',
+         fulladdress: '',
+   });
 
   const fetchorder = async (orderid) => {
     try {
@@ -120,11 +128,14 @@ const EditOrder = ({params}) => {
             shippingfirstname: response.data.data.shipping.first_name || '',
             shippinglastname: response.data.data.shipping.last_name || '',
             shippingcountry: response.data.data.shipping.country || '',
+            shippingcompany: response.data.data.shipping.company || '',
             shippingprovince: response.data.data.shipping.state || '',
             shippingphone: response.data.data.shipping.phone || '',
             shippingcity: response.data.data.shipping.city || '',
             shippingzipcode: response.data.data.shipping.postcode || '',
-            shippingfulladdress: `${response.data.data.shipping.address_1 || ''}, ${response.data.data.shipping.address_2 || ''}`,
+            shippingaddressline1: response.data.data.shipping.address_1 || '',
+            shippingaddressline2: response.data.data.shipping.address_2 || '',
+            // shippingfulladdress: `${response.data.data.shipping.address_1 || ''}, ${response.data.data.shipping.address_2 || ''}`,
           });
           setFormData({
             firstname:response.data.data.billing.first_name || '',
@@ -135,7 +146,12 @@ const EditOrder = ({params}) => {
             phone: response.data.data.billing.phone || '',
             city: response.data.data.billing.city || '',
             zipcode: response.data.data.billing.postcode || '',
-            fulladdress:`${response.data.data.billing.address_1 || ''}, ${response.data.data.billing.address_2 || ''}`,
+            company: response.data.data.billing.company || '',
+            addressline1: response.data.data.billing.address_1 || '',
+            addressline2: response.data.data.billing.address_2 || '',
+            tranctionid: response.data.data.transaction_id || '',
+            customernote: response.data.data.customer_note || '',
+            // fulladdress:`${response.data.data.billing.address_1 || ''}, ${response.data.data.billing.address_2 || ''}`,
           });
       } else {
         console.error("Unexpected API Response:", response.data);
@@ -492,7 +508,7 @@ const EditOrder = ({params}) => {
         ...prevData,
         [name]: value,
       }));
-    } else if (name === "shippingfirstname" || name === "shippinglastname" || name === "shippingcountry" || name === "shippingprovince" || name === "shippingcity" || name === "shippingzipcode" || name === "shippingfulladdress" || name === "shippingphone") {
+    } else if (name === "shippingfirstname" || name === "shippinglastname" || name === "shippingcountry" || name === "shippingprovince" || name === "shippingcity" || name === "shippingzipcode" || name === "shippingfulladdress" || name === "shippingphone" || name === "shippingcompany" || name === "shippingaddressline1"  || name === "shippingaddressline2") {
       setShippingData((prevData) => ({
         ...prevData,
         [name]: value,
@@ -665,36 +681,59 @@ const EditOrder = ({params}) => {
     const Data = {
       payment_method: orderData.paymentmethodid || fetchedproduct?.payment_method || "",
       payment_method_title: orderData.paymentmethodtitle || fetchedproduct?.payment_method_title || "",
+      customer_note: formData.customernote ||  fetchedproduct?.customernote || "", 
+      transaction_id: formData.tranctionid || fetchedproduct?.tranctionid ||  "", 
       set_paid: fetchedproduct?.set_paid || false,
-    
       billing: {
         first_name: formData.firstname || fetchedproduct?.billing?.first_name || "",
         last_name: formData.lastname || fetchedproduct?.billing?.last_name || "",
-        address_1: formData.fulladdress?.split(",")[0] || fetchedproduct?.billing?.address_1 || "",
-        address_2: formData.fulladdress?.split(",").slice(1).join(", ") || fetchedproduct?.billing?.address_2 || "",
+        address_1: formData.addressline1 || fetchedproduct?.billing?.address_1 || "",
+        address_2: formData.addressline2 || fetchedproduct?.billing?.address_2 || "",
         city: formData.city || fetchedproduct?.billing?.city || "",
         state: formData.province || fetchedproduct?.billing?.state || "",
         postcode: formData.zipcode || fetchedproduct?.billing?.postcode || "",
         country: formData.country || fetchedproduct?.billing?.country || "",
+        company: formData.company ||  fetchedproduct?.billing?.company || "",
         email: formData.email || fetchedproduct?.billing?.email || "",
         phone: formData.phone || fetchedproduct?.billing?.phone || "",
       },
-    
       shipping: {
-        first_name: isShippingEnabled ? formData.firstname : fetchedproduct?.shipping?.first_name || "",
-        last_name: isShippingEnabled ? formData.lastname : fetchedproduct?.shipping?.last_name || "",
+        first_name: isShippingEnabled
+          ? formData.firstname
+          : shippingData.shippingfirstname ?? fetchedproduct?.shipping?.first_name ?? "",
+
+        last_name: isShippingEnabled
+          ? formData.lastname
+          : shippingData.shippinglastname ?? fetchedproduct?.shipping?.last_name ?? "",
+      
         address_1: isShippingEnabled
-          ? formData.fulladdress?.split(",")[0] || ""
-          : fetchedproduct?.shipping?.address_1 || "",
+          ? formData.addressline1 ?? ""
+          : shippingData.shippingaddressline1 ?? fetchedproduct?.shipping?.address_1 ?? "",
+      
         address_2: isShippingEnabled
-          ? formData.fulladdress?.split(",").slice(1).join(", ") || ""
-          : fetchedproduct?.shipping?.address_2 || "",
-        city: isShippingEnabled ? formData.city : fetchedproduct?.shipping?.city || "",
-        state: isShippingEnabled ? formData.province : fetchedproduct?.shipping?.state || "",
-        postcode: isShippingEnabled ? formData.zipcode : fetchedproduct?.shipping?.postcode || "",
-        country: isShippingEnabled ? formData.country : fetchedproduct?.shipping?.country || "",
-      },
-    
+          ? formData.addressline2 ?? ""
+          : shippingData.shippingaddressline2 ?? fetchedproduct?.shipping?.address_2 ?? "",
+      
+        city: isShippingEnabled
+          ? formData.city
+          : shippingData.shippingcity ?? fetchedproduct?.shipping?.city ?? "",
+      
+        company: isShippingEnabled
+          ? formData.company
+          : shippingData.shippingcompany ?? fetchedproduct?.shipping?.company ?? "",
+      
+        state: isShippingEnabled
+          ? formData.province
+          : shippingData.shippingprovince ?? fetchedproduct?.shipping?.state ?? "",
+      
+        postcode: isShippingEnabled
+          ? formData.zipcode
+          : shippingData.shippingzipcode ?? fetchedproduct?.shipping?.postcode ?? "",
+      
+        country: isShippingEnabled
+          ? formData.country
+          : shippingData.shippingcountry ?? fetchedproduct?.shipping?.country ?? ""
+      },   
       line_items: [
         // Update existing products
         ...fetchedproduct?.line_items?.map(existingItem => {
@@ -742,8 +781,6 @@ const EditOrder = ({params}) => {
           total: (newItem.price * newItem.quantity).toFixed(2),
         }))
       ],
-      
-      
       //Preserve shipping methods safely
       shipping_lines: fetchedproduct?.shipping_lines?.map(line => ({
         id: line.id, 
@@ -954,7 +991,7 @@ const EditOrder = ({params}) => {
 
   // Calculate total quantity and price
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-  console.log("Cart contents:", cart);
+  // console.log("Cart contents:", cart);
   const totalPrice = cart.reduce((sum, item) => {
     const price = parseFloat(item.price) || 0;
     const quantity = parseInt(item.quantity) || 0;
@@ -1245,7 +1282,7 @@ const EditOrder = ({params}) => {
                            <h5 className="mb-3 mt-2">Billing information</h5>
                       </Col>
                       <Col md={4} xs={12}>
-                        <ExistingCustomerOrOrder orders={orders} customers={customers} setFormData={setFormData} />
+                        <ExistingCustomerOrOrder orders={orders} customers={customers} setFormData={setFormData} setShippingData={setShippingData}  />
                       </Col>
                     </Row>
                     <Row className="mb-3">
@@ -1272,7 +1309,7 @@ const EditOrder = ({params}) => {
                       </Col>
                     </Row> */}
                     <Row className="mb-3">
-                      <Form.Label className="col-sm-4" htmlFor="countryprovince">Country / Province</Form.Label>
+                      <Form.Label className="col-sm-4" htmlFor="countryprovince">Country / State</Form.Label>
                       <Col sm={4} className="mb-3 mb-lg-0">
                         <Form.Select
                              onChange={handleChange}
@@ -1289,7 +1326,7 @@ const EditOrder = ({params}) => {
                         </Form.Select>
                       </Col>
                       <Col sm={4}>
-                        <Form.Control type="text" value={formData.province} onChange={handleChange} name="province" placeholder="Enter province" id="countryprovince" required />
+                        <Form.Control type="text" value={formData.province} onChange={handleChange} name="province" placeholder="Enter State" id="countryprovince" required />
                       </Col>
                     </Row>
                     <Row className="mb-3">
@@ -1310,6 +1347,33 @@ const EditOrder = ({params}) => {
                         <Form.Control type="email" value={formData.email} onChange={handleChange} name="email" placeholder="Enter email" id="contactinfo" required />
                       </Col>
                     </Row>
+                    <Row className="mb-3">
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="TranscationID/Note">TranscationID/Note</Form.Label>
+                      <Col sm={4} className="mb-3 mb-lg-0">
+                        <Form.Control type="text" value={formData.tranctionid} onChange={handleChange} name="tranctionid" placeholder="Enter Transcation ID" id="TranscationID/Note" required />
+                      </Col>
+                      <Col sm={4}>
+                        <Form.Control type="text" value={formData.customernote} onChange={handleChange} name="customernote" placeholder="Enter Note" id="TranscationID/Note" required />
+                      </Col>
+                    </Row>
+                    <Row className="mb-3">
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="Address">Address line 1/2</Form.Label>
+                      <Col sm={4} className="mb-3 mb-lg-0">
+                        <Form.Control type="text" value={formData.addressline1} onChange={handleChange} name="addressline1" placeholder="Enter Address line 1" id="Address" required />
+                      </Col>
+                      <Col sm={4}>
+                        <Form.Control type="text" value={formData.addressline2} onChange={handleChange} name="addressline2" placeholder="Enter Address line 2" id="Address" required />
+                      </Col>
+                    </Row>
+                    <Row className="mb-3">
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="companyinfo">Company info</Form.Label>
+                      <Col sm={4} className="mb-3 mb-lg-0">
+                        <Form.Control type="text" value={formData.company} onChange={handleChange} name="company" placeholder="Enter company" id="companyinfo" required />
+                      </Col>
+                      <Col sm={4}>
+                        {/* <Form.Control type="email" value={formData.email} onChange={handleChange} name="email" placeholder="Enter email" id="companyinfo" required /> */}
+                      </Col>
+                    </Row>
                     {/* row */}
                     {/* <Row className="mb-3">
                       <Form.Label className="col-sm-4" htmlFor="phone">Phone 
@@ -1321,7 +1385,7 @@ const EditOrder = ({params}) => {
                     </Row> */}
 
                     {/* Location */}
-                    <Row className="mb-3">
+                    {/* <Row className="mb-3">
                       <Form.Label className="col-sm-4" htmlFor="country">Address</Form.Label>
                       <Col md={8} xs={12}>
                         <Form.Control
@@ -1333,7 +1397,7 @@ const EditOrder = ({params}) => {
                             required
                         />
                       </Col>
-                    </Row>
+                    </Row> */}
                     {/* Address Line One */}
                     {/* <Row className="mb-3">
                       <Form.Label className="col-sm-4" htmlFor="addressLine">Address line 1</Form.Label>

@@ -11,7 +11,7 @@ export async function GET(req) {
   const token = cookieStore.get('token');
   const { searchParams } = new URL(req.url);
   const customerid = searchParams.get("customer_id");
-  console.log(customerid);
+  // console.log(customerid);
 
   if (!token) {
     const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });
@@ -25,7 +25,7 @@ export async function GET(req) {
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page"), 10) || 1;
-    console.log('page:', page);
+    // console.log('page:', page);
 
     if (!decoded.permissions.includes(requiredPermission)) {
         return NextResponse.json(
@@ -42,7 +42,7 @@ export async function GET(req) {
     
     const response = await WooCommerc.get("orders", params);
 
-    console.log(response.data);
+    // console.log(response.data);
     const totalorders = parseInt(response.headers['x-wp-total'] || response.headers['X-WP-Total']) || 0;
 
     return NextResponse.json(

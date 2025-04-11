@@ -12,7 +12,7 @@ export async function GET(req) {
   const searchParams = req.nextUrl.searchParams;
   const date_min = searchParams.get("date_min");
   const date_max = searchParams.get("date_max");
-  console.log(date_min);
+  // console.log(date_min);
 
   if (!token) {
     const response = NextResponse.json({ status: "tokenerror", message: "Token Missing!" }, { status: 401 });

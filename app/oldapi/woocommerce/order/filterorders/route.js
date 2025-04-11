@@ -23,7 +23,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page"), 10) || 1;
     const search = searchParams.get("search") || "";
-    console.log('page:', page);
+    // console.log('page:', page);
 
     if (!decoded.permissions.includes(requiredPermission)) {
         return NextResponse.json(
