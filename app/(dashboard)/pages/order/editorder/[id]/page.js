@@ -61,6 +61,7 @@ const EditOrder = ({params}) => {
          shippingemail: '',
          shippingcompany: '',
          shippingcountry: '',
+         shippingcustomernote: '',
          shippingprovince: '',
          shippingphone: '',
          shippingcity: '',
@@ -76,7 +77,7 @@ const EditOrder = ({params}) => {
          country: '',
          company: '',
          tranctionid: '',
-         customernote: '',
+        //  customernote: '',
          province: '',
          phone: '',
          city: '',
@@ -131,6 +132,7 @@ const EditOrder = ({params}) => {
             shippingcompany: response.data.data.shipping.company || '',
             shippingprovince: response.data.data.shipping.state || '',
             shippingphone: response.data.data.shipping.phone || '',
+            shippingcustomernote: response.data.data.customer_note || '',
             shippingcity: response.data.data.shipping.city || '',
             shippingzipcode: response.data.data.shipping.postcode || '',
             shippingaddressline1: response.data.data.shipping.address_1 || '',
@@ -150,7 +152,7 @@ const EditOrder = ({params}) => {
             addressline1: response.data.data.billing.address_1 || '',
             addressline2: response.data.data.billing.address_2 || '',
             tranctionid: response.data.data.transaction_id || '',
-            customernote: response.data.data.customer_note || '',
+            // customernote: response.data.data.customer_note || '',
             // fulladdress:`${response.data.data.billing.address_1 || ''}, ${response.data.data.billing.address_2 || ''}`,
           });
       } else {
@@ -508,7 +510,7 @@ const EditOrder = ({params}) => {
         ...prevData,
         [name]: value,
       }));
-    } else if (name === "shippingfirstname" || name === "shippinglastname" || name === "shippingcountry" || name === "shippingprovince" || name === "shippingcity" || name === "shippingzipcode" || name === "shippingfulladdress" || name === "shippingphone" || name === "shippingcompany" || name === "shippingaddressline1"  || name === "shippingaddressline2") {
+    } else if (name === "shippingfirstname" || name === "shippinglastname" || name === "shippingcountry" || name === "shippingprovince" || name === "shippingcity" || name === "shippingzipcode" || name === "shippingfulladdress" || name === "shippingphone" || name === "shippingcompany" || name === "shippingaddressline1"  || name === "shippingaddressline2" || name === "shippingcustomernote") {
       setShippingData((prevData) => ({
         ...prevData,
         [name]: value,
@@ -681,7 +683,7 @@ const EditOrder = ({params}) => {
     const Data = {
       payment_method: orderData.paymentmethodid || fetchedproduct?.payment_method || "",
       payment_method_title: orderData.paymentmethodtitle || fetchedproduct?.payment_method_title || "",
-      customer_note: formData.customernote ||  fetchedproduct?.customernote || "", 
+      customer_note: shippingData.shippingcustomernote ||  fetchedproduct?.customer_note || "", 
       transaction_id: formData.tranctionid || fetchedproduct?.tranctionid ||  "", 
       set_paid: fetchedproduct?.set_paid || false,
       billing: {
@@ -1294,6 +1296,33 @@ const EditOrder = ({params}) => {
                         <Form.Control type="text" value={formData.lastname} onChange={handleChange} name="lastname" placeholder="Last name" id="lastName" required />
                       </Col>
                     </Row>
+                    <Row className="mb-3">
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="companyinfo">Company info</Form.Label>
+                      <Col sm={4} className="mb-3 mb-lg-0">
+                        <Form.Control type="text" value={formData.company} onChange={handleChange} name="company" placeholder="Enter company" id="companyinfo" />
+                      </Col>
+                      <Col sm={4}>
+                        {/* <Form.Control type="email" value={formData.email} onChange={handleChange} name="email" placeholder="Enter email" id="companyinfo" required /> */}
+                      </Col>
+                    </Row>
+                    <Row className="mb-3">
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="Address">Address line 1/2</Form.Label>
+                      <Col sm={4} className="mb-3 mb-lg-0">
+                        <Form.Control type="text" value={formData.addressline1} onChange={handleChange} name="addressline1" placeholder="Enter Address line 1" id="Address" required />
+                      </Col>
+                      <Col sm={4}>
+                        <Form.Control type="text" value={formData.addressline2} onChange={handleChange} name="addressline2" placeholder="Enter Address line 2" id="Address"  />
+                      </Col>
+                    </Row>
+                    <Row className="mb-3">
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="cityzipcode">City / ZipCode</Form.Label>
+                      <Col sm={4} className="mb-3 mb-lg-0">
+                        <Form.Control type="text" value={formData.city} onChange={handleChange} name="city" placeholder="Enter city" id="cityzipcode" required />
+                      </Col>
+                      <Col sm={4}>
+                        <Form.Control type="text" value={formData.zipcode} onChange={handleChange} name="zipcode" placeholder="Enter zipcode" id="cityzipcode" required />
+                      </Col>
+                    </Row>
                     {/* Address Line Two */}
                     {/* <Row className="mb-3">
                       <Form.Label className="col-sm-4" htmlFor="country">Country</Form.Label>
@@ -1329,15 +1358,7 @@ const EditOrder = ({params}) => {
                         <Form.Control type="text" value={formData.province} onChange={handleChange} name="province" placeholder="Enter State" id="countryprovince" required />
                       </Col>
                     </Row>
-                    <Row className="mb-3">
-                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="cityzipcode">City / ZipCode</Form.Label>
-                      <Col sm={4} className="mb-3 mb-lg-0">
-                        <Form.Control type="text" value={formData.city} onChange={handleChange} name="city" placeholder="Enter city" id="cityzipcode" required />
-                      </Col>
-                      <Col sm={4}>
-                        <Form.Control type="text" value={formData.zipcode} onChange={handleChange} name="zipcode" placeholder="Enter zipcode" id="cityzipcode" required />
-                      </Col>
-                    </Row>
+                    
                     <Row className="mb-3">
                       <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="contactinfo">Contact info</Form.Label>
                       <Col sm={4} className="mb-3 mb-lg-0">
@@ -1348,30 +1369,12 @@ const EditOrder = ({params}) => {
                       </Col>
                     </Row>
                     <Row className="mb-3">
-                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="TranscationID/Note">TranscationID/Note</Form.Label>
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="TranscationID/Note">Transcation ID</Form.Label>
                       <Col sm={4} className="mb-3 mb-lg-0">
                         <Form.Control type="text" value={formData.tranctionid} onChange={handleChange} name="tranctionid" placeholder="Enter Transcation ID" id="TranscationID/Note"  />
                       </Col>
                       <Col sm={4}>
-                        <Form.Control type="text" value={formData.customernote} onChange={handleChange} name="customernote" placeholder="Enter Note" id="TranscationID/Note"  />
-                      </Col>
-                    </Row>
-                    <Row className="mb-3">
-                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="Address">Address line 1/2</Form.Label>
-                      <Col sm={4} className="mb-3 mb-lg-0">
-                        <Form.Control type="text" value={formData.addressline1} onChange={handleChange} name="addressline1" placeholder="Enter Address line 1" id="Address" required />
-                      </Col>
-                      <Col sm={4}>
-                        <Form.Control type="text" value={formData.addressline2} onChange={handleChange} name="addressline2" placeholder="Enter Address line 2" id="Address"  />
-                      </Col>
-                    </Row>
-                    <Row className="mb-3">
-                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="companyinfo">Company info</Form.Label>
-                      <Col sm={4} className="mb-3 mb-lg-0">
-                        <Form.Control type="text" value={formData.company} onChange={handleChange} name="company" placeholder="Enter company" id="companyinfo" />
-                      </Col>
-                      <Col sm={4}>
-                        {/* <Form.Control type="email" value={formData.email} onChange={handleChange} name="email" placeholder="Enter email" id="companyinfo" required /> */}
+                        {/* <Form.Control type="text" value={formData.customernote} onChange={handleChange} name="customernote" placeholder="Enter Note" id="TranscationID/Note"  /> */}
                       </Col>
                     </Row>
                     {/* row */}
