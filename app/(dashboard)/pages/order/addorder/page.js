@@ -201,39 +201,51 @@ const Addorder = () => {
     // console.log(`${name}: ${value}`);
     if (name === "paymentmethod") {
       const [id, title] = value.split("|"); // Extract ID and Title
+
       setOrderData((prevData) => ({
         ...prevData,
         paymentmethodid: id, // Set ID separately
         paymentmethodtitle: title, // Set Title separately
       }));
     }  else if (name === "shippingmethod") {
-      const selected = JSON.parse(value);
-      const { method_id, instance_id, method_title, raw_cost } = selected;
-    
-      // Compute shipping cost dynamically
-      const qty = cart.reduce((sum, item) => sum + item.quantity, 0);
-      const cost = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
-    
-      // Replace placeholders in the cost string
-      let calculatedCost = raw_cost
-        ?.replace(/\[qty\]/gi, qty)
-        ?.replace(/\[cost\]/gi, cost.toFixed(2));
-    
-      try {
-        // Evaluate basic expressions like "10.00 * 2"
-        // WARNING: Safe only for your controlled cost strings
-        // Don't use eval on user input
-        calculatedCost = Function(`return (${calculatedCost})`)();
-      } catch (err) {
-        calculatedCost = 0; // fallback
-      }
-    
-      setOrderData((prevData) => ({
-        ...prevData,
-        shippingmethodid: `${method_id}:${instance_id}`,
-        shippingmethodtitle: method_title,
-        shippingcost: parseFloat(calculatedCost).toFixed(2) || "0.00"
-      }));
+      
+        const [fullId, method_title] = value.split("|");
+        const [method_id, instance_id] = fullId.split(":");
+
+        // Find raw_cost from shippingmethods array
+        const selectedMethod = shippingmethods.find(
+          (m) => m.method_id === method_id && String(m.instance_id) === instance_id
+        );
+        const raw_cost = selectedMethod?.settings?.cost?.value || "0";
+        console.log("selectedMethod",selectedMethod);
+
+
+        // Compute qty & cost
+        const qty = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const cost = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+
+        // Replace placeholders
+        let calculatedCost = raw_cost
+          ?.replace(/\[qty\]/gi, qty)
+          ?.replace(/\[cost\]/gi, cost.toFixed(2));
+        console.log("calculatedCost",calculatedCost);
+
+        try {
+          calculatedCost = Function(`return (${calculatedCost})`)();
+        } catch (err) {
+          calculatedCost = 0;
+        }
+        console.log("calculatedCost",calculatedCost);
+
+
+        // Set order data
+        setOrderData((prevData) => ({
+          ...prevData,
+          shippingmethodid: `${method_id}:${instance_id}`,
+          shippingmethodtitle: method_title,
+          shippingcost: parseFloat(calculatedCost).toFixed(2) || "0.00"
+        }));
+
     } else if (name === "orderstatus") {
       setOrderData((prevData) => ({
         ...prevData,
@@ -271,6 +283,8 @@ const Addorder = () => {
       alert("Your cart is empty. Please add items before proceeding.");
       return; // Stop execution
     }
+    const [method_id] = orderData.shippingmethodid?.split(":") || [];
+
     setSubmitting(true);
     const Data = {
       payment_method: orderData.paymentmethodid || "default_method",
@@ -331,7 +345,7 @@ const Addorder = () => {
       }),
       shipping_lines: [
         {
-          method_id: orderData.shippingmethodid?.toLowerCase().replace(/\s+/g, "_") || "free_shipping",
+          method_id: method_id?.toLowerCase().replace(/\s+/g, "_") || "free_shipping",
           method_title: orderData.shippingmethodtitle || "Free Shipping",
           total: orderData.shippingcost || "0.00"
           // total: cart.reduce(
@@ -348,7 +362,7 @@ const Addorder = () => {
     };
 
     //  console.log("Data:", Data);
-   //  return;
+    // return;
 
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/addorder`, Data);
@@ -665,27 +679,26 @@ const Addorder = () => {
                     <Row className="mb-3">
                        <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="shippingmethod">Shipping Method</Form.Label>
                       <Col md={8} xs={12}>
-                        <Form.Select id='shippingmethod' name='shippingmethod'
-                                     onChange={handleChange}
-                                     required
-                                    value={orderData.shippingmethodid && orderData.shippingmethodtitle ? `${orderData.shippingmethodid}|${orderData.shippingmethodtitle}` : ""} 
+                      <Form.Select
+                          id="shippingmethod"
+                          name="shippingmethod"
+                          onChange={handleChange}
+                          required
+                          value={
+                            orderData.shippingmethodid && orderData.shippingmethodtitle
+                              ? `${orderData.shippingmethodid}|${orderData.shippingmethodtitle}`
+                              : ""
+                          }
                         >
-                            <option value="" disabled hidden>Choose...</option>
-                            {shippingmethods
-                            .map((shippingmethod) => (
-                              <option
+                          <option value="" disabled hidden>Choose...</option>
+                          {shippingmethods.map((shippingmethod) => (
+                            <option
                               key={shippingmethod.instance_id}
-                              value={JSON.stringify({
-                                method_id: shippingmethod.method_id,
-                                instance_id: shippingmethod.instance_id,
-                                method_title: shippingmethod.method_title,
-                                raw_cost: shippingmethod.settings?.cost?.value || "0"
-                              })}
+                              value={`${shippingmethod.method_id}:${shippingmethod.instance_id}|${shippingmethod.method_title}`}
                             >
                               {shippingmethod.title}
                             </option>
                           ))}
-                            
                         </Form.Select>
                       </Col>
                     </Row>
