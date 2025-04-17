@@ -166,7 +166,7 @@ const Addorder = () => {
       setOrder(ordersRes.data?.data || []);
       setPaymentgateway(paymentRes.data?.data || []);
       setShippingmethods(shippingRes.data?.data || []);
-      console.log(shippingRes);
+      console.log(shippingRes.data?.data);
     } catch (error) {
       console.error("Error fetching data:", error.message);
     } finally {
@@ -274,6 +274,46 @@ const Addorder = () => {
       )
     );
   };
+
+
+  const calculateShippingCost = (shippingMethod, cart) => {
+    const rawCost = shippingMethod?.settings?.cost?.value || "0";
+    const qty = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const cost = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  
+    let calculatedCost = rawCost.replace(/\[qty\]/gi, qty).replace(/\[cost\]/gi, cost.toFixed(2));
+  
+    try {
+      calculatedCost = Function(`return (${calculatedCost})`)();
+    } catch (err) {
+      calculatedCost = 0;
+    }
+  
+    return parseFloat(calculatedCost).toFixed(2);
+  };
+  
+  // Extract method details
+  const parseShippingSelection = (value, shippingMethods) => {
+    const [fullId, methodTitle] = value.split("|");
+    const [methodId, instanceId] = fullId.split(":");
+  
+    const selectedMethod = shippingMethods.find(
+      (m) => m.method_id === methodId && String(m.instance_id) === instanceId
+    );
+  
+    const shippingCost = calculateShippingCost(selectedMethod, cart);
+  
+    return {
+      method_id: methodId.toLowerCase(),
+      instance_id: instanceId,
+      method_title: methodTitle,
+      total: shippingCost,
+    };
+  };
+
+
+
+
   const handleSubmit = async (event) => {  
     event.preventDefault();
     // console.log("formData at submit:", formData);
@@ -289,6 +329,13 @@ const Addorder = () => {
     const [method_id, instance_id] = orderData.shippingmethodid?.split(":") || [];
 
     setSubmitting(true);
+
+
+    const shippingLine = parseShippingSelection(
+      `${orderData.shippingmethodid}|${orderData.shippingmethodtitle}`,
+      shippingmethods
+    );
+  
     const Data = {
       payment_method: orderData.paymentmethodid || "default_method",
       payment_method_title: orderData.paymentmethodtitle || "Unknown Payment Method", 
@@ -346,18 +393,7 @@ const Addorder = () => {
           };
         }
       }),
-      shipping_lines: [
-        {
-          method_id: method_id?.toLowerCase().replace(/\s+/g, "_") || "free_shipping",
-          instance_id: instance_id || "",
-          method_title: orderData.shippingmethodtitle || "Free Shipping",
-          total: orderData.shippingcost || "0.00"
-          // total: cart.reduce(
-          //   (sum, item) => sum + item.quantity * parseFloat(item.price),
-          //   0
-          // ).toFixed(2),
-        },
-      ],
+      shipping_lines: [shippingLine],
       // total_price: cart.reduce(
       //   (sum, item) => sum + item.quantity * parseFloat(item.price),
       //   0
@@ -365,7 +401,11 @@ const Addorder = () => {
       // total_quantity: cart.reduce((sum, item) => sum + item.quantity, 0),
     };
 
-    //  console.log("Data:", Data);
+    // console.log("Cart total:", totalPrice);
+    // console.log("Shipping total:", shippingLine.total);
+    // console.log("Order total:", totalPrice + parseFloat(shippingLine.total));
+
+    // console.log("Data:", Data);
     // return;
 
     try {

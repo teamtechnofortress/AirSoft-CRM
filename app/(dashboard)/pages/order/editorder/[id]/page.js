@@ -471,6 +471,42 @@ const EditOrder = ({params}) => {
   // }
 
   // }
+  const calculateShippingCost = (shippingMethod, cart) => {
+    const rawCost = shippingMethod?.settings?.cost?.value || "0";
+    const qty = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const cost = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  
+    let calculatedCost = rawCost.replace(/\[qty\]/gi, qty).replace(/\[cost\]/gi, cost.toFixed(2));
+  
+    try {
+      calculatedCost = Function(`return (${calculatedCost})`)();
+    } catch (err) {
+      calculatedCost = 0;
+    }
+  
+    return parseFloat(calculatedCost).toFixed(2);
+  };
+
+  
+  const parseShippingSelection = (value, shippingMethods) => {
+    const [fullId, methodTitle] = value.split("|");
+    const [methodId, instanceId] = fullId.split(":");
+  
+    const selectedMethod = shippingMethods.find(
+      (m) => m.method_id === methodId && String(m.instance_id) === instanceId
+    );
+  
+    const shippingCost = calculateShippingCost(selectedMethod, cart);
+  
+    return {
+      method_id: methodId.toLowerCase(),
+      instance_id: instanceId,
+      method_title: methodTitle,
+      total: shippingCost,
+      raw: selectedMethod
+    };
+  };
+  
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -483,45 +519,15 @@ const EditOrder = ({params}) => {
         paymentmethodtitle: title, // Set Title separately
       }));
     } else if (name === "shippingmethod") {
-      const [fullId, method_title] = value.split("|");
-        const [method_id, instance_id] = fullId.split(":");
-        console.log("fullId",fullId);
-        console.log("method_title",method_title);
-        console.log("method_id",method_id);
+      const shippingLine = parseShippingSelection(value, shippingmethods);
 
-        // Find raw_cost from shippingmethods array
-        const selectedMethod = shippingmethods.find(
-          (m) => m.method_id === method_id && String(m.instance_id) === instance_id
-        );
-        const raw_cost = selectedMethod?.settings?.cost?.value || "0";
-        console.log("selectedMethod",selectedMethod);
+      setOrderData((prevData) => ({
+        ...prevData,
+        shippingmethodid: `${shippingLine.method_id}:${shippingLine.instance_id}`,
+        shippingmethodtitle: shippingLine.method_title,
+        shippingcost: shippingLine.total || "0.00",
+      }));
 
-
-        // Compute qty & cost
-        const qty = cart.reduce((sum, item) => sum + item.quantity, 0);
-        const cost = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
-
-        // Replace placeholders
-        let calculatedCost = raw_cost
-          ?.replace(/\[qty\]/gi, qty)
-          ?.replace(/\[cost\]/gi, cost.toFixed(2));
-        console.log("calculatedCost",calculatedCost);
-
-        try {
-          calculatedCost = Function(`return (${calculatedCost})`)();
-        } catch (err) {
-          calculatedCost = 0;
-        }
-        console.log("calculatedCost",calculatedCost);
-
-
-        // Set order data
-        setOrderData((prevData) => ({
-          ...prevData,
-          shippingmethodid: `${method_id}:${instance_id}`,
-          shippingmethodtitle: method_title,
-          shippingcost: parseFloat(calculatedCost).toFixed(2) || "0.00"
-        }));
     }else if (name === "orderstatus") {
       setOrderData((prevData) => ({
         ...prevData,
@@ -698,7 +704,10 @@ const EditOrder = ({params}) => {
     // };
     const [method_id, instance_id] = orderData.shippingmethodid?.split(":") || [];
 
-
+    const shippingLine = parseShippingSelection(
+      `${orderData.shippingmethodid}|${orderData.shippingmethodtitle}`,
+      shippingmethods
+    );
     
 
     const Data = {
@@ -780,16 +789,18 @@ const EditOrder = ({params}) => {
         }))
       ],
       //Preserve shipping methods safely
-      shipping_lines: fetchedproduct?.shipping_lines?.map(line => ({
-        id: line.id, 
-        method_id: method_id?.toLowerCase().replace(/\s+/g, "_") || line.method_id || "free_shipping",
-        instance_id: instance_id || "",
-        method_title: orderData.shippingmethodtitle || line.method_title || "Free Shipping",
-        total: orderData.shipping_cost || line.total || "0.00",
-      })) || [],
+      shipping_lines: [{
+        id: fetchedproduct?.shipping_lines?.[0]?.id || undefined,
+        method_id: shippingLine.method_id,
+        instance_id: shippingLine.instance_id,
+        method_title: shippingLine.method_title,
+        total: shippingLine.total,
+      }],
     
       status: fetchedproduct?.status || "pending",
     };
+    
+
     
     // console.log("Data:", Data);
     // setSubmitting(false);
