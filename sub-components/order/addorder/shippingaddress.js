@@ -81,7 +81,7 @@ const ShippingAddress = ({shippingData,handleChange,countries}) => {
                   value={shippingData.shippingcustomernote} onChange={handleChange}
                   name='shippingcustomernote'
                   placeholder="Enter Note..."
-                  required
+                  
               />
             </Col>
         </Row>

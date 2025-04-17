@@ -211,6 +211,9 @@ const Addorder = () => {
       
         const [fullId, method_title] = value.split("|");
         const [method_id, instance_id] = fullId.split(":");
+        console.log("fullId",fullId);
+        console.log("method_title",method_title);
+        console.log("method_id",method_id);
 
         // Find raw_cost from shippingmethods array
         const selectedMethod = shippingmethods.find(
@@ -283,7 +286,7 @@ const Addorder = () => {
       alert("Your cart is empty. Please add items before proceeding.");
       return; // Stop execution
     }
-    const [method_id] = orderData.shippingmethodid?.split(":") || [];
+    const [method_id, instance_id] = orderData.shippingmethodid?.split(":") || [];
 
     setSubmitting(true);
     const Data = {
@@ -346,6 +349,7 @@ const Addorder = () => {
       shipping_lines: [
         {
           method_id: method_id?.toLowerCase().replace(/\s+/g, "_") || "free_shipping",
+          instance_id: instance_id || "",
           method_title: orderData.shippingmethodtitle || "Free Shipping",
           total: orderData.shippingcost || "0.00"
           // total: cart.reduce(

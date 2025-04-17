@@ -122,7 +122,7 @@ const EditOrder = ({params}) => {
             orderstatus: response.data.data.status || 'pending',
             paymentmethodtitle:response.data.data.payment_method_title || '',
             paymentmethodid:response.data.data.payment_method || '',
-            shippingmethodid: response.data.data.shipping_lines?.[0]?.method_id || "",
+            shippingmethodid: `${response.data.data.shipping_lines?.[0]?.method_id}:${response.data.data.shipping_lines?.[0]?.instance_id}` || "",
             shippingmethodtitle: response.data.data.shipping_lines?.[0]?.method_title || "",
           });
           setShippingData({
@@ -483,28 +483,45 @@ const EditOrder = ({params}) => {
         paymentmethodtitle: title, // Set Title separately
       }));
     } else if (name === "shippingmethod") {
-      const selected = JSON.parse(value);
-      const { method_id, method_title, raw_cost } = selected;
-    
-      const qty = cart.reduce((sum, item) => sum + item.quantity, 0);
-      const cost = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
-    
-      let calculatedCost = raw_cost
-        ?.replace(/\[qty\]/gi, qty)
-        ?.replace(/\[cost\]/gi, cost.toFixed(2));
-    
-      try {
-        calculatedCost = Function(`return (${calculatedCost})`)();
-      } catch (err) {
-        calculatedCost = 0;
-      }
-    
-      setOrderData((prevData) => ({
-        ...prevData,
-        shippingmethodid: method_id,
-        shippingmethodtitle: method_title,
-        shipping_cost: calculatedCost.toFixed(2)
-      }));
+      const [fullId, method_title] = value.split("|");
+        const [method_id, instance_id] = fullId.split(":");
+        console.log("fullId",fullId);
+        console.log("method_title",method_title);
+        console.log("method_id",method_id);
+
+        // Find raw_cost from shippingmethods array
+        const selectedMethod = shippingmethods.find(
+          (m) => m.method_id === method_id && String(m.instance_id) === instance_id
+        );
+        const raw_cost = selectedMethod?.settings?.cost?.value || "0";
+        console.log("selectedMethod",selectedMethod);
+
+
+        // Compute qty & cost
+        const qty = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const cost = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+
+        // Replace placeholders
+        let calculatedCost = raw_cost
+          ?.replace(/\[qty\]/gi, qty)
+          ?.replace(/\[cost\]/gi, cost.toFixed(2));
+        console.log("calculatedCost",calculatedCost);
+
+        try {
+          calculatedCost = Function(`return (${calculatedCost})`)();
+        } catch (err) {
+          calculatedCost = 0;
+        }
+        console.log("calculatedCost",calculatedCost);
+
+
+        // Set order data
+        setOrderData((prevData) => ({
+          ...prevData,
+          shippingmethodid: `${method_id}:${instance_id}`,
+          shippingmethodtitle: method_title,
+          shippingcost: parseFloat(calculatedCost).toFixed(2) || "0.00"
+        }));
     }else if (name === "orderstatus") {
       setOrderData((prevData) => ({
         ...prevData,
@@ -679,63 +696,42 @@ const EditOrder = ({params}) => {
     //   // ✅ Preserve order status
     //   status: fetchedproduct?.status || "pending",
     // };
+    const [method_id, instance_id] = orderData.shippingmethodid?.split(":") || [];
+
+
     
+
     const Data = {
       payment_method: orderData.paymentmethodid || fetchedproduct?.payment_method || "",
       payment_method_title: orderData.paymentmethodtitle || fetchedproduct?.payment_method_title || "",
-      customer_note: shippingData.shippingcustomernote ||  fetchedproduct?.customer_note || "", 
-      transaction_id: formData.tranctionid || fetchedproduct?.tranctionid ||  "", 
+      customer_note: !isShippingEnabled ? shippingData.shippingcustomernote ?? "" : "",
+      transaction_id: formData?.tranctionid ||  "", 
       set_paid: fetchedproduct?.set_paid || false,
       billing: {
-        first_name: formData.firstname || fetchedproduct?.billing?.first_name || "",
-        last_name: formData.lastname || fetchedproduct?.billing?.last_name || "",
-        address_1: formData.addressline1 || fetchedproduct?.billing?.address_1 || "",
-        address_2: formData.addressline2 || fetchedproduct?.billing?.address_2 || "",
-        city: formData.city || fetchedproduct?.billing?.city || "",
-        state: formData.province || fetchedproduct?.billing?.state || "",
-        postcode: formData.zipcode || fetchedproduct?.billing?.postcode || "",
-        country: formData.country || fetchedproduct?.billing?.country || "",
-        company: formData.company ||  fetchedproduct?.billing?.company || "",
-        email: formData.email || fetchedproduct?.billing?.email || "",
-        phone: formData.phone || fetchedproduct?.billing?.phone || "",
-      },
+        first_name: formData.firstname,
+        last_name: formData.lastname,
+        address_1: formData.addressline1,
+        address_2: formData.addressline2,
+        city: formData.city,
+        state: formData.province,
+        postcode: formData.zipcode,
+        country: formData.country,
+        company: formData.company,
+        email: formData.email,
+        phone: formData.phone,
+      },      
       shipping: {
-        first_name: isShippingEnabled
-          ? formData.firstname
-          : shippingData.shippingfirstname ?? fetchedproduct?.shipping?.first_name ?? "",
-
-        last_name: isShippingEnabled
-          ? formData.lastname
-          : shippingData.shippinglastname ?? fetchedproduct?.shipping?.last_name ?? "",
-      
-        address_1: isShippingEnabled
-          ? formData.addressline1 ?? ""
-          : shippingData.shippingaddressline1 ?? fetchedproduct?.shipping?.address_1 ?? "",
-      
-        address_2: isShippingEnabled
-          ? formData.addressline2 ?? ""
-          : shippingData.shippingaddressline2 ?? fetchedproduct?.shipping?.address_2 ?? "",
-      
-        city: isShippingEnabled
-          ? formData.city
-          : shippingData.shippingcity ?? fetchedproduct?.shipping?.city ?? "",
-      
-        company: isShippingEnabled
-          ? formData.company
-          : shippingData.shippingcompany ?? fetchedproduct?.shipping?.company ?? "",
-      
-        state: isShippingEnabled
-          ? formData.province
-          : shippingData.shippingprovince ?? fetchedproduct?.shipping?.state ?? "",
-      
-        postcode: isShippingEnabled
-          ? formData.zipcode
-          : shippingData.shippingzipcode ?? fetchedproduct?.shipping?.postcode ?? "",
-      
-        country: isShippingEnabled
-          ? formData.country
-          : shippingData.shippingcountry ?? fetchedproduct?.shipping?.country ?? ""
-      },   
+        first_name: isShippingEnabled ? formData.firstname : shippingData.shippingfirstname,
+        last_name: isShippingEnabled ? formData.lastname : shippingData.shippinglastname,
+        address_1: isShippingEnabled ? formData.addressline1 : shippingData.shippingaddressline1,
+        address_2: isShippingEnabled ? formData.addressline2 : shippingData.shippingaddressline2,
+        city: isShippingEnabled ? formData.city : shippingData.shippingcity,
+        company: isShippingEnabled ? formData.company : shippingData.shippingcompany,
+        state: isShippingEnabled ? formData.province : shippingData.shippingprovince,
+        postcode: isShippingEnabled ? formData.zipcode : shippingData.shippingzipcode,
+        country: isShippingEnabled ? formData.country : shippingData.shippingcountry,
+        phone: isShippingEnabled ? formData.phone : shippingData.shippingphone,
+      },      
       line_items: [
         // Update existing products
         ...fetchedproduct?.line_items?.map(existingItem => {
@@ -786,7 +782,8 @@ const EditOrder = ({params}) => {
       //Preserve shipping methods safely
       shipping_lines: fetchedproduct?.shipping_lines?.map(line => ({
         id: line.id, 
-        method_id: orderData.shippingmethodid?.toLowerCase().replace(/\s+/g, "_") || line.method_id || "free_shipping",
+        method_id: method_id?.toLowerCase().replace(/\s+/g, "_") || line.method_id || "free_shipping",
+        instance_id: instance_id || "",
         method_title: orderData.shippingmethodtitle || line.method_title || "Free Shipping",
         total: orderData.shipping_cost || line.total || "0.00",
       })) || [],
@@ -1088,11 +1085,7 @@ const EditOrder = ({params}) => {
                           name="shippingmethod"
                           value={
                             orderData.shippingmethodid && orderData.shippingmethodtitle
-                              ? JSON.stringify({
-                                  method_id: orderData.shippingmethodid,
-                                  method_title: orderData.shippingmethodtitle,
-                                  raw_cost: shippingmethods.find(m => m.method_id === orderData.shippingmethodid)?.settings?.cost?.value || "0"
-                                })
+                              ? `${orderData.shippingmethodid}|${orderData.shippingmethodtitle}`
                               : ""
                           }
                           onChange={handleChange}
@@ -1102,11 +1095,7 @@ const EditOrder = ({params}) => {
                           {shippingmethods.map((shippingmethod) => (
                             <option
                               key={shippingmethod.id}
-                              value={JSON.stringify({
-                                method_id: shippingmethod.method_id,
-                                method_title: shippingmethod.title,
-                                raw_cost: shippingmethod.settings?.cost?.value || "0"
-                              })}
+                              value={`${shippingmethod.method_id}:${shippingmethod.instance_id}|${shippingmethod.method_title}`}
                             >
                               {shippingmethod.title}
                             </option>
