@@ -321,7 +321,7 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                                                 : `/pages/order/editorder/${order.id}?type=quote`
                                             }
                                         >
-                                            Edit order
+                                            Edit {OrderTypeState === "quote" ? "quotation" : "order"}
                                         </Dropdown.Item>
                                     )}
                                     <Dropdown.Item
@@ -367,10 +367,14 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                         </Col>
                         ))
                     ) : (
-                    <p className="text-center">No order found.</p>
+                    <p className="text-center">
+                        No {OrderTypeState === "quote" ? "quotation found." : "order found."} 
+                    </p>
                     )
                 ) : (
-                    <p className="text-center">No order found.</p>
+                    <p className="text-center">
+                         No {OrderTypeState === "quote" ? "quotation found." : "order found."} 
+                    </p>
                 )
             
         }
