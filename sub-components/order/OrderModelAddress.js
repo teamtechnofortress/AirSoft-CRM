@@ -4,7 +4,7 @@ import React, { useEffect,useState,Fragment } from 'react';
 
 const OrderModelAddress = ({order}) => {
     const [modaladdressShow, setModaladdressShow] = React.useState(false);
-    console.log(order);
+    // console.log(order);
     
     function MyVerticallyCenteredaddressModal(props) {
         return (

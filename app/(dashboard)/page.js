@@ -428,7 +428,9 @@ const Page = () => {
                               <Tab.Content>
                                   <Tab.Pane eventKey="all" className="pb-4 p-4">
                                     <Row className="gy-2">
-                                      {orders.map((order, index) => (
+                                      {orders
+                                      .filter(order => order.slug != "quotation")
+                                      .map((order, index) => (
                                         <Col key={order.id || index} md={3} sm={6} xs={12} className="px-1">
                                           <Card className="p-2 text-center shadow-sm border  border-primary">
                                             <Card.Body>
@@ -439,10 +441,8 @@ const Page = () => {
                                         </Col>
                                       ))}
                                     </Row>
-                                      
                                       {/* Active Projects  */}
                                       {/* <ActiveProjects /> */}
-                                    
                                   </Tab.Pane>
                                   <Tab.Pane eventKey="instock" className="pb-4 p-4 react-code">
                                     <Row className="mb-3">

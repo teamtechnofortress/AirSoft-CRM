@@ -9,11 +9,25 @@ import { Col, Row, Form, Card, Button, Image,Container,Tab,Tabs,Nav,DropdownButt
 import ExistingCustomerOrOrder from '/sub-components/order/addorder/Existing-customer-or-order.js'
 import ProductsModel from '/sub-components/order/addorder/productsmodel.js'
 import ShippingAddress from '/sub-components/order/addorder/shippingaddress.js'
+import { useSearchParams } from 'next/navigation';
+
 
 
 
 const Addorder = () => {
   const hasMounted = useMounted();
+  const searchParams = useSearchParams();
+
+  const [addOrderTypeState, setAddOrderTypeState] = useState('');
+  const addOrderType = searchParams.get('addorder'); 
+
+  useEffect(() => {
+    if (addOrderType) {
+      setAddOrderTypeState(addOrderType);
+      console.log('Add Order Type:', addOrderType); 
+    }
+  }, [addOrderType]);
+
 
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [cart, setCart] = useState([]);
@@ -341,7 +355,8 @@ const Addorder = () => {
       payment_method_title: orderData.paymentmethodtitle || "Unknown Payment Method", 
       customer_note: shippingData.shippingcustomernote || "", 
       transaction_id: formData.tranctionid || "", 
-      set_paid: true,
+      set_paid: addOrderTypeState === "quote" ? false : true,
+      status: addOrderTypeState === "quote" ? "quotation" : "pending",
       billing: {
         first_name: formData.firstname || "",
         last_name: formData.lastname || "",
@@ -413,7 +428,7 @@ const Addorder = () => {
       if (response.data.status === "success") {
 
           // Handle successful response (e.g., show a message or reset the form)
-          toast.success("Order Added successfully!");
+          toast.success(`${addOrderTypeState === 'quote' ? 'Quotation' : 'Order' }  Added successfully!`);
           // console.log('Role added successfully', response.data);
 
           setOrderData({
@@ -458,7 +473,7 @@ const Addorder = () => {
           setCart([]);
           setSubmitting(false);
       } else {
-          toast.error("Order Not Added!");
+          toast.error(`${addOrderTypeState === 'quote' ? 'Quotation' : 'Order' }  Not Added!`);
           console.log('Error:', response.data.message);
       }
   } catch (error) {

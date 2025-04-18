@@ -13,36 +13,17 @@ import Link from 'next/link';
 
 
 
-const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customerid,statusList}) => {
+const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customerid,statusList,permissionList,OrderTypeState}) => {
     const [toastMessage, setToastMessage] = useState(false);
     const [loading, setLoading] = useState(false);
     // const [modalOrderAllNotesShow, setModalOrderAllNotesShow] = React.useState(false);
     const [notesMap, setNotesMap] = useState({});
     const [searchTerm, setSearchTerm] = useState("");
-    const [permissionList, setPermissionList] = useState([]);
+    // const [permissionList, setPermissionList] = useState([]);
     const [orderStatuses, setOrderStatuses] = useState([]);
     const [loadingNoteId, setLoadingNoteId] = useState(null);
     
-    const tokedecodeapi = async () => {
-        try {
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/tokendecodeapi`);
-            if (response.data?.data) {
-                const permissions = response.data.data.permissions.map(p => p._id);
-                // console.log("permissionList fetched successfully:", permissionList);
-                setPermissionList(permissions);
-                // return response.data.data;
-            } else {
-                console.error("Error fetching notes:", response.data.message);
-                return [];
-            }
-        } catch (error) {
-            console.error("Error fetching notes:", error);
-            return [];
-        }
-    };
-    useEffect(()=>{
-        tokedecodeapi();
-    },[]);
+    
 
     // const fetchOrderStatuses = useCallback(async () => {
     //     try {
@@ -59,16 +40,16 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
     //     fetchOrderStatuses();
     //   }, []);
 
-    useEffect(() => {
-      if (toastMessage == "Note added successfully!") {
-          fetchAllNotes();
-          toast.success(toastMessage);
-          setToastMessage(false);
-      }else{
-        toast.error(toastMessage);
-        setToastMessage(false);
-      }
-    }, [toastMessage]);
+    // useEffect(() => {
+    //   if (toastMessage == "Note added successfully!") {
+    //       fetchAllNotes();
+    //       toast.success(toastMessage);
+    //       setToastMessage(false);
+    //   }else{
+    //     toast.error(toastMessage);
+    //     setToastMessage(false);
+    //   }
+    // }, [toastMessage]);
     
 
     const getTimeAgo = (dateString) => {
@@ -98,8 +79,11 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
     //     }
     // };
 
-    const handleStatusChange = (newStatus, orderId) => {
-        handleorderStatusChange(newStatus, orderId);
+    const handleStatusChange = (newStatus, orderId,setPaid = null) => {
+        // console.log('New Status:', newStatus);
+        // console.log('New id:', orderId);
+        // console.log('New setPaid:', setPaid);
+        handleorderStatusChange(newStatus, orderId,setPaid);
     };
 
     const fetchNotes = async (orderId) => {
@@ -121,7 +105,7 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
     const handleFetchNotes = async (orderId) => {
         // setLoadingNoteId(orderId);
         const notes = await fetchNotes(orderId);
-        console.log(notes);
+        // console.log(notes);
         setNotesMap((prev) => ({ ...prev, [orderId]: notes }));
         // setLoadingNoteId(null);
       };
@@ -144,11 +128,15 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
             const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/deleteorder`,{id});
         //    console.log('Response:', response.data);
             if (response.data.status === 'success') {
-                // await fetchAllOrders();
-                toast.success("Order deleted successfully!");
+                toast.success(`${OrderTypeState === 'quote' ? 'Quotation' : 'Order' }  deleted successfully!`);
+
+                setTimeout(() => {
+                    fetchAllOrders();
+                  }, 500); 
+
             } else {
-                toast.error("Order not delete!");
-                console.log('Error:', response.data.message);
+                toast.error(`${OrderTypeState === 'quote' ? 'Quotation' : 'Order' }  not delete!`);
+                // console.log('Error:', response.data.message);
             }
         } catch (error) {
             console.error("Error submitting form:", error)
@@ -158,20 +146,16 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
     };
     const duplicateorder = async (id) => {
         try {
-            // console.log('New id:', id);
             setLoading(true);
             const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/duplicateorder`,{id: id});
-        //    console.log('Response:', response.data);
-        //    console.log('Response:', response.data.data);
-        //    console.log('Response:', response.data.status);
+
             if (response.data.status === 'success') {
-                // Handle successful response (e.g., show a message or reset the form)
                 await fetchAllOrders();
                 toast.success("Order duplicate successfully!");
                 // console.log('Role added successfully', response.data);
             } else {
                 toast.error("Order not duplicate!");
-                console.log('Error:', response.data.message);
+                // console.log('Error:', response.data.message);
             }
         } catch (error) {
             console.error("Error submitting form:", error)
@@ -230,49 +214,71 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                             (status === "all" || order.status === status) &&
                             (!Number(customerid) || order.customer_id === Number(customerid)) 
                         )
+                        .filter(order =>
+                            OrderTypeState === "quote"
+                              ? order.status === "quotation"
+                              : order.status !== "quotation"
+                          )
                         .map((order) => (
                         <Col key={order.id} md={4} sm={6} xs={12} className="mb-4">
                             <Card style={{ width: "100%" }}>
                             <Card.Body style={{ padding: "0px" }}>
                                 <div className="d-flex align-items-center justify-content-between" style={{ padding: "15px" }}>
-                                <div>
-                                    <Card.Title>
-                                    {order.billing?.first_name || order.billing?.last_name
-                                        ? `${order.billing?.first_name || ""} ${order.billing?.last_name || ""}`.trim()
-                                        : "Unknown"}
-                                    </Card.Title>
-                                    <Card.Subtitle style={{ fontSize: 12 }}># {order.number}</Card.Subtitle>
+                                    <div>
+                                        <Card.Title>
+                                        {order.billing?.first_name || order.billing?.last_name
+                                            ? `${order.billing?.first_name || ""} ${order.billing?.last_name || ""}`.trim()
+                                            : "Unknown"}
+                                        </Card.Title>
+                                        <Card.Subtitle style={{ fontSize: 12 }}># {order.number}</Card.Subtitle>
+                                    </div>
                                 </div>
+                                <div style={{ textAlign: "right" }}>
+                                    {OrderTypeState !== "quote" ? (
+                                        <select
+                                        value={order.status}
+                                        onChange={(e) => handleStatusChange(e.target.value, order.id)}
+                                        style={{
+                                            padding: "5px",
+                                            fontSize: "13px",
+                                            borderRadius: "6px",
+                                            border: "1px solid rgb(193, 193, 193)",
+                                            width: "auto",
+                                        }}
+                                        >
+                                           {statusList
+                                               .filter(status => status.slug !== "quotation")
+                                               .map((status) => (
+                                                   <option key={status.slug} value={status.slug}>
+                                                        {status.name}
+                                                   </option>
+                                           ))}
+                                        </select>
+                                    ) : 
+                                    <div>
+                                        <span style={{ 
+                                             padding: "5px",
+                                             borderRadius: "6px",
+                                             border: "1px solid rgb(193, 193, 193)",
+                                         }}
+                                         className='me-3'
+                                         >
+                                            Quotation  
+                                        </span>
+                                    </div>
+                                    }
                                 </div>
-                                <div style={{ textAlign: "right",}}>
-                                <select
-                                    value={order.status}
-                                    onChange={(e) => handleStatusChange(e.target.value, order.id)}
-                                    style={{
-                                        padding: "5px",
-                                        fontSize: "13px",
-                                        borderRadius: "6px",
-                                        border: "1px solid rgb(193, 193, 193)",
-                                        width: "auto",
-                                    }}
-                                    >
-                                    {statusList.map((status) => (
-                                        <option key={status.slug} value={status.slug}>
-                                        {status.name}
-                                        </option>
-                                    ))}
-                                    </select>
-                                </div>
-            
                                 <div style={{ backgroundColor: "#eceef0" }}>
                                 <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 12, padding: "5px 15px" }}>
                                     {getTimeAgo(order.date_created)}
                                 </Card.Subtitle>
                                 </div>
             
-                                {order.line_items.map((item, index) => (
-                                <OrderLineItem key={index} item={item} index={index} />
-                                ))}
+                                <div style={{ maxHeight: "342px", overflowY: "scroll" }}>
+                                    {order.line_items.map((item, index) => (
+                                        <OrderLineItem key={index} item={item} index={index} />
+                                    ))}
+                                </div>
             
                                 <hr />
             
@@ -308,8 +314,14 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                                     style={{ padding: 0, border: "none", backgroundColor: "transparent" }}
                                     >
                                     {permissionList.includes("67b46cd67b14d62c9c5850eb") && (
-                                        <Dropdown.Item as="a" href={`/pages/order/editorder/${order.id}`}>
-                                        Edit order
+                                        <Dropdown.Item as="a" 
+                                            href={
+                                                OrderTypeState !== "quote"
+                                                ? `/pages/order/editorder/${order.id}`
+                                                : `/pages/order/editorder/${order.id}?type=quote`
+                                            }
+                                        >
+                                            Edit order
                                         </Dropdown.Item>
                                     )}
                                     <Dropdown.Item
@@ -324,18 +336,27 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                                         />
                                         </Dropdown.Item>
 
-                                    <Dropdown.Item eventKey="4">
-                                        <OrderAllCustomfields fields={order.meta_data || []} />
-                                    </Dropdown.Item>
-                                    <Dropdown.Item eventKey="6" onClick={() => duplicateorder(order.id)}>
-                                        Duplicate order
-                                    </Dropdown.Item>
+                                    {OrderTypeState != "quote" && (
+                                        <Dropdown.Item eventKey="4">
+                                            <OrderAllCustomfields fields={order.meta_data || []} />
+                                        </Dropdown.Item>
+                                    )}
+                                    {OrderTypeState != "quote" && (
+                                        <Dropdown.Item eventKey="6" onClick={() => duplicateorder(order.id)}>
+                                            Duplicate order
+                                        </Dropdown.Item>
+                                    )}
+                                    {OrderTypeState === "quote" && (
+                                        <Dropdown.Item eventKey="7" onClick={() => handleStatusChange("pending", order.id,true)}>
+                                            Convert to order
+                                        </Dropdown.Item>
+                                    )}
                                     {permissionList.includes("67b46ce07b14d62c9c5850ed") && (
                                         <>
-                                        <Dropdown.Divider />
-                                        <Dropdown.Item eventKey="7" className="text-danger" onClick={() => deleteorder(order.id)}>
-                                            Delete order
-                                        </Dropdown.Item>
+                                            <Dropdown.Divider />
+                                            <Dropdown.Item eventKey="8" className="text-danger" onClick={() => deleteorder(order.id)}>
+                                                Delete {OrderTypeState === "quote" ? "quotation" : "order"}
+                                            </Dropdown.Item>
                                         </>
                                     )}
                                     </DropdownButton>

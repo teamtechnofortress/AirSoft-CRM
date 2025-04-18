@@ -10,15 +10,21 @@ import ExistingCustomerOrOrder from '/sub-components/order/addorder/Existing-cus
 import ProductsModel from '/sub-components/order/editOrderModel.js'
 import ShippingAddress from '/sub-components/order/addorder/shippingaddress.js'
 import Link from 'next/link';
+import { useSearchParams } from "next/navigation";
 
 
 
 const EditOrder = ({params}) => {
   const { id } = params;
+  const searchParams = useSearchParams();
+  const OrderType = searchParams.get('type') || ''; 
 
+  
+
+  
   // console.log(id);
   const hasMounted = useMounted();
-
+  const [OrderTypeState, setOrderTypeState] = useState(OrderType);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [cart, setCart] = useState([]);
   // console.log("Selected product:",selectedProducts);
@@ -35,6 +41,8 @@ const EditOrder = ({params}) => {
   const [fetchedproduct, setFetchedproduct] = useState([]);
   const [products, setProducts] = useState([]);
   const [productLoading, setProductLoading] = useState(true);
+
+
 
   // console.log("customers",customers);
   // console.log("orders",orders);
@@ -86,6 +94,48 @@ const EditOrder = ({params}) => {
          addressline2: '',
          fulladdress: '',
    });
+
+  useEffect(() => {
+    // console.log('OrderType',OrderType);
+    // console.log('id',id);
+    if (OrderType) {
+      setOrderTypeState(OrderType);
+      // console.log('Order Type:', OrderType); 
+    }
+  }, [OrderType,OrderTypeState]);
+
+  useEffect(() => {
+    // console.log("Shipping Data:", orderData);
+    // console.log("fetchedproduct Data:", fetchedproduct);
+  }, [orderData,fetchedproduct]);
+
+  useEffect(() => {
+    runallfuntion();
+  }, [id]);
+
+  useEffect(() => {
+    const updatedCart = selectedProducts.map(product => {
+   const data = product.data || product; // support both formats
+   const isVariation = !!data.parent_id;
+
+   const matchedCartItem = productIds.find(item => item.product_id === data.id);
+
+   return {
+     id: data.id,
+     variation_id: isVariation ? data.id : 0,
+     product_id: isVariation ? data.parent_id : data.id,
+     quantity: matchedCartItem ? matchedCartItem.quantity : product.quantity || 1,
+     price: parseFloat(data.price) || 0
+   };
+ });
+ 
+   setCart(updatedCart);
+ }, [selectedProducts, productIds]);
+
+
+
+
+
 
   const fetchorder = async (orderid) => {
     try {
@@ -164,13 +214,6 @@ const EditOrder = ({params}) => {
       // setLoading(false);
     }
   };
-
-  useEffect(() => {
-    // console.log("Shipping Data:", orderData);
-    // console.log("fetchedproduct Data:", fetchedproduct);
-  }, [orderData,fetchedproduct]);
-  
-
   // console.log("Updated formData:", formData);
 
   const fetchAllCustomer = async () => {
@@ -379,9 +422,7 @@ const EditOrder = ({params}) => {
   };
   
   // Call function when the component loads or `id` changes
-  useEffect(() => {
-    runallfuntion();
-  }, [id]);
+  
   
 
   // useEffect(() => {
@@ -398,26 +439,6 @@ const EditOrder = ({params}) => {
   //   console.log("Selected cart:",productIds);
 
   // }, [selectedProducts]);
-
-  useEffect(() => {
-     const updatedCart = selectedProducts.map(product => {
-    const data = product.data || product; // support both formats
-    const isVariation = !!data.parent_id;
-
-    const matchedCartItem = productIds.find(item => item.product_id === data.id);
-
-    return {
-      id: data.id,
-      variation_id: isVariation ? data.id : 0,
-      product_id: isVariation ? data.parent_id : data.id,
-      quantity: matchedCartItem ? matchedCartItem.quantity : product.quantity || 1,
-      price: parseFloat(data.price) || 0
-    };
-  });
-  
-    setCart(updatedCart);
-  }, [selectedProducts, productIds]);
-  
 
 
   // useEffect(() => {
@@ -715,7 +736,8 @@ const EditOrder = ({params}) => {
       payment_method_title: orderData.paymentmethodtitle || fetchedproduct?.payment_method_title || "",
       customer_note: !isShippingEnabled ? shippingData.shippingcustomernote ?? "" : "",
       transaction_id: formData?.tranctionid ||  "", 
-      set_paid: fetchedproduct?.set_paid || false,
+      set_paid: OrderTypeState === "quote" ? false : fetchedproduct?.set_paid,
+      status: OrderTypeState === "quote" ? "quotation" : fetchedproduct?.status,
       billing: {
         first_name: formData.firstname,
         last_name: formData.lastname,
@@ -796,8 +818,6 @@ const EditOrder = ({params}) => {
         method_title: shippingLine.method_title,
         total: shippingLine.total,
       }],
-    
-      status: fetchedproduct?.status || "pending",
     };
     
 
@@ -816,13 +836,13 @@ const EditOrder = ({params}) => {
       if (response.data.status === "success") {
 
           // Handle successful response (e.g., show a message or reset the form)
-          toast.success("Order updated successfully!");
+          toast.success(`${OrderTypeState === "quote" ? "Quotation" : "Order" } updated successfully!`);
           // console.log('Role added successfully', response.data);
           setSubmitting(false);
 
 
       } else {
-          toast.error("Order Not updated!");
+          toast.error(`${OrderTypeState === "quote" ? "Quotation" : "Order" } Not updated!`);
           console.log('Error:', response.data.message);
       }
   } catch (error) {

@@ -484,8 +484,7 @@ const useDashboardMenu = () => {
                 },
               ]
             : []),
-
-          ...(permissionList.includes("67b46cc27b14d62c9c5850e7") || permissionList.includes("67b46cce7b14d62c9c5850e9")
+            ...(permissionList.includes("67b46cc27b14d62c9c5850e7") || permissionList.includes("67b46cce7b14d62c9c5850e9")
             ? [
                 {
                   id: uuid(),
@@ -496,13 +495,25 @@ const useDashboardMenu = () => {
                       ? [{ id: uuid(), link: "/pages/order/addorder", name: "Add Order" }]
                       : []),
                     ...(permissionList.includes("67b46cce7b14d62c9c5850e9")
-                      ? [{ id: uuid(), link: "/pages/order/viewallorder", name: "View Order" }]
+                      ? [{ id: uuid(), link: "/pages/order/viewallorder", name: "View Orders" }]
+                      : []),
+                  ],
+                },
+                {
+                  id: uuid(),
+                  title: "Order Quotation",
+                  icon: "shopping-cart",
+                  children: [
+                    ...(permissionList.includes("67b46cc27b14d62c9c5850e7")
+                      ? [{ id: uuid(), link: "/pages/order/addorder?addorder=quote", name: "Add Quotation" }]
+                      : []),
+                    ...(permissionList.includes("67b46cce7b14d62c9c5850e9")
+                      ? [{ id: uuid(), link: "/pages/order/viewallorder?type=quote", name: "View Quotations" }]
                       : []),
                   ],
                 },
               ]
-            : []),
-
+            : []),         
           ...(permissionList.includes("67b70a4f2a60496e39c85761")
             ? [
                 {
