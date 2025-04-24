@@ -327,7 +327,7 @@ export async function POST(req) {
     // Fetch products from the WooCommerce API.
     const response = await WooCommerc.put(`orders/${id}`, data);
 
-    console.log("Response", response.data);
+    // console.log("Response", response.data);
     // const pdfBytes = await genratepdf(response.data);
     // return new NextResponse(pdfBytes, {
     //   headers: {
@@ -348,19 +348,10 @@ export async function POST(req) {
 
       if(response.data.billing?.email || response.data.shipping?.email) {
 
-        console.log("Email found in response data:", response.data.billing.email);
-        console.log("Email found in response data:",  response.data.shipping.email);
-
         const email = response.data.billing?.email || response.data.shipping?.email;
-        console.log("Email found in response data:",  email);
         
         if (email) {
           const pdfBytes = await genratepdf(response.data);
-
-          console.log("process.env.SMTP_USERNAME", process.env.SMTP_USERNAME);
-          console.log("process.env.SMTP_PASSWORD", process.env.SMTP_PASSWORD);
-          console.log("process.env.SMTP_HOST", process.env.SMTP_HOST);
-          console.log("process.env.SMTP_PORT", process.env.SMTP_PORT);
           // Send email with PDF as attachment
           await sendOrderEmailWithPdf(email, pdfBytes);
         }
