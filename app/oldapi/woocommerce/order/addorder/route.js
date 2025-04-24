@@ -264,14 +264,20 @@ const sendOrderEmailWithPdf = async (recipientEmail, pdfBuffer) => {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT,
+      secure: false,
       auth: {
         user: process.env.SMTP_USERNAME,
         pass: process.env.SMTP_PASSWORD,
       },
+      tls: {
+        rejectUnauthorized: false, // ⚠️ disables cert verification
+      },
+      // logger: true,
+      // debug: true,
     });
 
     const info = await transporter.sendMail({
-      from: '"Air-Soft" <TechnoDeveloper@gmai.com>',
+      from: '"Air-Soft" <noreply@airsoftwholesaleuk.co.uk>',
       to: recipientEmail,
       subject: 'Your Quotation from Airsoft Wholesale UK',
       text: 'Attached is your invoice.',
