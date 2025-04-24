@@ -37,7 +37,7 @@ export async function POST(req) {
     // Fetch products from the WooCommerce API.
     const response = await WooCommerc.post("orders", body);
 
-    // console.log("Response", response);
+    // console.log("Response", response.data);
 
     // Check if the response is valid.
     if (!response || response.status !== 201) {

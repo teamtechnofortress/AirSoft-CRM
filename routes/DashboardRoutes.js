@@ -502,7 +502,7 @@ const useDashboardMenu = () => {
                 {
                   id: uuid(),
                   title: "Order Quotation",
-                  icon: "shopping-cart",
+                  icon: "file-text",
                   children: [
                     ...(permissionList.includes("67b46cc27b14d62c9c5850e7")
                       ? [{ id: uuid(), link: "/pages/order/addorder?addorder=quote", name: "Add Quotation" }]

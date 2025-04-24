@@ -10,7 +10,7 @@ import { NextResponse } from 'next/server';
 export async function GET(req,{params}) {
     const { id } = params;
 
-    console.log('crm user',id);
+    // console.log('crm user',id);
 
     const cookieStore = cookies();
     const token = cookieStore.get('token');

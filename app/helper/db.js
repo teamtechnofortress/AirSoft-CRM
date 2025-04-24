@@ -1,18 +1,26 @@
 import mongoose from "mongoose";
 
-export const connectDb = async () => {
-    try {
-        const { connection } = await mongoose.connect(process.env.MONGO_URI, {
-            dbName: process.env.DB_NAME,
-        });
+let isConnected = false;
 
-        if (connection.readyState === 1) {
-            console.log("✅ Database connection successful");
-        } else {
-            console.log("⚠️ Database connection in progress or disconnected");
-        }
-    } catch (error) {
-        console.log("❌ Database connection failed");
-        console.error(error.message); // Log detailed error for debugging
+export const connectDb = async () => {
+  if (isConnected) return;
+
+  try {
+    const db = await mongoose.connect(process.env.MONGO_URI, {
+      dbName: process.env.DB_NAME,
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    isConnected = true;
+
+    if (db.connection.readyState === 1) {
+      console.log("✅ Database connection successful");
+    } else {
+      console.log("⚠️ Database connection in progress or disconnected");
     }
+  } catch (error) {
+    console.error("❌ Database connection failed:", error.message);
+    throw new Error("DB_CONNECTION_FAILED");
+  }
 };

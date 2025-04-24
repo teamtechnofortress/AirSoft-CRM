@@ -247,7 +247,7 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                                         }}
                                         >
                                            {statusList
-                                               .filter(status => status.slug !== "quotation")
+                                               .filter(status => status.slug !== "quotation" && status.slug !== "all")
                                                .map((status) => (
                                                    <option key={status.slug} value={status.slug}>
                                                         {status.name}

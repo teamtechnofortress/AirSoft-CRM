@@ -56,7 +56,6 @@ const ViewAllOrder = () => {
     
     useEffect(() => {
         // console.log("OrderTypeState:", OrderTypeState);
-
         if (statusFilter && statusFilter !== "all" ) { // Only fetch when status is set and not "all"
             fetchStatusOrders();
         } else if(OrderTypeState !== "quote") {
@@ -89,8 +88,6 @@ const ViewAllOrder = () => {
     }, [totalOrders]);
     
     
-
-
     const tokedecodeapi = async () => {
         try {
             const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/tokendecodeapi`);
