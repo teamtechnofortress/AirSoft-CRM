@@ -10,8 +10,8 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
 
   useEffect(() => {
     if (show) {
-      console.log(selectedProducts);
-      console.log("Modal Opened, Checking for Variations...", products);
+      // console.log(selectedProducts);
+      // console.log("Modal Opened, Checking for Variations...", products);
         setTempSelectedProducts(selectedProducts);
         if (!products || products.length === 0) {
           console.warn("⚠️ No products available when modal opened.");
@@ -249,9 +249,14 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
                                                                     <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
                                                                         {product.price} GBP
                                                                     </Card.Subtitle>
-                                                                    <Card.Subtitle style={{ fontSize: 12 }}>
-                                                                        {product.stock_status || "Out of stock"}
-                                                                    </Card.Subtitle>
+                                                                    <div className="d-flex gap-2"> 
+                                                                      <Card.Subtitle style={{ fontSize: 12 }}>
+                                                                          {product.stock_status || "Out of stock"}
+                                                                      </Card.Subtitle>
+                                                                      <Card.Subtitle style={{ fontSize: 12 }}>
+                                                                         Quantity {product.stock_quantity || "0"}
+                                                                      </Card.Subtitle>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <Form.Check
@@ -280,6 +285,9 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
                                                                             <span style={{ fontSize: 14 }}>{variation.name || variation.description}</span>
                                                                             <span style={{ fontSize: 12, marginLeft: 10 }}>
                                                                                 Price: {variation.price || variation.sale_price} GBP
+                                                                            </span>
+                                                                            <span style={{ fontSize: 12, marginLeft: 10 }}>
+                                                                              Quantity: {variation.stock_quantity || "0"} 
                                                                             </span>
                                                                             <span style={{ fontSize: 12, marginLeft: 10 }}>
                                                                                 SKU: {variation.sku || "N/A"}

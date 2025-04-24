@@ -249,9 +249,14 @@ useEffect(() => {
                                                                     <Card.Subtitle className="mb-3" style={{ fontSize: 12 }}>
                                                                         {product.price} GBP
                                                                     </Card.Subtitle>
-                                                                    <Card.Subtitle style={{ fontSize: 12 }}>
-                                                                        {product.stock_status || "Out of stock"}
-                                                                    </Card.Subtitle>
+                                                                    <div className="d-flex gap-2"> 
+                                                                      <Card.Subtitle style={{ fontSize: 12 }}>
+                                                                          {product.stock_status || "Out of stock"}
+                                                                      </Card.Subtitle>
+                                                                      <Card.Subtitle style={{ fontSize: 12 }}>
+                                                                         Quantity {product.stock_quantity || "0"}
+                                                                      </Card.Subtitle>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -265,7 +270,6 @@ useEffect(() => {
 
                                                         {/* ✅ Variations List */}
                                                         {product.variations && product.variations.length > 0 && (
-                                                          
                                                             <div className="variation-container ms-4">
                                                                 {product.variations.map((variation, index) => (
                                                                     <div 
@@ -282,6 +286,9 @@ useEffect(() => {
                                                                             <span style={{ fontSize: 14 }}>{variation.name || variation.description}</span>
                                                                             <span style={{ fontSize: 12, marginLeft: 10 }}>
                                                                                 Price: {variation.price || variation.sale_price} GBP
+                                                                            </span>
+                                                                            <span style={{ fontSize: 12, marginLeft: 10 }}>
+                                                                              Quantity: {variation.stock_quantity || "0"} 
                                                                             </span>
                                                                             <span style={{ fontSize: 12, marginLeft: 10 }}>
                                                                                 SKU: {variation.sku || "N/A"}
