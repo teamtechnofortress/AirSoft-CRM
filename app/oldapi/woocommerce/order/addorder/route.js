@@ -273,12 +273,12 @@ const sendOrderEmailWithPdf = async (recipientEmail, pdfBuffer) => {
     const info = await transporter.sendMail({
       from: '"Air-Soft" <TechnoDeveloper@gmai.com>',
       to: recipientEmail,
-      subject: 'Your Invoice from Air-Soft',
+      subject: 'Your Quotation from Airsoft Wholesale UK',
       text: 'Attached is your invoice.',
-      html: '<p>Thank you for your business. Please find the invoice attached.</p>',
+      html: '<p>Thank you for your business. Please find the Quotation  attached.</p>',
       attachments: [
         {
-          filename: 'invoice.pdf',
+          filename: 'quotation.pdf',
           content: pdfBuffer,
           contentType: 'application/pdf',
         },
