@@ -277,7 +277,7 @@ const sendOrderEmailWithPdf = async (recipientEmail, pdfBuffer) => {
     });
 
     const info = await transporter.sendMail({
-      from: '"Air-Soft" <noreply@airsoftwholesaleuk.co.uk>',
+      from: '"AWUK Quotation" <noreply@airsoftwholesaleuk.co.uk>',
       to: recipientEmail,
       subject: 'Your Quotation from Airsoft Wholesale UK',
       text: 'Attached is your invoice.',
