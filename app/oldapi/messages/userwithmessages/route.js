@@ -22,7 +22,7 @@ export async function GET(req, res) {
 
   try {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
-    console.log(decoded);
+    // console.log(decoded);
     // console.log(decoded.permissions);
     let requiredpermission = '67b46c7d7b14d62c9c5850e1';
 
@@ -59,11 +59,11 @@ export async function GET(req, res) {
         
             unreadMessages.push(...userUnreadMessages); // Collect all unseen messages
 
-            console.log(user.unreadCount);
+            // console.log(user.unreadCount);
         }
         
 
-        console.log({ users, unreadMessages });
+        // console.log({ users, unreadMessages });
         
         const response = NextResponse.json({
             status: "success",

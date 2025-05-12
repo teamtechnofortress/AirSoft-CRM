@@ -35,7 +35,7 @@ export async function GET(req) {
       role:"all",
     });
 
-    console.log(response.data);
+    // console.log(response.data);
 
     if (!response || response.status !== 200) {
       return NextResponse.json(

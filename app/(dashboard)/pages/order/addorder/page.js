@@ -24,7 +24,7 @@ const Addorder = () => {
   useEffect(() => {
     if (addOrderType) {
       setAddOrderTypeState(addOrderType);
-      console.log('Add Order Type:', addOrderType); 
+      // console.log('Add Order Type:', addOrderType); 
     }
   }, [addOrderType]);
 
@@ -180,7 +180,7 @@ const Addorder = () => {
       setOrder(ordersRes.data?.data || []);
       setPaymentgateway(paymentRes.data?.data || []);
       setShippingmethods(shippingRes.data?.data || []);
-      console.log(shippingRes.data?.data);
+      // console.log(shippingRes.data?.data);
     } catch (error) {
       console.error("Error fetching data:", error.message);
     } finally {
@@ -225,16 +225,16 @@ const Addorder = () => {
       
         const [fullId, method_title] = value.split("|");
         const [method_id, instance_id] = fullId.split(":");
-        console.log("fullId",fullId);
-        console.log("method_title",method_title);
-        console.log("method_id",method_id);
+        // console.log("fullId",fullId);
+        // console.log("method_title",method_title);
+        // console.log("method_id",method_id);
 
         // Find raw_cost from shippingmethods array
         const selectedMethod = shippingmethods.find(
           (m) => m.method_id === method_id && String(m.instance_id) === instance_id
         );
         const raw_cost = selectedMethod?.settings?.cost?.value || "0";
-        console.log("selectedMethod",selectedMethod);
+        // console.log("selectedMethod",selectedMethod);
 
 
         // Compute qty & cost
@@ -245,14 +245,14 @@ const Addorder = () => {
         let calculatedCost = raw_cost
           ?.replace(/\[qty\]/gi, qty)
           ?.replace(/\[cost\]/gi, cost.toFixed(2));
-        console.log("calculatedCost",calculatedCost);
+        // console.log("calculatedCost",calculatedCost);
 
         try {
           calculatedCost = Function(`return (${calculatedCost})`)();
         } catch (err) {
           calculatedCost = 0;
         }
-        console.log("calculatedCost",calculatedCost);
+        // console.log("calculatedCost",calculatedCost);
 
 
         // Set order data

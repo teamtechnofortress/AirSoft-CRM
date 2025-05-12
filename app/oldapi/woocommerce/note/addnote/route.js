@@ -9,7 +9,7 @@ import { NextResponse } from 'next/server';
 export async function POST(req) {
 
     const body = await req.json();
-    console.log('Request Body:', body);
+    // console.log('Request Body:', body);
     // return;
     const {orderid, note,sendToCustomer} = body;
 

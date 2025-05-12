@@ -10,7 +10,7 @@ const Home = () => {
     const fetchAllProducts = async () => {
         try {
             const response = await axios.get(`http://localhost:3000/api/woocommerce/getallproduct`);
-            console.log('API Response:', response.data);
+            // console.log('API Response:', response.data);
     
             if (response.data && response.data.data) {
                 setProducts(response.data.data); // Set products to the state

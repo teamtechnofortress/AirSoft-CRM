@@ -84,7 +84,7 @@ const ViewAllOrder = () => {
         fetchStatuses();
     }, []);
     useEffect(() => {
-        console.log("totalOrders:", totalOrders);
+        // console.log("totalOrders:", totalOrders);
     }, [totalOrders]);
     
     
@@ -233,12 +233,12 @@ const ViewAllOrder = () => {
             if (response.data.status === "success") {
                 // Handle successful response (e.g., show a message or reset the form)
                 if (setPaid !== null) {
-                  console.log('setPaid:', setPaid);
+                //   console.log('setPaid:', setPaid);
                   toast.success("Quotation status changed successfully!");
                   await delay(300); // <- give toast time to render
                   fetchStatusOrders();
                 } else {
-                  console.log('setPaid:', setPaid);
+                //   console.log('setPaid:', setPaid);
                   toast.success("Order status changed successfully!");
                   await delay(300);
                   await fetchAllOrders();

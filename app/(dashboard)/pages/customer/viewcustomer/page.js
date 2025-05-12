@@ -147,11 +147,11 @@ const ViewAllUsers = () => {
     }, []);
 
     const handeldeletecustomer = async (id) =>{
-        console.log(id);
+        // console.log(id);
         try {
             const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/customer/deletecustomer`,{id});
             if (response.data && response.data.data) {
-                console.log(response.data.data);
+                // console.log(response.data.data);
                 await fetchAllUsers();  
                 toast.success("Customer deleted successfully!");
             } else {

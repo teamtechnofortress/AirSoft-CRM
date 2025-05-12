@@ -19,7 +19,7 @@ export async function GET(req) {
                 { senderId: receiverId, receiverId: senderId }
             ]
         }).sort({ createdAt: 1 });
-        console.log(messages);
+        // console.log(messages);
         return NextResponse.json({ status: "success", messages }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ status: "error", message: error.message }, { status: 500 });

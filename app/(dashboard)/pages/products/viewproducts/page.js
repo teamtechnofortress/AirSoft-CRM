@@ -5,6 +5,8 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Cookies from "js-cookie";
 import Link from 'next/link';
+import ToastComponent from 'components/toastcomponent';
+import { toast } from "react-toastify";
 import { Col, Row, Card, Accordion, Nav, Tab, Tabs, Container,Spinner, Form } from 'react-bootstrap';
 import { HighlightCode } from 'widgets';
 import {

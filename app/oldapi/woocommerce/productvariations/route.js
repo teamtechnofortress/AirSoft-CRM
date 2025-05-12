@@ -18,7 +18,7 @@ export async function POST(req) {
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
 
     const {id} = await req.json();
-    console.log(id);
+    // console.log(id);
     let requiredpermission = '67b46bd87b14d62c9c5850d5';
     // const { searchParams } = new URL(req.url);
     // const page = parseInt(searchParams.get("page"), 10) || 1; // Default to page 1

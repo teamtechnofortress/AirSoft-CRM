@@ -10,7 +10,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
 
   useEffect(() => {
     if (show) {
-      console.log("Modal Opened, Checking for Variations...", products);
+      // console.log("Modal Opened, Checking for Variations...", products);
         setTempSelectedProducts(selectedProducts);
         if (!products || products.length === 0) {
           console.warn("⚠️ No products available when modal opened.");
@@ -18,10 +18,10 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
       }
         products.forEach(product => {
 
-          console.log(`Product: ${product.name}, ID: ${product.id}, has_variations: ${product.variations}`);
+          // console.log(`Product: ${product.name}, ID: ${product.id}, has_variations: ${product.variations}`);
             if (product.variations ) {
               const response =  fetchAllProductsVariations(product.id);
-              console.log(response.data);
+              // console.log(response.data);
             }
         });
     }
@@ -38,7 +38,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
   }, [searchTerm]);
 
   const fetchFilteredProducts = async () => {
-    console.log(searchTerm);
+    // console.log(searchTerm);
     if (filteredCache[searchTerm]) {
       setProducts(filteredCache[searchTerm]);
       return;
@@ -96,12 +96,12 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
     try {
       
         setLoading(true);
-        console.log(`Fetching variations for product ID: ${id}`);
+        // console.log(`Fetching variations for product ID: ${id}`);
         
         const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/productvariations`, { id });
 
         if (response.data?.data?.length > 0) {
-            console.log(`Variations for product ${id}:`, response.data.data);
+            // console.log(`Variations for product ${id}:`, response.data.data);
 
             const variationsWithIDs = response.data.data.map((variation, index) => ({
                 ...variation,

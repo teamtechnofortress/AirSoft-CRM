@@ -27,7 +27,7 @@ export async function POST(req) {
     }
 
     const {id} = await req.json();
-    console.log(id);
+    // console.log(id);
     
     // const custom = await WooCommerc.get(`customers/${id}`);
     // console.log(custom);

@@ -61,7 +61,7 @@ const Home = ({params}) => {
     // }
 
     const fetchAllProductsvariations = async (id) => {
-        console.log(id);
+        // console.log(id);
         try {
             const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/productvariations`,{id});
             if (response.data && response.data.data.length > 0) {

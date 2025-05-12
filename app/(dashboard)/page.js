@@ -201,7 +201,7 @@ const Page = () => {
 
       console.log(dateRange);
       if (response.data?.data?.length > 0) {
-        console.log(response.data);
+        // console.log(response.data);
         const sales = response.data.data[0];
 
         

@@ -37,7 +37,7 @@ export async function GET(req, { params }) {
     // If the role is not in use, delete it.
     // const updateRole = await UserRole.findById(id);
     const updateRole = await UserRole.findById(id).populate("permissions", "permission");
-    console.log(updateRole);
+    // console.log(updateRole);
     if (!updateRole) {
       return NextResponse.json(
         { status: "error", message: "Role not found" },

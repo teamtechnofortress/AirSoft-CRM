@@ -53,7 +53,7 @@ const EditRole = () => {
   const fetchrole = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/userrole/getrole/${id}`);
-      console.log(response.data);
+      // console.log(response.data);
         
       if(response.data.status === "success"){
         setRole(response.data.data.role);

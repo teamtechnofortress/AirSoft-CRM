@@ -43,7 +43,7 @@ const Home = () => {
 
         try {
             while (true) {
-                console.log(`Fetching Page: ${page}`); // Debugging log
+                // console.log(`Fetching Page: ${page}`); // Debugging log
 
                 const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getallproduct`, {
                     params: { page }

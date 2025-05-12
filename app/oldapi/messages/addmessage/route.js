@@ -7,7 +7,7 @@ export async function POST(req) {
         await connectDb();
         const body = await req.json();
         const { message, senderId, receiverId } = body;
-        console.log(message,senderId,receiverId);
+        // console.log(message,senderId,receiverId);
 
         if (!message || !senderId || !receiverId) {
             return NextResponse.json({ status: "error", message: "All fields are required" }, { status: 400 });

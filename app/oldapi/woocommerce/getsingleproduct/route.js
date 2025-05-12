@@ -24,7 +24,7 @@ export async function GET(req) {
     }
 
     const response = await WooCommerc.get(`products/${id}`);
-    console.log("WooCommerce Product Response:", response.data);
+    // console.log("WooCommerce Product Response:", response.data);
 
     if (!response || response.status !== 200) {
       return NextResponse.json({ status: 'error', message: "Failed to fetch product" }, { status: 500 });

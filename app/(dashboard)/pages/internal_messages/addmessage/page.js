@@ -19,7 +19,7 @@ const InternalMessages = () => {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/tokendecodeapi`);
         if (response.data?.data) {
           setCurrentUserID(response.data.data.userid);
-          console.log(response.data.data.userid);
+          // console.log(response.data.data.userid);
         }
       } catch (error) {
         console.error("Error fetching user ID:", error);
@@ -34,7 +34,7 @@ const InternalMessages = () => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/messages/userwithmessages`);
       if (response.data.status === "success") {
         setUsers(response.data.data.users); // Ensure response structure
-        console.log("Fetched Unread Messages:", response.data.data.messages);
+        // console.log("Fetched Unread Messages:", response.data.data.messages);
         // const usersWithMessages = users.map(user => ({
         //   ...user,
         //   messages: messages.filter(msg => msg.receiverId === user._id) // Assign only relevant messages
@@ -83,15 +83,15 @@ const InternalMessages = () => {
   };
   //
   const markMessagesAsSeen = async (msgs) => {
-    console.log(msgs);
+    // console.log(msgs);
     if (!msgs || msgs.length === 0) return;
-    console.log(currentUserID);
+    // console.log(currentUserID);
   
     const unseenMessages = msgs.filter(msg => msg.receiverId === currentUserID && msg.seen === '0');
 
-    console.log(unseenMessages);
+    // console.log(unseenMessages);
     const messageIds =  unseenMessages.map(msg => msg._id);
-    console.log(messageIds);
+    // console.log(messageIds);
     if (unseenMessages.length > 0) {
 
       try {
@@ -99,7 +99,7 @@ const InternalMessages = () => {
           messageIds: messageIds,
         });
         await fetchUsers();
-        console.log(response);
+        // console.log(response);
       } catch (error) {
         console.error("Error marking messages as seen:", error);
       }

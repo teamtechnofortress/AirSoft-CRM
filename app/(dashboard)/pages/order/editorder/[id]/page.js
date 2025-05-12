@@ -142,7 +142,7 @@ const EditOrder = ({params}) => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getsingelorder`, { id: orderid });
     
       if (response.status === 200 && response.data) {
-            console.log(response.data.data);
+            // console.log(response.data.data);
             const order = response.data.data;
             setFetchedproduct(order);
         
@@ -163,7 +163,7 @@ const EditOrder = ({params}) => {
               }, // wrap as array if needed
               meta_data: item.meta_data || [],
             }));
-            console.log(selected);
+            // console.log(selected);
           
             setSelectedProducts(selected);
 
@@ -236,12 +236,12 @@ const EditOrder = ({params}) => {
     try {
       
         setLoading(true);
-        console.log(`Fetching variations for product ID: ${id}`);
+        // console.log(`Fetching variations for product ID: ${id}`);
         
         const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/productvariations`, { id });
 
         if (response.data?.data?.length > 0) {
-            console.log(`Variations for product ${id}:`, response.data.data);
+            // console.log(`Variations for product ${id}:`, response.data.data);
 
             const variationsWithIDs = response.data.data.map((variation, index) => ({
                 ...variation,
@@ -1183,7 +1183,7 @@ const EditOrder = ({params}) => {
                                 <hr />
 
                                 {selectedProducts.map((product, index) => {
-                                  console.log(product);
+                                  // console.log(product);
                                   const data = product.data || product;
                                   const quantity = product.quantity || 1;
                                   const cartItem = cart.find((item) => item.id === data.id) || { quantity: 1 };
@@ -1449,7 +1449,7 @@ const EditOrder = ({params}) => {
                     </Row>
                     {
                       !isShippingEnabled && (
-                        console.log(shippingData),
+                        // console.log(shippingData),
                         <ShippingAddress shippingData={shippingData} handleChange={handleChange} countries={countries} />
                       )}
                     {/* Zip code */}

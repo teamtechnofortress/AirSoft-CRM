@@ -442,7 +442,7 @@ const useDashboardMenu = () => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_HOST}/oldapi/tokendecodeapi`);
       if (response.data?.data) {
         const permissionList = response.data.data.permissions.map(p => p._id);
-        console.log(permissionList);
+        // console.log(permissionList);
         setPermissions(permissionList);
 
         const menu = [
