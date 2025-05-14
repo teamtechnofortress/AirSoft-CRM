@@ -220,6 +220,7 @@ const AllOrder = ({orders,handleorderStatusChange,fetchAllOrders,status,customer
                               : order.status !== "quotation"
                           )
                         .map((order) => (
+                        // console.log(order),
                         <Col key={order.id} md={4} sm={6} xs={12} className="mb-4">
                             <Card style={{ width: "100%" }}>
                             <Card.Body style={{ padding: "0px" }}>

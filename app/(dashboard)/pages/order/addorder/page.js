@@ -5,11 +5,12 @@ import useMounted from 'hooks/useMounted';
 import axios from 'axios';
 import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
-import { Col, Row, Form, Card, Button, Image,Container,Tab,Tabs,Nav,DropdownButton,ButtonGroup,Dropdown,Spinner } from 'react-bootstrap';
+import { Col, Row,InputGroup, Form, Card, Button, Image,Container,Tab,Tabs,Nav,DropdownButton,ButtonGroup,Dropdown,Spinner } from 'react-bootstrap';
 import ExistingCustomerOrOrder from '/sub-components/order/addorder/Existing-customer-or-order.js'
 import ProductsModel from '/sub-components/order/addorder/productsmodel.js'
 import ShippingAddress from '/sub-components/order/addorder/shippingaddress.js'
 import { useSearchParams } from 'next/navigation';
+import { set } from 'mongoose';
 
 
 
@@ -40,6 +41,8 @@ const Addorder = () => {
   const [orders, setOrder] = useState([]);
   const [paymentgateways, setPaymentgateway] = useState([]);
   const [shippingmethods, setShippingmethods] = useState([]);
+  const [shippingcost, setShippingcost] = useState(0);
+  const [discount, setDiscount] = useState('');
   const [isShippingEnabled, setIsShippingEnabled] = useState(true);
   // console.log("customers",customers);
   // console.log("orders",orders);
@@ -213,6 +216,10 @@ const Addorder = () => {
   const handleChange = (event) => {
     const { name, value } = event.target;
     // console.log(`${name}: ${value}`);
+    if (name === "discount") {
+      const val = Math.min(100, Math.max(0, parseFloat(value) || 0));
+      setDiscount(val);
+    }
     if (name === "paymentmethod") {
       const [id, title] = value.split("|"); // Extract ID and Title
 
@@ -222,17 +229,32 @@ const Addorder = () => {
         paymentmethodtitle: title, // Set Title separately
       }));
     }  else if (name === "shippingmethod") {
-      
+
+      // console.log("shippingmethod",value);
+       // Find raw_cost from shippingmethods array
         const [fullId, method_title] = value.split("|");
         const [method_id, instance_id] = fullId.split(":");
+        // console.log("method_id",method_id);
+        // console.log("instance_id",instance_id);
+
+        const selectedMethod = shippingmethods.find(
+          (m) => m.method_id === method_id && String(m.instance_id) === instance_id
+        );
+        let methodid= `${selectedMethod.method_id}:${selectedMethod.instance_id}`;
+        // console.log("selectedMethod",selectedMethod);
+        const shippingLine = parseShippingSelection(
+          `${methodid}|${selectedMethod.method_title}`,
+          shippingmethods
+        );
+        // console.log("shippingLine",shippingLine);
         // console.log("fullId",fullId);
         // console.log("method_title",method_title);
         // console.log("method_id",method_id);
 
         // Find raw_cost from shippingmethods array
-        const selectedMethod = shippingmethods.find(
-          (m) => m.method_id === method_id && String(m.instance_id) === instance_id
-        );
+        // const selectedMethod = shippingmethods.find(
+        //   (m) => m.method_id === method_id && String(m.instance_id) === instance_id
+        // );
         const raw_cost = selectedMethod?.settings?.cost?.value || "0";
         // console.log("selectedMethod",selectedMethod);
 
@@ -308,6 +330,9 @@ const Addorder = () => {
   
   // Extract method details
   const parseShippingSelection = (value, shippingMethods) => {
+
+    // console.log("value",value);
+    // console.log("shippingMethods",shippingMethods);
     const [fullId, methodTitle] = value.split("|");
     const [methodId, instanceId] = fullId.split(":");
   
@@ -316,6 +341,8 @@ const Addorder = () => {
     );
   
     const shippingCost = calculateShippingCost(selectedMethod, cart);
+    setShippingcost(shippingCost);
+    // console.log("shippingCost",shippingCost);
   
     return {
       method_id: methodId.toLowerCase(),
@@ -325,17 +352,22 @@ const Addorder = () => {
     };
   };
 
-
-
-
   const handleSubmit = async (event) => {  
     event.preventDefault();
     // console.log("formData at submit:", formData);
     // console.log("formData at submit:", orderData);
 
 //     console.log('Cart items',cart);
-// return;
     // Create API payload
+
+    //  const shippingLin = parseShippingSelection(
+    //   `${orderData.shippingmethodid}|${orderData.shippingmethodtitle}`,
+    //   shippingmethods
+    // );
+    // console.log("shippingmethods",shippingmethods);
+    // console.log("shippingLin",shippingcost);
+    // return;
+
     if (!cart || cart.length === 0) {
       alert("Your cart is empty. Please add items before proceeding.");
       return; // Stop execution
@@ -349,7 +381,16 @@ const Addorder = () => {
       `${orderData.shippingmethodid}|${orderData.shippingmethodtitle}`,
       shippingmethods
     );
-  
+    const discountAmount = totalPrice * discount / 100;
+    const feeLines = discount > 0
+      ? [
+          {
+            name: `${discount}% Custom Discount`,
+            total: `-${discountAmount.toFixed(2)}`
+          }
+        ]
+      : [];
+
     const Data = {
       payment_method: orderData.paymentmethodid || "default_method",
       payment_method_title: orderData.paymentmethodtitle || "Unknown Payment Method", 
@@ -403,18 +444,38 @@ const Addorder = () => {
           return {
             product_id: item.id,
             quantity: item.quantity,
-          //  subtotal: (item.quantity * item.price).toFixed(2),
             total: (item.quantity * item.price).toFixed(2),
+            // subtotal: (item.quantity * item.price).toFixed(2),
+            // total_tax: "0.00",
+            // subtotal_tax: "0.00"
           };
         }
       }),
       shipping_lines: [shippingLine],
+      // discount_total: discountAmount.toFixed(2),
+      fee_lines: feeLines,
       // total_price: cart.reduce(
       //   (sum, item) => sum + item.quantity * parseFloat(item.price),
       //   0
       // ),
       // total_quantity: cart.reduce((sum, item) => sum + item.quantity, 0),
     };
+    // console.log("Data:", Data);
+
+
+    // return;
+
+
+    // console.log("shippingLin",shippingcost);
+    // console.log("Shipping total:", shippingLine.total);
+    // console.log("Data:", Data);
+    // console.log("totale price:", totalPrice);
+    // console.log("Discount:", discount);
+    // console.log("Discounted:", discountAmount.toFixed(2));
+
+
+
+    // return;
 
     // console.log("Cart total:", totalPrice);
     // console.log("Shipping total:", shippingLine.total);
@@ -426,11 +487,10 @@ const Addorder = () => {
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/addorder`, Data);
       if (response.data.status === "success") {
-
           // Handle successful response (e.g., show a message or reset the form)
           toast.success(`${addOrderTypeState === 'quote' ? 'Quotation' : 'Order' }  Added successfully!`);
           // console.log('Role added successfully', response.data);
-
+          setDiscount('');
           setOrderData({
             orderstatus: '',
             paymentmethodtitle: '',
@@ -653,7 +713,9 @@ const Addorder = () => {
 
   // Calculate total quantity and price
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  // const totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  const totalPrice = cart.reduce((sum, item) => sum + item.quantity * item.price, 0).toFixed(2);
+
 
   if (loading) return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -751,6 +813,7 @@ const Addorder = () => {
                         >
                           <option value="" disabled hidden>Choose...</option>
                           {shippingmethods.map((shippingmethod) => (
+                            // console.log("shippingmethod",shippingmethod),
                             <option
                               key={shippingmethod.instance_id}
                               value={`${shippingmethod.method_id}:${shippingmethod.instance_id}|${shippingmethod.method_title}`}
@@ -806,6 +869,7 @@ const Addorder = () => {
                               </div>
                               <hr />
                               {selectedProducts.map((product, index) => {
+                                // console.log("product",product);
                                 const cartItem = cart.find((item) => item.id === product.id) || { quantity: 0 };
                                 const isVariation = !!product.parent_id;
                                 return (
@@ -838,7 +902,7 @@ const Addorder = () => {
                                             SKU: {product.sku || "N/A"}
                                           </Card.Subtitle>
                                           <Card.Subtitle style={{ fontSize: 12 }}>
-                                            Quantity: {cartItem.quantity}
+                                            Available Quantity: {product.stock_quantity}
                                           </Card.Subtitle>
 
                                           <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 12 }}>
@@ -858,20 +922,46 @@ const Addorder = () => {
 
                                     <div className="d-flex align-items-center gap-2">
                                       <i className="fe fe-plus" onClick={() => updateQuantity(product.id, product.price, 1)} style={{ cursor: "pointer" }}></i>
-                                      <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
+                                       <Form.Control
+                                          type="number"
+                                          min={1}
+                                          value={cartItem.quantity}
+                                          onChange={(e) => {
+                                            const newQty = Math.max(1, parseInt(e.target.value) || 1);
+                                            updateQuantity(product.id, product.price, newQty - cartItem.quantity);
+                                          }}
+                                          style={{ width: "60px", padding: "2px 8px", fontSize: "14px" }}
+                                        />
                                       <i className="fe fe-minus" onClick={() => updateQuantity(product.id, product.price, -1)} style={{ cursor: "pointer" }}></i>
                                     </div>
                                   </div>
                                 );
                               })}
+                              <hr />
+                              <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
+                                <div>
+                                  {/* <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Quantity: {totalQuantity}</Card.Subtitle> */}
+                                </div>
+                                <div>
+                                  <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 14 }}>Item Subtotal: {totalPrice} £</Card.Subtitle>
+                                  <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 14 }}>Shipping: {shippingcost} £</Card.Subtitle>
+                                  <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 14 }}>Tax: {((Number(totalPrice) + Number(shippingcost)) * 0.20).toFixed(2)} £</Card.Subtitle>
+                                  <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 14 }}>
+                                    Order Total: {((Number(totalPrice) + Number(shippingcost)) * 1.2).toFixed(2)} £
+                                  </Card.Subtitle>
 
+                                </div>
+                              </div>
                               <hr />
                               <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
                                 <div>
                                   <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Quantity: {totalQuantity}</Card.Subtitle>
                                 </div>
                                 <div>
-                                  <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Total: {totalPrice} $</Card.Subtitle>
+                                  <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>
+                                    Paid: {(Number(totalPrice) + Number(shippingcost)).toFixed(2)} £
+                                  </Card.Subtitle>
+
                                 </div>
                               </div>
                             </Card.Body>
@@ -969,13 +1059,25 @@ const Addorder = () => {
                       </Col>
                     </Row>
                     <Row className="mb-3">
-                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="TranscationID/Note">Transcation ID</Form.Label>
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="TranscationID/Note">Transcation ID/Discount</Form.Label>
                       <Col sm={4} className="mb-3 mb-lg-0">
                         <Form.Control type="text" value={formData.tranctionid} onChange={handleChange} name="tranctionid" placeholder="Enter Transcation ID" id="TranscationID/Note" />
                       </Col>
-                      {/* <Col sm={4}>
-                        <Form.Control type="text" value={formData.customernote} onChange={handleChange} name="customernote" placeholder="Enter Note" id="TranscationID/Note" />
-                      </Col> */}
+                      <Col sm={4}>
+                        <InputGroup>
+                          <Form.Control
+                            type="number"
+                            value={discount}
+                            onChange={handleChange}
+                            name="discount"
+                            placeholder="Enter discount"
+                            id="discount"
+                            min={0}
+                            max={100}
+                          />
+                        <InputGroup.Text>%</InputGroup.Text>
+                      </InputGroup>
+                      </Col>
                     </Row>
                     {/* row */}
                     {/* <Row className="mb-3">

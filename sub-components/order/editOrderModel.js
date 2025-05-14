@@ -148,6 +148,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
   // }, [searchTerm, products]);
 
   const handleProductSelect = (product, variation = null) => {
+    // console.log("Product selected:", product);
     setTempSelectedProducts((prevSelected) => {
       const idToCheck = variation ? variation.id : product.id;
       const isAlreadySelected = prevSelected.some(p => {
@@ -173,7 +174,7 @@ const MyVerticallyCenteredModal = ({ show, onHide, products, loading, setSelecte
 
 
   const handleConfirmSelection = () => {
-   // console.log("Selected Products:", tempSelectedProducts);
+   console.log("Selected Products:", tempSelectedProducts);
     setSelectedProducts(tempSelectedProducts);
     setModalShow(false);
   };

@@ -5,7 +5,7 @@ import useMounted from 'hooks/useMounted';
 import axios from 'axios';
 import ToastComponent from 'components/toastcomponent';
 import { toast } from "react-toastify";
-import { Col, Row, Form, Card, Button, Image,Container,Tab,Tabs,Nav,DropdownButton,ButtonGroup,Dropdown,Spinner } from 'react-bootstrap';
+import { Col, Row,InputGroup, Form, Card, Button, Image,Container,Tab,Tabs,Nav,DropdownButton,ButtonGroup,Dropdown,Spinner } from 'react-bootstrap';
 import ExistingCustomerOrOrder from '/sub-components/order/addorder/Existing-customer-or-order.js'
 import ProductsModel from '/sub-components/order/editOrderModel.js'
 import ShippingAddress from '/sub-components/order/addorder/shippingaddress.js'
@@ -26,6 +26,8 @@ const EditOrder = ({params}) => {
   const hasMounted = useMounted();
   const [OrderTypeState, setOrderTypeState] = useState(OrderType);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selectedProductsQuantity, setSelectedProductsQuantity] = useState([]);
+
   const [cart, setCart] = useState([]);
   // console.log("Selected product:",selectedProducts);
   // console.log("Selected cart:",cart);
@@ -36,6 +38,8 @@ const EditOrder = ({params}) => {
   const [orders, setOrder] = useState([]);
   const [paymentgateways, setPaymentgateway] = useState([]);
   const [shippingmethods, setShippingmethods] = useState([]);
+  const [shippingcost, setShippingcost] = useState(0);
+  const [discount, setDiscount] = useState('');
   const [isShippingEnabled, setIsShippingEnabled] = useState(true);
   const [productIds, setProductIds] = useState([]);
   const [fetchedproduct, setFetchedproduct] = useState([]);
@@ -117,7 +121,6 @@ const EditOrder = ({params}) => {
     const updatedCart = selectedProducts.map(product => {
    const data = product.data || product; // support both formats
    const isVariation = !!data.parent_id;
-
    const matchedCartItem = productIds.find(item => item.product_id === data.id);
 
    return {
@@ -142,10 +145,20 @@ const EditOrder = ({params}) => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/order/getsingelorder`, { id: orderid });
     
       if (response.status === 200 && response.data) {
-            // console.log(response.data.data);
+            console.log(response.data.data);
             const order = response.data.data;
+ 
             setFetchedproduct(order);
-        
+
+            const discountFee = order.fee_lines?.find(fee => /^\d+%/.test(fee.name));
+            if (discountFee) {
+              const match = discountFee.name.match(/^(\d+)%/); // extract leading digits before %
+              if (match) {
+                const percentage = parseInt(match[1], 10);
+                setDiscount(percentage);
+              }
+            }
+
             const lineItems = order.line_items || [];
 
             const selected = lineItems.map(item => ({
@@ -163,9 +176,40 @@ const EditOrder = ({params}) => {
               }, // wrap as array if needed
               meta_data: item.meta_data || [],
             }));
+
+            const selectedProductsQuantity = [];
+            for (const item of lineItems) {
+              try {
+                if (item.variation_id && item.variation_id !== 0) {
+                  // 🧩 Variation case: get all variations and pick the right one
+                  const variationRes = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/productvariations`, {
+                    id: item.product_id,
+                  });
+                   const variationList = variationRes.data?.data || [];
+                    if(variationList){
+                      selectedProductsQuantity.push(...variationList); 
+                    }
+                } else {
+                  // 🧩 Simple product case
+                  const productRes = await axios.get(
+                    `${process.env.NEXT_PUBLIC_HOST}/oldapi/woocommerce/getsingleproduct?id=${item.product_id}`
+                  );
+
+                  const productData = productRes.data?.data;
+                  if (productData) {
+                      selectedProductsQuantity.push(productData);
+                  }
+                }
+
+              } catch (error) {
+                console.error(`❌ Failed to fetch product info for item ${item.id}:`, error.message);
+              }
+            }
+            setSelectedProductsQuantity(selectedProductsQuantity);
             // console.log(selected);
-          
             setSelectedProducts(selected);
+            setShippingcost(response.data.data.shipping_total || 0);
+
 
 
           setOrderData({
@@ -518,6 +562,8 @@ const EditOrder = ({params}) => {
     );
   
     const shippingCost = calculateShippingCost(selectedMethod, cart);
+    setShippingcost(shippingCost);
+
   
     return {
       method_id: methodId.toLowerCase(),
@@ -532,8 +578,28 @@ const EditOrder = ({params}) => {
   const handleChange = (event) => {
     const { name, value } = event.target;
     // console.log(`${name}: ${value}`);
+
+    if (name === "discount") {
+      const val = Math.min(100, Math.max(0, parseFloat(value) || 0));
+      setDiscount(val);
+    }
     if (name === "paymentmethod") {
       const [id, title] = value.split("|"); // Extract ID and Title
+      const [method_id, instance_id] = id.split(":");
+
+      const selectedMethod = shippingmethods.find(
+          (m) => m.method_id === method_id && String(m.instance_id) === instance_id
+        );
+
+      let methodid= `${selectedMethod.method_id}:${selectedMethod.instance_id}`;
+      // console.log("selectedMethod",selectedMethod);
+      const shippingLine = parseShippingSelection(
+        `${methodid}|${selectedMethod.method_title}`,
+        shippingmethods
+      );
+
+
+
       setOrderData((prevData) => ({
         ...prevData,
         paymentmethodid: id, // Set ID separately
@@ -729,6 +795,70 @@ const EditOrder = ({params}) => {
       `${orderData.shippingmethodid}|${orderData.shippingmethodtitle}`,
       shippingmethods
     );
+
+    const discountAmount = totalPrice * discount / 100;
+    // console.log("discount",discount);
+
+    
+    let feeLines = [];
+
+    const newDiscountLabel = `${discount}% Custom Discount`;
+    // console.log("newDiscountLabel",newDiscountLabel);
+
+    // Find an existing fee line that matches the pattern "XX% Custom Discount"
+    const existingDiscountFee = fetchedproduct.fee_lines?.find(fee =>
+      /^\d+% Custom Discount$/.test(fee.name)
+    );
+    console.log("existingDiscountFee",existingDiscountFee);
+    const parsedDiscount = parseFloat(discount);
+    if (parsedDiscount > 0) {
+      if (existingDiscountFee) {
+        const match = existingDiscountFee.name.match(/^(\d+)%/);
+        // console.log("match",match);
+        const existingPercentage = match ? parseInt(match[1], 10) : null;
+        // console.log("existingPercentage",existingPercentage);
+
+        if (existingPercentage !== discount) {
+          // User changed the percentage → replace with new one
+          feeLines = [
+            {
+              id: existingDiscountFee.id,
+              name: newDiscountLabel,
+              total: `-${discountAmount.toFixed(2)}`
+            }
+          ];
+        } else {
+          // Percentage is the same → just reuse (with updated amount if needed)
+          feeLines = [
+            {
+              ...existingDiscountFee,
+              name: newDiscountLabel,
+              total: `-${discountAmount.toFixed(2)}`
+            }
+          ];
+        }
+      } else {
+        // No existing discount → add new
+        feeLines = [
+          {
+            name: newDiscountLabel,
+            total: `-${discountAmount.toFixed(2)}`
+          }
+        ];
+      }
+    } else {
+      // Discount is zero → no fee lines
+      if(existingDiscountFee) {
+        feeLines = [
+          {
+            id: existingDiscountFee.id,
+            name: '0% Custom Discount',
+            total: `-0.00`
+          }
+        ];
+      }
+    }
+   
     
 
     const Data = {
@@ -818,6 +948,7 @@ const EditOrder = ({params}) => {
         method_title: shippingLine.method_title,
         total: shippingLine.total,
       }],
+      fee_lines: feeLines,
     };
     
 
@@ -1185,8 +1316,9 @@ const EditOrder = ({params}) => {
                                 {selectedProducts.map((product, index) => {
                                   // console.log(product);
                                   const data = product.data || product;
-                                  const quantity = product.quantity || 1;
+                                  const quantity = product.quantity || product.stock_quantity || 0;
                                   const cartItem = cart.find((item) => item.id === data.id) || { quantity: 1 };
+                                  // console.log("cartItem", cartItem);
                                   const isVariation = data.parent_id !== undefined && data.parent_id !== null;
 
                                   return (
@@ -1244,8 +1376,11 @@ const EditOrder = ({params}) => {
                                             </Card.Subtitle> */}
 
                                             <Card.Subtitle className="mb-2 mt-2" style={{ fontSize: 12 }}>
-                                              Quantity: {quantity}
+                                              Available Quantity: {
+                                                selectedProductsQuantity.find(p => p.id === data.id)?.stock_quantity ?? quantity
+                                              }
                                             </Card.Subtitle>
+
 
                                             <Card.Subtitle className="mb-3 mt-2" style={{ fontSize: 12 }}>
                                               Price: 
@@ -1267,7 +1402,16 @@ const EditOrder = ({params}) => {
                                           onClick={() => updateQuantity(data.id, data.price, 1)}
                                           style={{ cursor: "pointer" }}
                                         ></i>
-                                        <span style={{ fontSize: 14 }}>{cartItem.quantity}</span>
+                                        <Form.Control
+                                          type="number"
+                                          min={1}
+                                          value={cartItem.quantity}
+                                          onChange={(e) => {
+                                            const newQty = Math.max(1, parseInt(e.target.value) || 1);
+                                            updateQuantity(product.id, product.price, newQty - cartItem.quantity);
+                                          }}
+                                          style={{ width: "60px", padding: "2px 8px", fontSize: "14px" }}
+                                        />
                                         <i
                                           className="fe fe-minus"
                                           onClick={() => updateQuantity(data.id, data.price, -1)}
@@ -1277,23 +1421,33 @@ const EditOrder = ({params}) => {
                                     </div>
                                   );
                                 })}
-
                                 <hr />
-                                <div
-                                  className="d-flex align-items-center justify-content-between mb-3"
-                                  style={{ paddingLeft: '15px', paddingRight: '15px' }}
-                                >
-                                  <div>
-                                    <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>
-                                      Quantity: {totalQuantity}
-                                    </Card.Subtitle>
-                                  </div>
-                                  <div>
-                                    <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>
-                                      Total: {totalPrice.toFixed(2)} £
-                                    </Card.Subtitle>
-                                  </div>
-                                </div>
+                                 <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
+                                   <div>
+                                     {/* <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Quantity: {totalQuantity}</Card.Subtitle> */}
+                                   </div>
+                                   <div>
+                                     <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 14 }}>Item Subtotal: {totalPrice} £</Card.Subtitle>
+                                     <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 14 }}>Shipping: {shippingcost} £</Card.Subtitle>
+                                     <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 14 }}>Tax: {((Number(totalPrice) + Number(shippingcost)) * 0.20).toFixed(2)} £</Card.Subtitle>
+                                     <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 14 }}>
+                                       Order Total: {((Number(totalPrice) + Number(shippingcost)) * 1.2).toFixed(2)} £
+                                     </Card.Subtitle>
+   
+                                   </div>
+                                 </div>
+                                 <hr />
+                                 <div className="d-flex align-items-center justify-content-between mb-3" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
+                                   <div>
+                                     <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>Quantity: {totalQuantity}</Card.Subtitle>
+                                   </div>
+                                   <div>
+                                     <Card.Subtitle className="mb-1 mt-1" style={{ fontSize: 13 }}>
+                                       Paid: {(Number(totalPrice) + Number(shippingcost)).toFixed(2)} £
+                                     </Card.Subtitle>
+   
+                                   </div>
+                                 </div>
                               </Card.Body>
                             </Card>
                           </Col>
@@ -1389,12 +1543,24 @@ const EditOrder = ({params}) => {
                       </Col>
                     </Row>
                     <Row className="mb-3">
-                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="TranscationID/Note">Transcation ID</Form.Label>
+                      <Form.Label className="col-sm-4 col-form-label form-label" htmlFor="TranscationID/Note">Transcation ID/Discount</Form.Label>
                       <Col sm={4} className="mb-3 mb-lg-0">
                         <Form.Control type="text" value={formData.tranctionid} onChange={handleChange} name="tranctionid" placeholder="Enter Transcation ID" id="TranscationID/Note"  />
                       </Col>
                       <Col sm={4}>
-                        {/* <Form.Control type="text" value={formData.customernote} onChange={handleChange} name="customernote" placeholder="Enter Note" id="TranscationID/Note"  /> */}
+                        <InputGroup>
+                            <Form.Control
+                              type="number"
+                              value={discount}
+                              onChange={handleChange}
+                              name="discount"
+                              placeholder="Enter discount"
+                              id="discount"
+                              min={0}
+                              max={100}
+                            />
+                          <InputGroup.Text>%</InputGroup.Text>
+                        </InputGroup>
                       </Col>
                     </Row>
                     {/* row */}
