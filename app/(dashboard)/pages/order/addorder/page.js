@@ -217,9 +217,19 @@ const Addorder = () => {
     const { name, value } = event.target;
     // console.log(`${name}: ${value}`);
     if (name === "discount") {
-      const val = Math.min(100, Math.max(0, parseFloat(value) || 0));
-      setDiscount(val);
+      const val = value;
+      // Allow only digits (no letters, no +/-, no dots)
+      if (/^\d{0,3}$/.test(val)) {
+        // Allow empty or 0–100
+        if (val === '' || (parseInt(val, 10) >= 0 && parseInt(val, 10) <= 100)) {
+          setDiscount(val);
+        }
+      }
+
+      return;
     }
+
+
     if (name === "paymentmethod") {
       const [id, title] = value.split("|"); // Extract ID and Title
 
@@ -390,6 +400,9 @@ const Addorder = () => {
           }
         ]
       : [];
+      console.log("discount",discount);
+      console.log("feeLines",feeLines);
+      return;
 
     const Data = {
       payment_method: orderData.paymentmethodid || "default_method",
