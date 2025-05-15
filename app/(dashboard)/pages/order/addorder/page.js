@@ -400,9 +400,7 @@ const Addorder = () => {
           }
         ]
       : [];
-      console.log("discount",discount);
-      console.log("feeLines",feeLines);
-      return;
+    
 
     const Data = {
       payment_method: orderData.paymentmethodid || "default_method",
